@@ -11,7 +11,8 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
 - Antes de cambiar física, verificar numéricamente (por ejemplo con Node, simulando sin DOM).
 
 ## Simuladores
-- `index.html`: gravitación y leyes de Kepler. Leapfrog con paso adaptativo (√(rⁿ⁺¹/M)),
+- `index.html`: página de inicio que enlaza todos los simuladores.
+- `gravitacion.html`: gravitación y leyes de Kepler. Leapfrog con paso adaptativo (√(rⁿ⁺¹/M)),
   ley de fuerza 1/rⁿ con n = 0,5 / 1 / 2 / 3, modo Sol fijo y modo N cuerpos (hasta 4) con fusión
   que conserva masa y momento. Vistas de 1.ª ley (elipse osculadora y focos), 2.ª (áreas por sectores
   de tiempo igual) y 3.ª (gráfico T² vs a³ medido por vuelta). Unidades: r = 1 UA, 1 año = 2π.
@@ -24,5 +25,4 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
 - `lanzamiento.html`: lanzamiento vertical a escala real con cámara que se aleja y marcas cada 0,1 s.
 
 ## Pendientes posibles
-- Página de inicio que enlace todos los simuladores (hoy `index.html` es el de Kepler).
 - Opción "agujero negro" en gravitación con potencial pseudo-newtoniano de Paczyński–Wiita.

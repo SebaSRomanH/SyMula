@@ -2,9 +2,11 @@
 
 Simuladores interactivos de física que corren en el navegador, sin instalación ni dependencias.
 
+Página de inicio con todos los simuladores: https://sebasromanh.github.io/SyMula/
+
 ## Gravitación: las leyes de Kepler
 
-[Abrir el simulador](https://sebasromanh.github.io/SyMula/) · código en [`index.html`](index.html)
+[Abrir el simulador](https://sebasromanh.github.io/SyMula/gravitacion.html) · código en [`gravitacion.html`](gravitacion.html)
 
 Un sistema solar en el que se crean planetas tocando el cielo y se lanzan arrastrando. Está pensado para aprender de forma intuitiva:
 

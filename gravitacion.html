@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f2a">
+<title>Planetas: las leyes de Kepler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Espacio nocturno por diseño en ambos temas */
+:root{
+  --sky:#0a0f2a;--bar:#121937;--btn:#1c2550;--line:#2e3a73;--ink:#eef1ff;--soft:#9aa6d6;--acc:#ffc94a;--acc-ink:#2a1c00;
+  color-scheme:dark;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--sky:#0a0f2a;--bar:#121937;--btn:#1c2550;--line:#2e3a73;--ink:#eef1ff;--soft:#9aa6d6;--acc:#ffc94a;--acc-ink:#2a1c00}
+}
+:root[data-theme="dark"]{--sky:#0a0f2a;--bar:#121937;--btn:#1c2550;--line:#2e3a73;--ink:#eef1ff;--soft:#9aa6d6;--acc:#ffc94a;--acc-ink:#2a1c00}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;background:var(--sky);scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--sky);color:var(--ink);
+  font:700 15px/1.3 Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.stage{position:relative;flex:1;min-height:0}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.card{position:absolute;top:10px;left:10px;right:10px;max-width:460px;background:rgba(12,18,48,.78);border:1px solid var(--line);
+  border-radius:14px;padding:10px 12px;pointer-events:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.card h1{font:800 17px/1.2 Nunito,sans-serif;margin:0 0 3px;color:var(--acc)}
+.card p{margin:0;font-weight:600;font-size:14px;color:#d6dcff}
+.card .data{margin-top:5px;font-size:13px;color:#8fd8ff;font-variant-numeric:tabular-nums}
+.toast{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:var(--acc);color:var(--acc-ink);
+  padding:8px 16px;border-radius:999px;white-space:nowrap;pointer-events:none;transition:opacity .4s;max-width:94%;overflow:hidden;text-overflow:ellipsis}
+.toast.off{opacity:0}
+.bar{background:var(--bar);border-top:1px solid var(--line);padding:8px 10px 10px;display:flex;flex-direction:column;gap:7px}
+.lbl{font-size:12px;color:var(--soft);margin:0 2px -3px}
+.seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--btn)}
+.seg button{flex:1;min-height:40px;padding:6px 4px;border:0;background:transparent;color:var(--ink);font:700 14px Nunito,sans-serif;cursor:pointer;line-height:1.1}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button small{display:block;font-size:11px;font-weight:600;color:var(--soft)}
+.seg button[aria-pressed="true"]{background:var(--acc);color:var(--acc-ink)}
+.seg button[aria-pressed="true"] small{color:#5a4100}
+.row{display:flex;gap:7px}
+.btn{flex:1;min-height:42px;border-radius:12px;border:1px solid var(--line);background:var(--btn);color:var(--ink);
+  font:700 14px Nunito,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn svg{width:20px;height:20px}
+.btn:active,.seg button:active{transform:scale(.97)}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:#d6dcff}
+.chk input{width:18px;height:18px;accent-color:var(--acc)}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="cv" aria-label="Sistema solar: toca para crear un planeta, toca un planeta para seguirlo, arrastra para lanzarlo"></canvas>
+  <div class="card" aria-live="polite"><h1 id="title"></h1><p id="text"></p><div class="data" id="data"></div></div>
+  <div class="toast off" id="toast"></div>
+</div>
+<div class="bar">
+  <div class="seg" role="group" aria-label="Modo">
+    <button type="button" data-mode="central" aria-pressed="true">Sol y planetas</button>
+    <button type="button" data-mode="nbody" aria-pressed="false">Masas que se atraen</button>
+  </div>
+  <div class="seg" role="group" aria-label="Ley de Kepler" id="kepRow">
+    <button type="button" data-k="1" aria-pressed="true">1.ª ley<small>Elipses</small></button>
+    <button type="button" data-k="2" aria-pressed="false">2.ª ley<small>Áreas</small></button>
+    <button type="button" data-k="3" aria-pressed="false">3.ª ley<small>Periodos</small></button>
+  </div>
+  <div id="nbRow" hidden style="display:flex;flex-direction:column;gap:7px">
+    <div class="row">
+      <div class="seg" role="group" aria-label="Masa nueva" style="flex:1.2">
+        <button type="button" data-size="0.5" aria-pressed="false">0,5<small>masa</small></button>
+        <button type="button" data-size="1" aria-pressed="true">1<small>masa</small></button>
+        <button type="button" data-size="3" aria-pressed="false">3<small>masa</small></button>
+      </div>
+      <label class="chk"><input id="mergeOn" type="checkbox" checked>Se comen<br>al chocar</label>
+    </div>
+    <div class="seg" role="group" aria-label="Escenas">
+      <button type="button" data-preset="binaria">Pareja</button>
+      <button type="button" data-preset="ocho">Ocho</button>
+      <button type="button" data-preset="cuadrado">Ronda</button>
+      <button type="button" data-preset="sistema">Familia</button>
+    </div>
+  </div>
+  <div class="lbl">Cómo cambia la gravedad con la distancia r</div>
+  <div class="seg" role="group" aria-label="Ley de fuerza" id="laws">
+    <button type="button" data-n="0.5" aria-pressed="false">1/√r<small>muy suave</small></button>
+    <button type="button" data-n="1" aria-pressed="false">1/r<small>suave</small></button>
+    <button type="button" data-n="2" aria-pressed="true">1/r²<small>la real</small></button>
+    <button type="button" data-n="3" aria-pressed="false">1/r³<small>brusca</small></button>
+  </div>
+  <div class="row">
+    <button class="btn" id="play" type="button"><svg viewBox="0 0 20 20" id="playIcon"></svg><span id="playLbl">Pausa</span></button>
+    <button class="btn" id="spd" type="button"><span id="spdLbl">Velocidad 1x</span></button>
+    <button class="btn" id="clr" type="button">Borrar</button>
+    <button class="btn" id="snd" type="button" aria-pressed="true"><svg viewBox="0 0 20 20" id="sndIcon"></svg></button>
+  </div>
+</div>
+<script>
+(function(){
+"use strict";
+// Física: unidades con r = 1 (1 UA) de referencia y G·M☉ = 1, así una órbita circular en r = 1
+// tarda 2π unidades = 1 año. Sol fijo: a(r) = 1/r^n.  Masas que se atraen: cada masa j acelera a i con m_j / r^n.
+const DT = 0.0025, SUB = 12, SUN_R = 0.07, ESCAPE = 14, TRAIL = 1500, MAXP = 10, MAXN = 4, RMIN = 0.02;
+const ETA = 0.015, MAXSUB = 4000, TRAIL_STEP = 0.006, YEAR = 2*Math.PI;
+const COLORS = ["#5ec8f2","#f27b9b","#9be37c","#c7a2ff","#ffd166","#4fd1c5","#ff8a5c","#f0a742"];
+const INFO_C = {}, INFO_N = "", FML = {}, KEP = {};   // (textos de la versión técnica: no se usan aquí)
+
+let n = 2, mode = "central", bodies = [], paused = false, speed = 1, colorIdx = 0, drag = null, newMass = 1, tick = 0;
+let mergeOn = true;
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d"), $ = id => document.getElementById(id);
+let Wd = 0, Hd = 0, dpr = 1, scale = 1, cx = 0, cy = 0;
+function resize(){
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  Wd = cv.clientWidth; Hd = cv.clientHeight;
+  cv.width = Math.round(Wd*dpr); cv.height = Math.round(Hd*dpr);
+  scale = 0.27*Math.min(Wd, Hd); cx = Wd/2; cy = Hd/2 + Math.min(40, Hd*0.06);   // deja espacio a la tarjeta de arriba
+}
+new ResizeObserver(resize).observe(cv);
+const toWorld = (sx, sy) => [(sx-cx)/scale, (sy-cy)/scale];
+const toScreen = (x, y) => [cx+x*scale, cy+y*scale];
+const radius = m => 0.035*Math.cbrt(m);
+
+// ---------- Física: Sol fijo (planetas sin masa) ----------
+function accC(x, y){
+  const r = Math.sqrt(x*x+y*y) || 1e-9, a = Math.pow(Math.max(r, RMIN), -n);
+  return [-a*x/r, -a*y/r];
+}
+function stepC(p, h = DT){                           // leapfrog (simpléctico)
+  p.vx += p.ax*h/2; p.vy += p.ay*h/2;
+  p.x += p.vx*h; p.y += p.vy*h;
+  [p.ax, p.ay] = accC(p.x, p.y);
+  p.vx += p.ax*h/2; p.vy += p.ay*h/2;
+}
+const aliveC = p => { const r = Math.hypot(p.x, p.y); return r > SUN_R && r < ESCAPE; };
+
+// ---------- Física: N cuerpos ----------
+function accN(bs){
+  for (const b of bs){ b.ax = 0; b.ay = 0; }
+  for (let i = 0; i < bs.length; i++) for (let j = i+1; j < bs.length; j++){
+    const a = bs[i], b = bs[j], dx = b.x-a.x, dy = b.y-a.y, r = Math.hypot(dx, dy) || 1e-9;
+    // sin fusión, la fuerza se suaviza dentro de los radios para que las masas se atraviesen sin dispararse
+    const s = Math.pow(Math.max(r, mergeOn ? RMIN : radius(a.m)+radius(b.m)), -n)/r;
+    a.ax += b.m*s*dx; a.ay += b.m*s*dy; b.ax -= a.m*s*dx; b.ay -= a.m*s*dy;
+  }
+}
+function stepN(bs, h = DT){
+  for (const b of bs){ b.vx += b.ax*h/2; b.vy += b.ay*h/2; b.x += b.vx*h; b.y += b.vy*h; }
+  accN(bs);
+  for (const b of bs){ b.vx += b.ax*h/2; b.vy += b.ay*h/2; }
+}
+// Tiempo dinámico t = √(r/a) = √(r^(n+1)/M): cuanto más cerca y más masa, más rápido se mueve y más fino debe ser el paso
+function tDynN(bs){
+  let t = Infinity;
+  for (let i = 0; i < bs.length; i++) for (let j = i+1; j < bs.length; j++){
+    const a = bs[i], b = bs[j];
+    const r = Math.max(Math.hypot(b.x-a.x, b.y-a.y), mergeOn ? RMIN : radius(a.m)+radius(b.m));
+    t = Math.min(t, Math.sqrt(Math.pow(r, n+1)/(a.m+b.m)));
+  }
+  return t;
+}
+const tDynC = p => Math.sqrt(Math.pow(Math.max(Math.hypot(p.x, p.y), RMIN), n+1));
+function mergeN(bs){                                 // choque: fusión con conservación de masa y momento
+  if (!mergeOn) return false;
+  for (let i = 0; i < bs.length; i++) for (let j = i+1; j < bs.length; j++){
+    const a = bs[i], b = bs[j];
+    if (Math.hypot(b.x-a.x, b.y-a.y) < radius(a.m)+radius(b.m)){
+      const big = a.m >= b.m ? a : b, small = big === a ? b : a, M = a.m+b.m;
+      big.x = (a.x*a.m+b.x*b.m)/M; big.y = (a.y*a.m+b.y*b.m)/M;
+      big.vx = (a.vx*a.m+b.vx*b.m)/M; big.vy = (a.vy*a.m+b.vy*b.m)/M; big.m = M;
+      if (bs === bodies) onMerge(big, small);
+      bs.splice(bs.indexOf(small), 1); accN(bs); return true;
+    }
+  }
+  return false;
+}
+const fmtM = m => m.toFixed(1).replace(".", ",");
+function com(bs){
+  let M = 0, X = 0, Y = 0, VX = 0, VY = 0;
+  for (const b of bs){ M += b.m; X += b.m*b.x; Y += b.m*b.y; VX += b.m*b.vx; VY += b.m*b.vy; }
+  return M ? {M, X:X/M, Y:Y/M, VX:VX/M, VY:VY/M} : {M:0, X:0, Y:0, VX:0, VY:0};
+}
+function zeroMomentum(bs){                           // el centro de masa queda quieto: el sistema no se sale de la pantalla
+  const c = com(bs); for (const b of bs){ b.vx -= c.VX; b.vy -= c.VY; }
+}
+
+// ---------- Crear cuerpos ----------
+function makeBody(x, y, vx, vy, m){ return {x, y, vx, vy, ax:0, ay:0, m, trail:[[x, y]], color:COLORS[colorIdx++ % COLORS.length]}; }
+function addBody(x, y, vx, vy){
+  if (mode === "central"){
+    const b = makeBody(x, y, vx, vy, 0); [b.ax, b.ay] = accC(x, y);
+    bodies.push(b); if (bodies.length > MAXP) bodies.shift();
+  } else {
+    if (bodies.length >= MAXN){ toast("Máximo 4 masas. Usa Borrar para empezar de nuevo."); return; }
+    bodies.push(makeBody(x, y, vx, vy, newMass)); zeroMomentum(bodies); accN(bodies);
+  }
+  updateCount();
+}
+function circularVel(x, y){                          // perpendicular al radio, antihorario en pantalla
+  let ox = 0, oy = 0, M = 1;
+  if (mode === "nbody"){
+    const c = com(bodies); if (!c.M) return [0, 0];
+    ox = c.X; oy = c.Y; M = c.M + newMass;          // órbita relativa de dos cuerpos: usa la masa total
+  }
+  const dx = x-ox, dy = y-oy, r = Math.hypot(dx, dy) || 1e-9, v = Math.sqrt(M*Math.pow(r, 1-n));
+  return [dy/r*v, -dx/r*v];
+}
+function predict(x, y, vx, vy){
+  const pts = [[x, y]];
+  if (mode === "central"){
+    const p = {x, y, vx, vy, ax:0, ay:0}; [p.ax, p.ay] = accC(x, y);
+    for (let k = 0; k < 2400; k++){ stepC(p); if (!aliveC(p)){ pts.push([p.x, p.y]); break; } if (k % 4 === 0) pts.push([p.x, p.y]); }
+  } else {
+    if (bodies.length >= MAXN) return pts;
+    const bs = bodies.map(b => ({x:b.x, y:b.y, vx:b.vx, vy:b.vy, ax:0, ay:0, m:b.m}));
+    const me = {x, y, vx, vy, ax:0, ay:0, m:newMass}; bs.push(me); zeroMomentum(bs); accN(bs);
+    for (let k = 0; k < 1600; k++){ stepN(bs); if (k % 4 === 0) pts.push([me.x, me.y]); }
+  }
+  return pts;
+}
+
+// ---------- Escenarios de N cuerpos ----------
+function preset(name){
+  bodies = []; colorIdx = 0;
+  const add = (x, y, vx, vy, m) => bodies.push(makeBody(x, y, vx, vy, m));
+  if (name === "binaria"){                           // separación 1: fuerza = 1 con cualquier ley
+    const v = Math.sqrt(0.5);
+    add(0.5, 0, 0, -v, 1); add(-0.5, 0, 0, v, 1);
+  } else if (name === "ocho"){                       // Chenciner–Montgomery (exacta solo con 1/r²)
+    const x1 = 0.97000436, y1 = -0.24308753, vx = -0.93240737, vy = -0.86473146;
+    add(x1, y1, -vx/2, -vy/2, 1); add(-x1, -y1, -vx/2, -vy/2, 1); add(0, 0, vx, vy, 1);
+  } else if (name === "cuadrado"){                   // 4 masas iguales, órbita circular para la ley activa
+    const ac = Math.SQRT2*Math.pow(2, -n/2) + Math.pow(2, -n), v = Math.sqrt(ac);
+    for (let k = 0; k < 4; k++){ const a = k*Math.PI/2, x = Math.cos(a), y = Math.sin(a); add(x, y, y*v, -x*v, 1); }
+  } else if (name === "sistema"){                    // estrella masiva y 3 planetas livianos que se perturban
+    add(0, 0, 0, 0, 3);
+    for (const [r, m] of [[0.7, 0.05], [1.2, 0.08], [1.85, 0.12]]){
+      const v = Math.sqrt(3*Math.pow(r, 1-n)), a = Math.random()*Math.PI*2, x = r*Math.cos(a), y = r*Math.sin(a);
+      add(x, y, y/r*v, -x/r*v, m);
+    }
+  }
+  zeroMomentum(bodies); accN(bodies); updateCount();
+}
+
+// ---------- Sonidos suaves ----------
+let actx = null, soundOn = true;
+function tone(f0, f1, dur, type = "sine", vol = 0.14){
+  if (!soundOn) return;
+  try {
+    if (!actx){ const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; actx = new AC(); }
+    actx.resume();
+    const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t+dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+dur+0.03);
+  } catch (err) {}
+}
+const sPop = () => tone(420, 760, 0.1), sEat = () => tone(260, 80, 0.5, "triangle", 0.22);
+
+// ---------- Una masa se come a otra: animación ----------
+// La física fusiona en un paso (masa y momento se conservan); aquí se muestra cómo la pequeña
+// cae dentro de la grande y cómo la grande crece hasta la suma de ambas.
+let ghosts = [];
+const fmt = (v, d) => v.toFixed(d).replace(".", ",");
+function onMerge(big, small){
+  big.mShow0 = big.m - small.m; big.mt = 0;
+  ghosts.push({x:small.x, y:small.y, r:Math.max(7, radius(small.m)*scale*1.5), color:small.color, to:big, t:0, label:`${fmt(big.m-small.m,1)} + ${fmt(small.m,1)} = ${fmt(big.m,1)}`});
+  sEat();
+}
+function onEaten(p){ ghosts.push({x:p.x, y:p.y, r:7, color:p.color, to:null, t:0, label:""}); sEat(); }
+const shownMass = b => b.mt === undefined || b.mt >= 1 ? b.m : b.mShow0 + (b.m - b.mShow0)*ease(b.mt);
+const ease = t => t < 0.5 ? 2*t*t : 1 - 2*(1-t)*(1-t);
+
+// ---------- Mediciones para las leyes de Kepler (solo con Sol fijo) ----------
+// Cada planeta mide: el ángulo recorrido (una vuelta = 2π), su distancia mínima y máxima en esa vuelta
+// (a = semieje mayor = (r_min + r_max)/2) y el tiempo que tardó (T). También guarda dónde pasó más cerca.
+function initTrack(p){ Object.assign(p, {t:0, ang:0, tRev:0, rlo:Infinity, rhi:0, T:null, a:null, peris:[], vrPrev:null, lastTh:Math.atan2(p.y, p.x)}); }
+function track(p, h){
+  p.t += h;
+  const r = Math.hypot(p.x, p.y), th = Math.atan2(p.y, p.x);
+  let d = th - p.lastTh; if (d > Math.PI) d -= 2*Math.PI; if (d < -Math.PI) d += 2*Math.PI;
+  p.ang += Math.abs(d); p.lastTh = th;
+  p.rlo = Math.min(p.rlo, r); p.rhi = Math.max(p.rhi, r);
+  const vr = (p.x*p.vx + p.y*p.vy)/r;
+  if (p.vrPrev !== null && p.vrPrev < 0 && vr >= 0 && (p.rhi - p.rlo) > 0.03*p.rhi){   // pasó por el punto más cercano
+    p.peris.push([p.x, p.y]); if (p.peris.length > 14) p.peris.shift();
+  }
+  p.vrPrev = vr;
+  if (p.ang >= 2*Math.PI){                           // completó una vuelta
+    p.T = p.t - p.tRev; p.a = (p.rlo + p.rhi)/2;
+    p.tRev = p.t; p.ang -= 2*Math.PI; p.rlo = r; p.rhi = r;
+  }
+}
+// 2.ª ley: sectores barridos en intervalos de tiempo iguales
+let sel = null, kep = 1, sectors = [], cur = null, dtArea = 0.5;
+function estPeriod(p){
+  const r = Math.hypot(p.x, p.y), v2 = p.vx*p.vx + p.vy*p.vy, E = v2/2 - 1/r;
+  if (n === 2 && E < 0) return 2*Math.PI*Math.pow(-1/(2*E), 1.5);
+  return 2*Math.PI*Math.pow(r, (1+n)/2);
+}
+function select(p){
+  sel = p; sectors = []; cur = null;
+  if (p) dtArea = estPeriod(p)/12;
+}
+function trackArea(p, h){
+  if (p !== sel || kep !== 2) return;
+  if (!cur) cur = {pts:[[p.x, p.y]], t:0, k:sectors.length + (sectors.k0 || 0)};
+  cur.t += h;
+  const l = cur.pts[cur.pts.length-1];
+  if (Math.hypot(p.x-l[0], p.y-l[1]) > 0.01) cur.pts.push([p.x, p.y]);
+  if (cur.t >= dtArea){
+    cur.pts.push([p.x, p.y]);
+    let A = 0; for (let i = 0; i < cur.pts.length-1; i++){ const [x1, y1] = cur.pts[i], [x2, y2] = cur.pts[i+1]; A += x1*y2 - x2*y1; }
+    cur.area = Math.abs(A)/2; sectors.push(cur);
+    if (sectors.length > 8){ sectors.shift(); sectors.k0 = (sectors.k0 || 0) + 1; }
+    cur = {pts:[[p.x, p.y]], t:0, k:cur.k+1};
+  }
+}
+
+// ---------- Textos ----------
+const LAWTXT = {0.5:"1/√r", 1:"1/r", 2:"1/r²", 3:"1/r³"};
+function updateCard(){
+  let title, text;
+  if (mode === "nbody"){
+    title = "Masas que se atraen";
+    text = mergeOn ? "Todas se atraen entre sí. Cuando dos chocan, la más grande se come a la otra y su masa es la suma de las dos."
+                   : "Todas se atraen entre sí. Ahora al chocar se atraviesan sin juntarse.";
+  } else if (kep === 1){
+    title = "1.ª ley: órbitas en elipse";
+    text = n === 2 ? "Cada planeta recorre una elipse y el Sol está en uno de sus dos focos. Los puntos marcan dónde pasa más cerca: siempre en el mismo lugar."
+                   : `Con gravedad ${LAWTXT[n]} la órbita ya no es una elipse: el punto más cercano al Sol se va corriendo en cada vuelta.`;
+  } else if (kep === 2){
+    title = "2.ª ley: áreas iguales en tiempos iguales";
+    text = "Cada triángulo se barre en el mismo tiempo y todos tienen la misma área: cerca del Sol el planeta va más rápido. Se cumple con cualquier ley de fuerza.";
+  } else {
+    title = "3.ª ley: T² = a³";
+    text = n === 2 ? "Mientras más lejos está un planeta, más tarda en dar la vuelta. Con años y UA, el tiempo al cuadrado es igual a la distancia al cubo: los puntos caen sobre la recta."
+                   : `Con gravedad ${LAWTXT[n]} los puntos se salen de la recta: la 3.ª ley solo funciona con la gravedad real.`;
+  }
+  $("title").textContent = title; $("text").textContent = text;
+}
+function updateData(){
+  if (mode === "nbody"){
+    $("data").textContent = bodies.length ? "Masas: " + bodies.map(b => fmt(shownMass(b), 1)).join(" · ") + "   Total: " + fmt(bodies.reduce((s, b) => s + b.m, 0), 1) : "Toca para poner una masa.";
+    return;
+  }
+  if (!sel){ $("data").textContent = "Toca el cielo para crear un planeta, o toca uno para seguirlo."; return; }
+  if (kep === 2){
+    const A = sectors.map(s => fmt(s.area, 3));
+    $("data").textContent = A.length ? "Áreas: " + A.slice(-5).join(" · ") : "Midiendo áreas…";
+  } else if (sel.T){
+    const T = sel.T/YEAR, a = sel.a;
+    $("data").textContent = `a = ${fmt(a, 2)} UA   T = ${fmt(T, 2)} años   T² = ${fmt(T*T, 2)}   a³ = ${fmt(a*a*a, 2)}`;
+  } else $("data").textContent = "Midiendo la primera vuelta…";
+}
+
+// ---------- Interfaz ----------
+let toastT = 0;
+function toast(t, ms = 3000){ const el = $("toast"); el.textContent = t; el.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add("off"), ms); }
+function updateCount(){}
+function setLaw(v){
+  n = v;
+  document.querySelectorAll("#laws button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.n === n));
+  if (mode === "central") for (const p of bodies){ [p.ax, p.ay] = accC(p.x, p.y); initTrack(p); }
+  else accN(bodies);
+  select(sel); updateCard();
+}
+function setMode(m){
+  mode = m; bodies = []; colorIdx = 0; ghosts = []; select(null);
+  document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === mode));
+  $("kepRow").hidden = mode !== "central"; $("nbRow").hidden = mode !== "nbody";
+  if (mode === "central"){
+    for (const [r, f] of [[1, 1], [1.7, 0.8]]){ const [vx, vy] = circularVel(-r, 0); addBody(-r, 0, vx*f, vy*f); initTrack(bodies[bodies.length-1]); }
+    select(bodies[1]);
+  } else preset("binaria");
+  updateCard();
+}
+function addPlanet(x, y, vx, vy){
+  const before = bodies.length; addBody(x, y, vx, vy);
+  const p = bodies[bodies.length-1];
+  if (mode === "central"){ initTrack(p); select(p); }
+  if (bodies.length !== before || mode === "central") sPop();
+}
+document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+document.querySelectorAll("#laws button").forEach(b => b.addEventListener("click", () => setLaw(+b.dataset.n)));
+document.querySelectorAll("[data-k]").forEach(b => b.addEventListener("click", () => {
+  kep = +b.dataset.k; select(sel);
+  document.querySelectorAll("[data-k]").forEach(x => x.setAttribute("aria-pressed", x === b)); updateCard();
+}));
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => { preset(b.dataset.preset); ghosts = []; sPop(); }));
+document.querySelectorAll("[data-size]").forEach(b => b.addEventListener("click", () => {
+  newMass = +b.dataset.size; document.querySelectorAll("[data-size]").forEach(x => x.setAttribute("aria-pressed", x === b));
+}));
+$("mergeOn").addEventListener("change", e => { mergeOn = e.target.checked; accN(bodies); updateCard(); });
+const PLAY = '<path d="M6 4l11 6-11 6z" fill="currentColor"/>', PAUSE = '<rect x="5" y="4" width="3.5" height="12" rx="1" fill="currentColor"/><rect x="11.5" y="4" width="3.5" height="12" rx="1" fill="currentColor"/>';
+$("play").addEventListener("click", () => { paused = !paused; $("playIcon").innerHTML = paused ? PLAY : PAUSE; $("playLbl").textContent = paused ? "Seguir" : "Pausa"; });
+const SPEEDS = [1, 2, 0.5];
+$("spd").addEventListener("click", () => { speed = SPEEDS[(SPEEDS.indexOf(speed)+1) % SPEEDS.length]; $("spdLbl").textContent = "Velocidad " + fmt(speed, speed < 1 ? 1 : 0) + "x"; });
+$("clr").addEventListener("click", () => { bodies = []; colorIdx = 0; ghosts = []; select(null); });
+const SND_ON = '<path d="M3 8h3l5-4v12l-5-4H3z" fill="currentColor"/><path d="M14 7q2 3 0 6M16.5 5q4 5 0 10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
+const SND_OFF = '<path d="M3 8h3l5-4v12l-5-4H3z" fill="currentColor"/><path d="M14 7l5 6M19 7l-5 6" stroke="#f27b9b" stroke-width="1.8" stroke-linecap="round"/>';
+function syncSound(){ $("sndIcon").innerHTML = soundOn ? SND_ON : SND_OFF; $("snd").setAttribute("aria-label", soundOn ? "Sonido activado" : "Sonido apagado"); }
+$("snd").addEventListener("click", () => { soundOn = !soundOn; syncSound(); });
+
+// tocar el cielo = planeta en órbita circular; tocar un planeta = seguirlo; arrastrar = lanzar
+function pos(e){ const r = cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+const dragVel = () => [(drag.ex-drag.sx)/scale*1.6, (drag.ey-drag.sy)/scale*1.6];
+cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); const [sx, sy] = pos(e); drag = {sx, sy, ex:sx, ey:sy}; });
+cv.addEventListener("pointermove", e => { if (drag) [drag.ex, drag.ey] = pos(e); });
+cv.addEventListener("pointerup", () => {
+  if (!drag) return;
+  const [x, y] = toWorld(drag.sx, drag.sy);
+  const moved = Math.hypot(drag.ex-drag.sx, drag.ey-drag.sy) >= 8;
+  if (!moved && mode === "central"){
+    const hit = bodies.find(b => { const [X, Y] = toScreen(b.x, b.y); return Math.hypot(X-drag.sx, Y-drag.sy) < 22; });
+    if (hit){ select(hit); drag = null; return; }
+  }
+  if (mode === "nbody" || Math.hypot(x, y) > SUN_R*1.5){
+    const [vx, vy] = moved ? dragVel() : circularVel(x, y);
+    addPlanet(x, y, vx, vy);
+  }
+  drag = null;
+});
+cv.addEventListener("pointercancel", () => drag = null);
+
+// ---------- Dibujo ----------
+const STARS = Array.from({length:140}, () => ({x:Math.random(), y:Math.random(), r:0.3+Math.random()*1.1, p:Math.random()*6.28}));
+function path(pts){
+  ctx.beginPath();
+  for (let k = 0; k < pts.length; k++){ const [X, Y] = toScreen(pts[k][0], pts[k][1]); k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }
+}
+function glow(X, Y, r, inner, outer){
+  const g = ctx.createRadialGradient(X, Y, 0, X, Y, r);
+  g.addColorStop(0, inner); g.addColorStop(1, outer);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill();
+}
+function ball(X, Y, r, color, halo = true){
+  if (halo) glow(X, Y, r*2.2, color + "44", color + "00");
+  const g = ctx.createRadialGradient(X-r*0.35, Y-r*0.4, r*0.1, X, Y, r);
+  g.addColorStop(0, "#ffffff"); g.addColorStop(0.3, color); g.addColorStop(1, color);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill();
+}
+function pill(text, X, Y, color = "#eef1ff"){
+  ctx.font = "700 12px Nunito, sans-serif";
+  const w = ctx.measureText(text).width;
+  ctx.fillStyle = "rgba(10,15,42,0.8)"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(X-w/2-5, Y-10, w+10, 17, 8) : ctx.rect(X-w/2-5, Y-10, w+10, 17); ctx.fill();
+  ctx.fillStyle = color; ctx.textAlign = "center"; ctx.fillText(text, X, Y+3); ctx.textAlign = "start";
+}
+// 1.ª ley: elipse calculada con la posición y la velocidad (solo tiene sentido con 1/r²)
+function drawEllipse(p){
+  const r = Math.hypot(p.x, p.y), v2 = p.vx*p.vx + p.vy*p.vy, E = v2/2 - 1/r;
+  if (E >= 0) return;
+  const a = -1/(2*E), rv = p.x*p.vx + p.y*p.vy;
+  const ex = (v2 - 1/r)*p.x - rv*p.vx, ey = (v2 - 1/r)*p.y - rv*p.vy, e = Math.hypot(ex, ey);
+  const ang = e > 1e-4 ? Math.atan2(ey, ex) : 0, b = a*Math.sqrt(Math.max(0, 1-e*e));
+  const [Cx, Cy] = toScreen(-a*e*Math.cos(ang), -a*e*Math.sin(ang));
+  ctx.strokeStyle = "rgba(255,201,74,0.75)"; ctx.lineWidth = 1.6; ctx.setLineDash([6, 6]);
+  ctx.beginPath(); ctx.ellipse(Cx, Cy, a*scale, b*scale, ang, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+  if (e > 0.04){
+    const [Fx, Fy] = toScreen(-2*a*e*Math.cos(ang), -2*a*e*Math.sin(ang));   // el otro foco: vacío
+    ctx.strokeStyle = "#ffc94a"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(Fx-6, Fy-6); ctx.lineTo(Fx+6, Fy+6); ctx.moveTo(Fx+6, Fy-6); ctx.lineTo(Fx-6, Fy+6); ctx.stroke();
+    pill("foco vacío", Fx, Fy+20, "#ffc94a");
+    pill("Sol en un foco", cx, cy + Math.max(SUN_R*scale, 16) + 18, "#ffc94a");
+    const q = a*(1-e), Q = a*(1+e);
+    const [Px, Py] = toScreen(q*Math.cos(ang), q*Math.sin(ang)), [Ax, Ay] = toScreen(-Q*Math.cos(ang), -Q*Math.sin(ang));
+    ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.arc(Px, Py, 4, 0, Math.PI*2); ctx.arc(Ax, Ay, 4, 0, Math.PI*2); ctx.fill();
+    pill("más cerca", Px, Py-14, "#ffc94a"); pill("más lejos", Ax, Ay-14, "#ffc94a");
+  }
+}
+function drawSectors(){
+  const all = cur ? [...sectors, cur] : sectors;
+  all.forEach((s, i) => {
+    if (s.pts.length < 2) return;
+    const odd = s.k % 2;
+    ctx.fillStyle = odd ? "rgba(94,200,242,0.28)" : "rgba(255,201,74,0.28)";
+    ctx.strokeStyle = odd ? "rgba(94,200,242,0.8)" : "rgba(255,201,74,0.8)"; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    for (const [x, y] of s.pts){ const [X, Y] = toScreen(x, y); ctx.lineTo(X, Y); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    if (s.area !== undefined){
+      const m = s.pts[(s.pts.length/2)|0], [X, Y] = toScreen(m[0]*0.62, m[1]*0.62);
+      pill(fmt(s.area, 3), X, Y, odd ? "#8fd8ff" : "#ffd97a");
+    }
+  });
+}
+function drawKepler3(){                               // gráfico T² contra a³ con la recta T² = a³
+  const pts = bodies.filter(b => b.T).map(b => ({x:Math.pow(b.a, 3), y:Math.pow(b.T/YEAR, 2), c:b.color}));
+  const W = Math.min(170, Wd*0.42), H = W*0.85, X0 = Wd - W - 12, Y0 = Hd - H - 12;
+  let mx = 1.5; for (const p of pts) mx = Math.max(mx, p.x*1.15, p.y*1.15);
+  ctx.fillStyle = "rgba(10,15,42,0.85)"; ctx.strokeStyle = "#2e3a73"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(X0, Y0, W, H, 10) : ctx.rect(X0, Y0, W, H); ctx.fill(); ctx.stroke();
+  const L = X0+30, B = Y0+H-22, R = X0+W-10, T = Y0+12, px = v => L + v/mx*(R-L), py = v => B - v/mx*(B-T);
+  ctx.strokeStyle = "#9aa6d6"; ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(L, B); ctx.lineTo(R, B); ctx.stroke();
+  ctx.strokeStyle = "rgba(255,201,74,0.8)"; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(px(0), py(0)); ctx.lineTo(px(mx), py(mx)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = "#9aa6d6"; ctx.font = "700 11px Nunito, sans-serif";
+  ctx.fillText("a³", R-12, B+15); ctx.fillText("T²", X0+8, T+8);
+  ctx.fillStyle = "#ffc94a"; ctx.fillText("T² = a³", px(mx*0.42), py(mx*0.62));
+  for (const p of pts){ ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(px(p.x), py(p.y), 5, 0, Math.PI*2); ctx.fill(); }
+  if (!pts.length){ ctx.fillStyle = "#9aa6d6"; ctx.fillText("midiendo vueltas…", L+6, B-10); }
+}
+function draw(time){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(Wd, Hd)*0.8);
+  bg.addColorStop(0, "#161d4a"); bg.addColorStop(1, "#0a0f2a");
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, Wd, Hd);
+  for (const s of STARS){ ctx.globalAlpha = 0.35 + 0.35*Math.sin(time/900 + s.p); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(s.x*Wd, s.y*Hd, s.r, 0, Math.PI*2); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  if (mode === "central"){
+    ctx.strokeStyle = "rgba(238,241,255,0.12)"; ctx.setLineDash([3, 6]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(cx, cy, scale, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(238,241,255,0.35)"; ctx.font = "700 11px Nunito, sans-serif"; ctx.fillText("1 UA", cx + scale*0.72 + 4, cy - scale*0.72);
+    if (kep === 2 && sel) drawSectors();
+  }
+  // estelas
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for (const b of bodies){
+    const t = b.trail, CH = 50;
+    ctx.strokeStyle = b.color; ctx.lineWidth = b === sel ? 2.6 : 1.8;
+    for (let s = 0; s < t.length-1; s += CH){ ctx.globalAlpha = 0.05 + 0.6*(s/t.length); path(t.slice(s, Math.min(t.length, s+CH+1))); ctx.stroke(); }
+  }
+  ctx.globalAlpha = 1;
+  if (mode === "central"){
+    if (kep === 1 && sel){
+      if (n === 2) drawEllipse(sel);
+      ctx.fillStyle = "#ffc94a";
+      for (const [x, y] of sel.peris){ const [X, Y] = toScreen(x, y); ctx.beginPath(); ctx.arc(X, Y, 3.5, 0, Math.PI*2); ctx.fill(); }
+    }
+    const sr = Math.max(SUN_R*scale, 16);
+    glow(cx, cy, sr*3.4, "rgba(255,201,74,0.5)", "rgba(255,150,40,0)");
+    const g = ctx.createRadialGradient(cx-sr*0.3, cy-sr*0.35, sr*0.1, cx, cy, sr);
+    g.addColorStop(0, "#fff6c8"); g.addColorStop(0.45, "#ffd23f"); g.addColorStop(1, "#ffa31a");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, sr, 0, Math.PI*2); ctx.fill();
+  }
+  // cuerpos que están siendo comidos
+  for (const gh of ghosts){
+    gh.t = Math.min(1, gh.t + 0.022);
+    const e = ease(gh.t);
+    const tx = gh.to ? gh.to.x : 0, ty = gh.to ? gh.to.y : 0;
+    const [X, Y] = toScreen(gh.x + (tx-gh.x)*e, gh.y + (ty-gh.y)*e);
+    ctx.globalAlpha = 1 - e*0.6; ball(X, Y, gh.r*(1-e), gh.color, false); ctx.globalAlpha = 1;
+  }
+  for (const b of bodies){
+    if (b.mt !== undefined && b.mt < 1) b.mt = Math.min(1, b.mt + 0.022);
+    const [X, Y] = toScreen(b.x, b.y);
+    const pr = mode === "nbody" ? Math.max(7, radius(shownMass(b))*scale*1.5) : (b === sel ? 8 : 6);
+    ball(X, Y, pr, b.color);
+    if (b === sel && mode === "central"){ ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, pr+5, 0, Math.PI*2); ctx.stroke(); }
+    if (mode === "nbody") pill(fmt(shownMass(b), 1), X, Y - pr - 12);
+  }
+  for (const gh of ghosts){
+    if (!gh.label || !gh.to) continue;
+    const [X, Y] = toScreen(gh.to.x, gh.to.y);
+    ctx.globalAlpha = gh.t < 0.8 ? 1 : (1-gh.t)/0.2;
+    pill(gh.label, X, Y + Math.max(7, radius(gh.to.m)*scale*1.5) + 20 + gh.t*8, "#ffd97a");
+    ctx.globalAlpha = 1;
+  }
+  ghosts = ghosts.filter(g => g.t < 1 || (g.label && g.t < 1));
+  if (mode === "central" && kep === 3) drawKepler3();
+  // lanzamiento
+  if (drag){
+    const [x, y] = toWorld(drag.sx, drag.sy);
+    const moving = Math.hypot(drag.ex-drag.sx, drag.ey-drag.sy) >= 8;
+    const [vx, vy] = moving ? dragVel() : circularVel(x, y);
+    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.setLineDash([2, 7]); ctx.lineWidth = 2;
+    path(predict(x, y, vx, vy)); ctx.stroke(); ctx.setLineDash([]);
+    if (moving){
+      ctx.strokeStyle = "#ffc94a"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(drag.sx, drag.sy); ctx.lineTo(drag.ex, drag.ey); ctx.stroke();
+      const a = Math.atan2(drag.ey-drag.sy, drag.ex-drag.sx);
+      ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.moveTo(drag.ex+5*Math.cos(a), drag.ey+5*Math.sin(a));
+      ctx.lineTo(drag.ex-13*Math.cos(a-0.5), drag.ey-13*Math.sin(a-0.5)); ctx.lineTo(drag.ex-13*Math.cos(a+0.5), drag.ey-13*Math.sin(a+0.5)); ctx.fill();
+    }
+    ball(drag.sx, drag.sy, 7, COLORS[colorIdx % COLORS.length]);
+  }
+}
+
+function pushTrail(b){
+  const l = b.trail[b.trail.length-1];
+  if (l && Math.hypot(b.x-l[0], b.y-l[1]) < TRAIL_STEP) return;
+  b.trail.push([b.x, b.y]); if (b.trail.length > TRAIL) b.trail.shift();
+}
+function substeps(T, tdyn){ const k = Math.min(MAXSUB, Math.max(1, Math.ceil(T/Math.min(DT, ETA*tdyn)))); return [k, T/k]; }
+let dataT = 0;
+function frame(time){
+  if (!paused){
+    const T = SUB*speed*DT;
+    if (mode === "central"){
+      for (const p of bodies){
+        const [k, h] = substeps(T, tDynC(p));
+        for (let s = 0; s < k; s++){
+          stepC(p, h);
+          if (!aliveC(p)){ p.dead = true; if (Math.hypot(p.x, p.y) <= SUN_R) onEaten(p); break; }
+          track(p, h); trackArea(p, h); pushTrail(p);
+        }
+      }
+      if (sel && sel.dead) select(bodies.find(b => !b.dead) || null);
+      bodies = bodies.filter(p => !p.dead);
+    } else if (bodies.length){
+      let left = T;
+      while (left > 1e-12){
+        const [k, h] = substeps(left, tDynN(bodies)), n0 = bodies.length;
+        for (let s = 0; s < k; s++){
+          stepN(bodies, h); left -= h;
+          while (mergeN(bodies));
+          bodies.forEach(pushTrail);
+          if (bodies.length !== n0) break;
+        }
+        if (bodies.length < 2) break;
+      }
+      bodies = bodies.filter(b => Math.hypot(b.x, b.y) < ESCAPE);
+    }
+  }
+  draw(time || 0);
+  if ((time || 0) - dataT > 150){ dataT = time || 0; updateData(); }
+  requestAnimationFrame(frame);
+}
+
+resize(); syncSound(); $("playIcon").innerHTML = PAUSE;
+setLaw(2); setMode("central");
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
