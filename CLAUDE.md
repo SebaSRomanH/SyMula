@@ -26,6 +26,10 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   ley de fuerza 1/rⁿ con n = 0,5 / 1 / 2 / 3, modo Sol fijo y modo N cuerpos (hasta 4) con fusión
   que conserva masa y momento. Vistas de 1.ª ley (elipse osculadora y focos), 2.ª (áreas por sectores
   de tiempo igual) y 3.ª (gráfico T² vs a³ medido por vuelta). Unidades: r = 1 UA, 1 año = 2π.
+  Hasta 6 masas; la cámara sigue a la más grande con zoom automático. Polvo galáctico: granos sin masa
+  (Euler simpléctico, paso adaptativo por grano) dibujados con resplandor tipo Vía Láctea. Una estrella
+  que llega a 8 masas hace supernova: expulsa el 70 % como polvo y deja estrella de neutrones o, si el
+  resto supera 3 masas, agujero negro (una estrella de neutrones que pasa de 3 también colapsa).
 - `ondas-sonoras.html`: ondas de presión 2D por diferencias finitas en salas rectangular, circular,
   triangular, elíptica y romboide (paredes rígidas). Modos analíticos (rectángulo, Bessel en círculo,
   Lamé en triángulo) y medidos por FFT en elipse/romboide. Hasta 3 fuentes omni/cardioide/dipolo con
