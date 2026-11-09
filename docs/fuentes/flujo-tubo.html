@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Flujo en un tubo: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:13mm 14mm}
+body{font:9.8pt/1.44 Nunito,sans-serif;color:#1a2238;margin:0}
+header{border-bottom:3px solid #ffc94a;padding-bottom:5px;margin-bottom:6px}
+h1{font-size:19pt;margin:0;color:#0b1226;font-weight:800}
+.sub{color:#5a6480;font-size:9pt;margin:2px 0 0}
+h2{font-size:11pt;margin:8px 0 2px;color:#0b1226;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#ffc94a;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:2px 0 4px}
+ul{margin:2px 0 4px;padding-left:16px}
+.katex-display{margin:4px 0}
+table{border-collapse:collapse;width:100%;font-size:8.8pt;margin:3px 0}
+td,th{border-bottom:1px solid #dde2ee;padding:2px 5px;text-align:left}
+th{color:#5a6480;font-weight:700}
+.note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 8px;font-size:8.8pt;margin:5px 0}
+.cols{columns:2;column-gap:16px}
+section{break-inside:avoid}
+</style>
+</head>
+<body>
+<header>
+<h1>Flujo en un tubo</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (flujo-tubo.html)</p>
+</header>
+<div class="cols">
+
+<section>
+<h2>Idea: Lattice Boltzmann D2Q9</h2>
+<p>En vez de resolver directamente las ecuaciones de Navier–Stokes, cada celda guarda 9 números $f_q$. Cada uno cuenta cuántas partículas de fluido viajan con una de estas velocidades:</p>
+$$\vec e_q\in\{(0,0),(\pm1,0),(0,\pm1),(\pm1,\pm1)\}.$$
+<p>Sus pesos son $w_0 = 4/9$ para la quieta, $1/9$ para las 4 rectas y $1/36$ para las 4 diagonales. Las distancias se miden en celdas y el tiempo en pasos.</p>
+</section>
+
+<section>
+<h2>Densidad y velocidad</h2>
+$$\rho=\sum_{q=0}^{8} f_q,\qquad \rho\,\vec u=\sum_{q=0}^{8} f_q\,\vec e_q.$$
+<p>La presión es $p=c_s^2\,\rho$, con $c_s^2=1/3$ (la velocidad del sonido de la malla).</p>
+</section>
+
+<section>
+<h2>Equilibrio</h2>
+<p>Es la distribución hacia la que tiende cada celda, un desarrollo de Maxwell–Boltzmann:</p>
+$$f_q^\text{eq}=w_q\,\rho\left[1+3\,\vec e_q\!\cdot\vec u+\tfrac92(\vec e_q\!\cdot\vec u)^2-\tfrac32\,u^2\right].$$
+</section>
+
+<section>
+<h2>Colisión y transporte</h2>
+<p>En cada paso, cada celda relaja hacia el equilibrio y envía cada $f_q$ a su vecina en la dirección $\vec e_q$:</p>
+$$f_q(\vec x+\vec e_q,\,t+1)=f_q-\omega\left(f_q-f_q^\text{eq}\right),\qquad \omega=\frac1\tau.$$
+<p>El tiempo de relajación fija la viscosidad:</p>
+$$\nu=\tfrac13\left(\tau-\tfrac12\right)\quad\Longleftrightarrow\quad \tau_0=3\nu+\tfrac12.$$
+<p>A escala grande, este esquema reproduce las ecuaciones de Navier–Stokes. Colisión y transporte se hacen en una sola pasada por la malla, lo que da el mismo resultado y es 1,5 veces más rápido.</p>
+</section>
+
+<section>
+<h2>Turbulencia: modelo de Smagorinsky</h2>
+<p>Con poca viscosidad aparecen remolinos más pequeños que una celda, y el cálculo se vuelve inestable. Para evitarlo, se suma una viscosidad extra donde el fluido se deforma mucho. La deformación local se estima con</p>
+$$\Pi_{\alpha\beta}=\sum_q e_{q\alpha}e_{q\beta}\left(f_q-f_q^\text{eq}\right),$$
+$$|\Pi|=\sqrt{\Pi_{xx}^2+\Pi_{yy}^2+2\,\Pi_{xy}^2}.$$
+<p>Con ella se calcula el tiempo de relajación de cada celda, con la constante de Smagorinsky $C_s=0{,}12$:</p>
+$$\tau=\frac12\left(\tau_0+\sqrt{\tau_0^2+18\sqrt2\,C_s^2\,\frac{|\Pi|}{\rho}}\right).$$
+</section>
+
+<section>
+<h2>Bordes</h2>
+<ul>
+<li><b>Paredes y obstáculos</b> (rebote, «bounce-back»): una población que choca con una celda sólida vuelve a su celda en la dirección opuesta, $f_{\bar q}(\vec x) = f_q^*(\vec x)$. Eso hace que el fluido no resbale en la pared ($\vec u = 0$).</li>
+<li><b>Entrada:</b> equilibrio con $\rho = 1$ y $\vec u = (U, 0)$.</li>
+<li><b>Salida libre:</b> se copia la columna vecina, $\partial f/\partial x = 0$.</li>
+</ul>
+</section>
+
+<section>
+<h2>Número de Reynolds</h2>
+<p>Compara la inercia con la viscosidad:</p>
+$$Re=\frac{U\,D}{\nu},$$
+<p>donde $D = 2r$ es el ancho del obstáculo. La velocidad es $U = 0{,}012\cdot\{3, 5, 8\}$ (lento, medio, rápido), y siempre $U\ll c_s\approx0{,}58$, así que el flujo es casi incompresible.</p>
+<p>La viscosidad de cada fluido se define para un tubo de 100 celdas y se escala con el ancho de la malla $N_y$:</p>
+$$\nu=\nu_{100}\,\frac{N_y}{100}.$$
+<p>Así $Re$ no cambia cuando la malla se refina.</p>
+<table>
+<tr><th>Fluido</th><th>$\nu_{100}$ (red)</th><th>$\nu$ real (m²/s)</th></tr>
+<tr><td>aire</td><td>0,015</td><td>$1{,}5\times10^{-5}$</td></tr>
+<tr><td>agua</td><td>0,006</td><td>$1{,}0\times10^{-6}$</td></tr>
+<tr><td>aceite</td><td>0,04</td><td>$\approx1\times10^{-4}$</td></tr>
+<tr><td>glicerina</td><td>0,12</td><td>$\approx1{,}1\times10^{-3}$</td></tr>
+<tr><td>miel</td><td>0,30</td><td>$\approx7\times10^{-3}$</td></tr>
+</table>
+<p>Ejemplo: agua a velocidad media con un círculo de $D = 0{,}2\,N_y$ da $Re = 0{,}06\cdot 20/0{,}006 = 200$. Por encima de $Re\approx 50$ aparecen los remolinos alternados detrás del obstáculo (calle de von Kármán).</p>
+</section>
+
+<section>
+<h2>Lo que se dibuja</h2>
+<ul>
+<li><b>Rapidez:</b> $|\vec u|$.</li>
+<li><b>Remolinos (vorticidad):</b> $\omega_z=\partial_x u_y-\partial_y u_x$, con diferencias centradas. Un signo es giro a la izquierda y el otro, a la derecha.</li>
+<li><b>Presión:</b> $p-p_0 = c_s^2(\rho - 1)$.</li>
+<li><b>Partículas trazadoras:</b> se mueven con la velocidad de su celda, $\vec x \leftarrow \vec x + \vec u\,n$, donde $n$ es el número de pasos del cuadro.</li>
+</ul>
+</section>
+
+<section>
+<h2>Tiempo real</h2>
+<p>Se dan de 6 a 10 pasos por cada 1/60 s, según el tiempo real, con un tope de 11 ms de cálculo por cuadro. Si el equipo no alcanza, la malla baja de nivel (entre 9 000 y 52 000 celdas); si sobra tiempo, sube.</p>
+</section>
+
+</div>
+<p class="note">Límites del modelo: el flujo es 2D, y los obstáculos son escalones de celdas en vez de bordes suaves. Además, el modelo de turbulencia suaviza los remolinos más finos.</p>
+</body>
+</html>

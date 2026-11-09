@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Gravitación: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:11mm 13mm}
+body{font:9.1pt/1.38 Nunito,sans-serif;color:#1a2238;margin:0}
+header{border-bottom:3px solid #ffc94a;padding-bottom:5px;margin-bottom:6px}
+h1{font-size:19pt;margin:0;color:#0b1226;font-weight:800}
+.sub{color:#5a6480;font-size:9pt;margin:2px 0 0}
+h2{font-size:10.8pt;margin:8px 0 2px;color:#0b1226;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#ffc94a;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:2px 0 4px}
+ul{margin:2px 0 4px;padding-left:16px}
+.katex-display{margin:4px 0}
+table{border-collapse:collapse;width:100%;font-size:8.6pt;margin:3px 0}
+td,th{border-bottom:1px solid #dde2ee;padding:2px 5px;text-align:left}
+th{color:#5a6480;font-weight:700}
+.note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 8px;font-size:8.6pt;margin:5px 0}
+.cols{columns:2;column-gap:16px}
+section{break-inside:avoid}
+</style>
+</head>
+<body>
+<header>
+<h1>Gravitación y leyes de Kepler</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (gravitacion.html)</p>
+</header>
+<div class="cols">
+
+<section>
+<h2>Unidades</h2>
+<p>Las distancias están en UA y se toma $G\,M_\odot = 1$. Así, una órbita circular en $r=1$ tiene $v=1$ y tarda $2\pi$ unidades de tiempo, que es 1 año. Cada cuadro avanza $T = 6\cdot 0{,}0025 = 0{,}015$ unidades a velocidad 1x, unos 7 s por año.</p>
+<p>La masa interna 1 es 1 Sol y en pantalla se muestra como 100 unidades.</p>
+</section>
+
+<section>
+<h2>Ley de fuerza</h2>
+<p>Cada masa $j$ acelera a la masa $i$ según</p>
+$$\vec a_i=\sum_{j\ne i} m_j\,\frac{\vec r_j-\vec r_i}{|\vec r_j-\vec r_i|^{\,n+1}},\qquad |\vec a|=\frac{m_j}{r^n}.$$
+<p>El exponente puede ser $n = 0{,}5$, $1$, $2$ o $3$; $n=2$ es la gravedad de Newton. En el modo «Sol y planetas» el Sol está fijo en el origen y $\vec a = -\vec r/r^{n+1}$.</p>
+<p>Para evitar la división por cero, $r$ no baja de $r_\text{mín}=0{,}02$. Si las masas no se juntan al chocar, tampoco baja de $R_i+R_j$, con radios $R = 0{,}035\,m^{1/3}$.</p>
+</section>
+
+<section>
+<h2>Integrador leapfrog (cuerpos y cometas)</h2>
+$$\vec v_{1/2}=\vec v+\tfrac h2\,\vec a(\vec r),\qquad \vec r^{\prime}=\vec r+h\,\vec v_{1/2},$$
+$$\vec v^{\prime}=\vec v_{1/2}+\tfrac h2\,\vec a(\vec r^{\prime}).$$
+<p>Es simpléctico: la energía oscila un poco, pero no se desvía con el tiempo, así que las órbitas no se abren ni se cierran solas.</p>
+<p>El paso se adapta a la cercanía. Se calcula el tiempo dinámico</p>
+$$t_\text{din}=\sqrt{\frac{r^{\,n+1}}{M}},\qquad h=\min\!\left(0{,}0025,\;\eta\,t_\text{din}\right),$$
+<p>con $\eta = 0{,}015$ para los cuerpos y $0{,}008$ para los cometas. Cerca de una estrella se dan muchos pasos pequeños; lejos, pocos.</p>
+</section>
+
+<section>
+<h2>Velocidad circular y energía</h2>
+<p>La órbita es circular cuando la aceleración centrípeta iguala la gravedad, $v^2/r = M/r^n$:</p>
+$$v_c=\sqrt{M\,r^{\,1-n}}.$$
+<p>El potencial por unidad de masa es</p>
+$$\varphi(r)=\begin{cases}-\dfrac{r^{\,1-n}}{n-1}, & n\ne 1\\[4pt] \ln r, & n=1\end{cases}$$
+<p>Con el Sol fijo, la energía de un planeta es $E=\tfrac12 v^2+\varphi(r)$: está ligado si $E<0$ y se escapa si $E\ge0$. Con $n\le1$, $\varphi$ crece sin límite y nada se escapa. Con varias masas, la energía total es</p>
+$$E=\sum_i \tfrac12 m_i v_i^2+\sum_{i\lt j} m_i m_j\,\varphi(r_{ij}).$$
+</section>
+
+<section>
+<h2>Lanzamientos que siempre vuelven</h2>
+<p>Al arrastrar, la velocidad es 1,6 veces el desplazamiento del dedo dividido por la escala base, así que no depende del zoom. Luego se limita a</p>
+$$v_\text{máx}=\sqrt{2M\left[\varphi(R)-\varphi(r)\right]},\qquad R = 0{,}6\cdot 56 \approx 34\ \text{UA}.$$
+<p>Con esa energía el punto más lejano de la órbita no pasa de $R$. Un toque sin arrastre lanza a $v_c$ (órbita circular); en un cometa, a $0{,}45\,v_c$ (órbita muy alargada).</p>
+</section>
+
+<section>
+<h2>1.ª ley: la elipse</h2>
+<p>Con $n=2$ y $M=1$, la elipse que pasa por la posición actual con la velocidad actual (elipse osculadora) tiene</p>
+$$a=-\frac{1}{2E},\qquad \vec e=\left(v^2-\frac1r\right)\vec r-(\vec r\cdot\vec v)\,\vec v,$$
+$$b=a\sqrt{1-e^2},\quad q=a(1-e),\quad Q=a(1+e).$$
+<p>El Sol está en un foco; el otro foco, vacío, está en $-2a\,\vec e$. $q$ es la distancia más cercana al Sol y $Q$ la más lejana.</p>
+</section>
+
+<section>
+<h2>2.ª ley: áreas iguales en tiempos iguales</h2>
+<p>El área de cada sector se suma con la fórmula del cordón (shoelace) sobre los puntos recorridos:</p>
+$$A=\tfrac12\Big|\sum_k \left(x_k y_{k+1}-x_{k+1}y_k\right)\Big|.$$
+<p>Con cualquier fuerza central, el momento angular se conserva, así que todos los sectores tienen la misma área:</p>
+$$\frac{dA}{dt}=\tfrac12\,|\vec r\times\vec v|=\frac{L}{2}=\text{cte}.$$
+</section>
+
+<section>
+<h2>3.ª ley: periodo y tamaño</h2>
+<p>El periodo $T$ se mide cuando el ángulo recorrido completa $2\pi$, y $a=\tfrac12(r_\text{mín}+r_\text{máx})$ en esa vuelta. En años y UA:</p>
+$$\left(\frac{T}{2\pi}\right)^2=a^3\quad(n=2),\qquad T\propto a^{(n+1)/2}\ \text{(en general)}.$$
+</section>
+
+<section>
+<h2>Choques: fusión</h2>
+<p>Dos masas que se tocan ($r &lt; R_1+R_2$) se unen en una sola que conserva la masa y el momento:</p>
+$$m=m_1+m_2,\qquad \vec r=\frac{m_1\vec r_1+m_2\vec r_2}{m},$$
+$$\vec v=\frac{m_1\vec v_1+m_2\vec v_2}{m}.$$
+<p>La energía cinética del movimiento relativo se pierde, como calor.</p>
+</section>
+
+<section>
+<h2>Supernova, estrella de neutrones y agujero negro</h2>
+<ul>
+<li>Una estrella que llega a $m\ge 15$ (1500 unidades) explota: queda un resto de $0{,}3\,m$ y el resto de la masa sale como 1400 granos de polvo.</li>
+<li>Cada grano sale en una dirección al azar $\hat u$, con $\vec v = \vec v_\star + (1{,}2\text{ a }3{,}8)\,\hat u$.</li>
+<li>El resto es una estrella de neutrones. Si llega a $m \ge 25$ (2500 unidades), colapsa en agujero negro.</li>
+<li>A distancia, su gravedad es la de cualquier masa igual.</li>
+</ul>
+</section>
+
+<section>
+<h2>Polvo y gas</h2>
+<p>Son partículas de prueba que sienten la misma aceleración $\vec a(\vec r)$ que los cuerpos. Se mueven con Euler simpléctico ($\vec v \mathrel{+}= \vec a h$, luego $\vec r \mathrel{+}= \vec v h$), con $k = \lceil T/(0{,}03\,t_\text{din})\rceil \le 60$ subpasos.</p>
+<p>Al soltarlos en órbita, la velocidad es $v_c$ (entre 0,92 y 1,08 veces, desviada hasta 0,1 rad) alrededor de la masa que da más del 90 % de la atracción, o del centro de masa si ninguna lo hace.</p>
+<p>Un grano de polvo pesa $\mu = 0{,}01$ unidades y un trozo de gas $0{,}002$. En «Masas que se atraen», cada partícula tira de las masas:</p>
+$$\Delta\vec v_j=\mu\,\frac{\vec r-\vec r_j}{|\vec r-\vec r_j|^{\,n+1}}\,T,$$
+<p>y la masa que la atrapa crece: $m_j\leftarrow m_j+\mu$, conservando el momento.</p>
+</section>
+
+<section>
+<h2>Cometas</h2>
+<p>El cometa no tiene masa: siente la gravedad, pero no atrae a nadie. A una distancia $r$ de la estrella que más lo atrae, su actividad es</p>
+$$q=\min\!\left(1,\max\!\left(0,\frac{4-r}{3{,}6}\right)\right),\qquad \alpha=q^2(3-2q).$$
+<ul>
+<li>A más de 4 UA, $\alpha = 0$ y no hay cola.</li>
+<li>La cola de gas apunta en contra de la estrella, $\hat r$, y mide $\alpha\,\min\!\left(3,\;0{,}35+0{,}9/r\right)$ UA, o al menos $90\,\alpha$ px.</li>
+<li>La cola de polvo se curva hacia atrás, en la dirección $-\hat v$.</li>
+<li>Suelta polvo a un ritmo proporcional a $\min(6,\;0{,}5/r^2)$.</li>
+</ul>
+</section>
+
+</div>
+<p class="note">Límites del modelo: el polvo y el gas no se atraen entre sí, y el gas no tiene presión. La supernova no conserva la masa: el 70 % que pierde la estrella sale como polvo de 0,01 unidades por grano. Con $n=3$, las órbitas circulares son inestables, como predice la física.</p>
+</body>
+</html>

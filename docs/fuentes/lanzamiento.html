@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Lanzamiento vertical: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:14mm 15mm}
+body{font:10pt/1.45 Nunito,sans-serif;color:#1a2238;margin:0}
+header{border-bottom:3px solid #ffc94a;padding-bottom:6px;margin-bottom:8px}
+h1{font-size:20pt;margin:0;color:#0b1226;font-weight:800}
+.sub{color:#5a6480;font-size:9.5pt;margin:2px 0 0}
+h2{font-size:11.5pt;margin:10px 0 3px;color:#0b1226;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#ffc94a;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:3px 0 5px}
+ul{margin:3px 0 5px;padding-left:18px}
+.katex-display{margin:5px 0}
+.katex{font-size:1.05em}
+table{border-collapse:collapse;width:100%;font-size:9pt;margin:4px 0}
+td,th{border-bottom:1px solid #dde2ee;padding:2px 6px;text-align:left}
+th{color:#5a6480;font-weight:700}
+.note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 9px;font-size:9pt;margin:6px 0}
+.cols{columns:2;column-gap:18px}
+section{break-inside:avoid}
+</style>
+</head>
+<body>
+<header>
+<h1>Lanzamiento vertical</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (lanzamiento.html)</p>
+</header>
+
+<section>
+<h2>Qué se simula</h2>
+<p>Una pelota de radio $R = 0{,}11$ m que se lanza con el dedo y se mueve solo por la gravedad $g$, sin roce con el aire. Todo está en metros y segundos, a escala real.</p>
+</section>
+
+<section>
+<h2>Velocidad del lanzamiento</h2>
+<p>Mientras el dedo arrastra la pelota se guardan sus posiciones de los últimos 0,1 s. Al soltarla, la velocidad es la del dedo en ese tramo:</p>
+$$\vec v_0=\frac{\vec r_b-\vec r_a}{t_b-t_a},$$
+<p>donde $a$ es la posición más antigua y $b$ la más reciente. Si $|\vec v_0| &gt; 60$ m/s, se reduce a 60 m/s sin cambiar la dirección.</p>
+</section>
+
+<section>
+<h2>Ecuaciones de movimiento</h2>
+<p>Con aceleración constante, la segunda ley de Newton da</p>
+$$\ddot x = 0,\qquad \ddot y=-g.$$
+<p>El simulador usa la solución exacta en pasos de $h\le 1/240$ s:</p>
+$$x\leftarrow x+v_x h,\qquad y\leftarrow y+v_y h-\tfrac12 g h^2,\qquad v_y\leftarrow v_y-g h.$$
+<p>Como la fórmula es exacta para $g$ constante, el resultado no depende del tamaño del paso. Los pasos cortos solo sirven para detectar a tiempo el suelo y las paredes. El reloj sigue al tiempo real, multiplicado por 1, 0,5 o 0,25 según el botón de velocidad.</p>
+</section>
+
+<section>
+<h2>Altura máxima y tiempo de subida (la predicción)</h2>
+<p>En el punto más alto la velocidad vertical es cero. Por conservación de la energía, $\tfrac12 m v_y^2 = m g h$, y de $v_y(t)=v_0-gt=0$:</p>
+$$h=\frac{v_y^2}{2g},\qquad t_s=\frac{v_y}{g},\qquad t_\text{vuelta}=\frac{2v_y}{g}.$$
+<table>
+<tr><th>Lugar</th><th>$g$ (m/s²)</th><th>Con $v_y = 10$ m/s: altura</th><th>tiempo de subida</th></tr>
+<tr><td>Tierra</td><td>9,81</td><td>5,10 m</td><td>1,02 s</td></tr>
+<tr><td>Luna</td><td>1,62</td><td>30,9 m</td><td>6,17 s</td></tr>
+<tr><td>Marte</td><td>3,71</td><td>13,5 m</td><td>2,70 s</td></tr>
+<tr><td>Júpiter</td><td>24,79</td><td>2,02 m</td><td>0,40 s</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Marcas cada 0,1 s</h2>
+<p>Durante el vuelo se deja una marca cada $\tau = 0{,}1$ s, como en una foto estroboscópica. La marca $k$ está en</p>
+$$y_k=y_0+v_0\,k\tau-\tfrac12 g\,(k\tau)^2,$$
+<p>y la distancia entre dos marcas seguidas es</p>
+$$\Delta y_k=y_{k+1}-y_k=v_0\tau-g\tau^2\left(k+\tfrac12\right).$$
+<p>Cada tramo es $g\tau^2$ más corto que el anterior (0,098 m en la Tierra). Por eso las marcas se juntan arriba, donde la pelota va más lenta, y se separan abajo.</p>
+</section>
+
+<section>
+<h2>Rebotes</h2>
+<p>Al tocar el suelo la velocidad vertical se invierte y pierde energía. La horizontal se frena por el roce:</p>
+$$v_y'=-e\,v_y,\quad e=0{,}55;\qquad v_x'=0{,}85\,v_x.$$
+<p>Como la altura depende de $v_y^2$, cada rebote llega a $h'=e^2h\approx 0{,}30\,h$. La pelota se detiene cuando $v_y'&lt;0{,}6$ m/s. En las paredes laterales, $v_x'=-0{,}8\,v_x$.</p>
+</section>
+
+<section>
+<h2>Cámara que se aleja</h2>
+<p>La vista se ajusta para que quepa la altura que alcanzará la pelota, con un margen del 12 % y 0,4 m extra:</p>
+$$H=1{,}12\left(y+\frac{v_y^2}{2g}\right)+0{,}4.$$
+<p>La altura visible se acerca suavemente a ese valor en cada cuadro de duración $\Delta t$:</p>
+$$H_\text{vista}\leftarrow H_\text{vista}+\left(H-H_\text{vista}\right)\min(1,\;2{,}5\,\Delta t).$$
+</section>
+
+<p class="note">Lo que no incluye: roce con el aire, rotación de la pelota ni variación de $g$ con la altura. Con roce, la altura máxima sería menor que $v^2/2g$ y la bajada más lenta que la subida.</p>
+</body>
+</html>

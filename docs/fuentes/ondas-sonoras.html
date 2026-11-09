@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ondas sonoras: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:13mm 14mm}
+body{font:9.6pt/1.43 Nunito,sans-serif;color:#1a2238;margin:0}
+header{border-bottom:3px solid #ffc94a;padding-bottom:5px;margin-bottom:6px}
+h1{font-size:19pt;margin:0;color:#0b1226;font-weight:800}
+.sub{color:#5a6480;font-size:9pt;margin:2px 0 0}
+h2{font-size:11pt;margin:8px 0 2px;color:#0b1226;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#ffc94a;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:2px 0 4px}
+ul{margin:2px 0 4px;padding-left:16px}
+.katex-display{margin:4px 0}
+table{border-collapse:collapse;width:100%;font-size:8.8pt;margin:3px 0}
+td,th{border-bottom:1px solid #dde2ee;padding:2px 5px;text-align:left}
+th{color:#5a6480;font-weight:700}
+.note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 8px;font-size:8.8pt;margin:5px 0}
+.cols{columns:2;column-gap:16px}
+section{break-inside:avoid}
+</style>
+</head>
+<body>
+<header>
+<h1>Ondas sonoras en una sala</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (ondas-sonoras.html)</p>
+</header>
+<div class="cols">
+
+<section>
+<h2>Ecuación de onda con absorción</h2>
+<p>La presión acústica $p(x,y,t)$ cumple</p>
+$$\frac{\partial^2 p}{\partial t^2}+2\beta\,\frac{\partial p}{\partial t}=c^2\,\nabla^2 p+s(x,y,t),$$
+<p>donde $c = 343$ m/s es la velocidad del sonido y $s$ son los parlantes. $\beta$ (de 2 a 40 s⁻¹, el control «Absorción de las paredes») hace que la amplitud decaiga como $e^{-\beta t}$. El tiempo en que el sonido baja 60 dB es</p>
+$$T_{60}=\frac{\ln 10^3}{\beta}=\frac{6{,}91}{\beta}.$$
+</section>
+
+<section>
+<h2>Malla y paso de tiempo</h2>
+<p>El rectángulo que contiene la sala se divide en unas 48 000 celdas:</p>
+$$\Delta x=\sqrt{\frac{W\,H}{48\,000}},\qquad \Delta t=C\,\frac{\Delta x}{c},\qquad C=0{,}5.$$
+<p>El esquema es estable si el número de Courant cumple $C\le 1/\sqrt2$. En la sala de $5\times3{,}5$ m, $\Delta x\approx1{,}9$ cm y $\Delta t\approx 28\ \mu$s.</p>
+</section>
+
+<section>
+<h2>Diferencias finitas</h2>
+<p>Con diferencias centradas en el tiempo y el laplaciano de 5 puntos:</p>
+$$p_i^{t+1}=\frac{2p_i^t-(1-\beta\Delta t)\,p_i^{t-1}+C^2\,L_i}{1+\beta\Delta t},$$
+$$L_i=p_E^t+p_O^t+p_N^t+p_S^t-4p_i^t.$$
+<p>E, O, N y S son los vecinos este, oeste, norte y sur.</p>
+<p><b>Paredes rígidas:</b> si un vecino está fuera de la sala, se usa la misma celda en su lugar. Eso impone $\partial p/\partial n = 0$: el aire no puede atravesar la pared, así que la onda rebota sin invertirse.</p>
+</section>
+
+<section>
+<h2>Parlantes</h2>
+<p>Cada paso se suma la señal $C^2\,\epsilon(t)\,\sin(\omega t+\phi)$, con $\omega = 2\pi f$ y $\phi$ la fase de cada parlante. El encendido es suave: $\epsilon = u^2(3-2u)$, con $u$ subiendo de 0 a 1 en 3 periodos.</p>
+<p>Con $k=\omega/c$ y dos puntos separados por $d = 2\Delta x$:</p>
+<ul>
+<li><b>Omni:</b> un solo punto; suena igual en todas direcciones.</li>
+<li><b>Dipolo:</b> los dos puntos en contrafase, con amplitud $1/(2\sin\frac{kd}{2})$. La presión es $p\propto\cos\theta$, una figura en 8.</li>
+<li><b>Cardioide:</b> el punto trasero va invertido y retrasado $kd$, con amplitud $1/(2\sin kd)$. La presión es $p\propto\tfrac12(1+\cos\theta)$.</li>
+</ul>
+<p>Cada punto se reparte entre 4 celdas por interpolación bilineal.</p>
+</section>
+
+<section>
+<h2>Modos de la sala</h2>
+<p><b>Rectángulo</b> $L_x\times L_y$: $\psi=\cos\frac{m\pi x}{L_x}\cos\frac{n\pi y}{L_y}$ y</p>
+$$f_{mn}=\frac c2\sqrt{\Big(\frac m{L_x}\Big)^2+\Big(\frac n{L_y}\Big)^2}.$$
+<p>El simulador usa la versión exacta para la malla, que coincide con la anterior cuando las celdas son pequeñas:</p>
+$$f_{mn}=\frac{1}{\pi\Delta t}\arcsin\!\Big(C\sqrt{\sin^2\tfrac{m\pi}{2N_x}+\sin^2\tfrac{n\pi}{2N_y}}\Big).$$
+<p><b>Círculo</b> de radio $a$: $\psi = J_m(kr)\cos m\theta$ y</p>
+$$f_{ms}=\frac{c\,j'_{ms}}{2\pi a},$$
+$$J_m(x)=\frac1\pi\int_0^\pi\cos(m\tau-x\sin\tau)\,d\tau.$$
+<p>$j'_{ms}$ es el cero número $s$ de $J_m'$. La integral se calcula con 64 puntos y los ceros por bisección.</p>
+<p><b>Triángulo equilátero</b> de lado $L$, según la solución de Lamé:</p>
+$$f_{mn}=\frac{2c}{3L}\sqrt{m^2+mn+n^2}.$$
+<p><b>Elipse y romboide:</b> no tienen fórmula cerrada, así que los modos se miden.</p>
+<ul>
+<li>Se deja vibrar una malla gruesa, sin pérdidas, desde un campo inicial aleatorio y suave.</li>
+<li>Se registra la presión en 64 puntos y se calcula su espectro con la FFT.</li>
+<li>Cada pico se afina con una parábola sobre $\ln P$:</li>
+</ul>
+$$\delta=\frac12\,\frac{\ln P_{k-1}-\ln P_{k+1}}{\ln P_{k-1}-2\ln P_k+\ln P_{k+1}}.$$
+<p>Por último se corrige la dispersión de la malla gruesa para pasar a la fina.</p>
+</section>
+
+<section>
+<h2>Curva de respuesta</h2>
+<p>La curva suma cada modo como un oscilador amortiguado:</p>
+$$R(f)=\sum_k\frac{g_k}{\left(\omega_k^2-\omega^2\right)^2+\left(2\beta\omega\right)^2},$$
+$$g_k=\frac{1}{N_k}\Big|\sum_j A_j\,\psi_k(\vec x_j)\Big|^2.$$
+<p>$A_j$ son las amplitudes complejas de los puntos de cada parlante y $N_k$ es la norma del modo. Un parlante en un nodo del modo ($\psi_k = 0$) no lo excita.</p>
+</section>
+
+<section>
+<h2>Nivel en el oyente y sonido real</h2>
+<p>Cada celda guarda un promedio móvil de $p^2$:</p>
+$$\bar e\leftarrow\bar e+a\left(p^2-\bar e\right),\qquad a\approx\frac{1}{2\,\text{(pasos por periodo)}}.$$
+<p>El nivel es $L=10\log_{10}(\bar e/e_\text{ref})$ dB, promediando las 3×3 celdas alrededor del oyente. El tono de Web Audio tiene frecuencia $f$ y ganancia $\min\!\left(0{,}8,\;0{,}08\cdot10^{L/20}\right)$. La longitud de onda que se muestra es $\lambda=c/f$.</p>
+</section>
+
+</div>
+<p class="note">Límites del modelo: es en 2D, como un corte de la sala, así que la presión decae con la distancia como $1/\sqrt r$ y no como $1/r$. Las paredes son perfectamente rígidas y la absorción es uniforme en toda la sala, en vez de concentrarse en las paredes.</p>
+</body>
+</html>

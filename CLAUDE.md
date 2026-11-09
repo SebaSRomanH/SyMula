@@ -47,5 +47,12 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
 - `flujo-tactil.html`: piscina a pantalla completa, LBM, el dedo agita el agua y genera ondas.
 - `lanzamiento.html`: lanzamiento vertical a escala real con cámara que se aleja y marcas cada 0,1 s.
 
+## Fichas de fórmulas (PDF)
+- `docs/<simulador>.pdf`: máximo dos hojas por simulador con las fórmulas que usa; se enlazan desde `index.html`.
+- La fuente es `docs/fuentes/<simulador>.html` (KaTeX desde cdnjs). Para regenerar, servir el repo en local
+  y imprimir con Edge sin ventana: `msedge --headless=new --no-pdf-header-footer --virtual-time-budget=15000
+  --print-to-pdf=docs\<simulador>.pdf http://127.0.0.1:8765/docs/fuentes/<simulador>.html`.
+- Si cambia la física de un simulador, actualizar su ficha. En fórmulas, escribir `<` como `\lt` o `&lt;`.
+
 ## Pendientes posibles
 - Opción "agujero negro" en gravitación con potencial pseudo-newtoniano de Paczyński–Wiita.

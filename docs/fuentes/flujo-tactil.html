@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Piscina táctil: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:14mm 15mm}
+body{font:10pt/1.45 Nunito,sans-serif;color:#1a2238;margin:0}
+header{border-bottom:3px solid #ffc94a;padding-bottom:6px;margin-bottom:8px}
+h1{font-size:20pt;margin:0;color:#0b1226;font-weight:800}
+.sub{color:#5a6480;font-size:9.5pt;margin:2px 0 0}
+h2{font-size:11.5pt;margin:10px 0 3px;color:#0b1226;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#ffc94a;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:3px 0 5px}
+ul{margin:3px 0 5px;padding-left:18px}
+.katex-display{margin:5px 0}
+.note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 9px;font-size:9pt;margin:6px 0}
+section{break-inside:avoid}
+</style>
+</head>
+<body>
+<header>
+<h1>Piscina táctil</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (flujo-tactil.html)</p>
+</header>
+
+<section>
+<h2>Modelo del agua: Lattice Boltzmann D2Q9</h2>
+<p>La piscina es una malla cerrada. Cada celda guarda 9 poblaciones $f_q$ que viajan con velocidades $\vec e_q\in\{(0,0),(\pm1,0),(0,\pm1),(\pm1,\pm1)\}$, con pesos $4/9$, $1/9$ y $1/36$. De ellas salen la densidad y la velocidad:</p>
+$$\rho=\sum_q f_q,\qquad \rho\,\vec u=\sum_q f_q\,\vec e_q,\qquad p=\tfrac13\rho.$$
+<p>En cada paso, cada celda relaja hacia el equilibrio y envía sus poblaciones a las vecinas:</p>
+$$f_q^\text{eq}=w_q\rho\left[1+3\,\vec e_q\!\cdot\vec u+\tfrac92(\vec e_q\!\cdot\vec u)^2-\tfrac32u^2\right],$$
+$$f_q(\vec x+\vec e_q,t+1)=f_q-\frac1\tau\left(f_q-f_q^\text{eq}\right).$$
+<p>La viscosidad de la red es $\nu = 0{,}005$, con $\tau_0 = 3\nu+\tfrac12$. El modelo de Smagorinsky ($C_s = 0{,}12$) sube $\tau$ donde el agua se deforma mucho:</p>
+$$\tau=\tfrac12\Big(\tau_0+\sqrt{\tau_0^2+18\sqrt2\,C_s^2\,|\Pi|/\rho}\Big),\qquad \Pi_{\alpha\beta}=\sum_q e_{q\alpha}e_{q\beta}(f_q-f_q^\text{eq}).$$
+<p>Los cuatro bordes rebotan las poblaciones («bounce-back»), así que el agua no atraviesa ni resbala en las paredes.</p>
+</section>
+
+<section>
+<h2>Velocidad del dedo</h2>
+<p>En cada paso, la velocidad del dedo en celdas por paso es su desplazamiento dividido por los $n$ pasos del cuadro, limitado a 0,2 y suavizado:</p>
+$$\vec v_\text{nuevo}=\frac{\Delta\vec x}{n},\qquad \vec v\leftarrow\tfrac12\,\vec v+\tfrac12\,\vec v_\text{nuevo}.$$
+</section>
+
+<section>
+<h2>Cómo el dedo mueve el agua</h2>
+<p>Dentro de un disco de radio $R$ (unos 26 px en pantalla), cada celda a distancia $d$ del dedo, en la dirección $\hat d$, recibe una velocidad objetivo:</p>
+$$\vec u_\text{obj}=\vec v+\hat d\;P\,\frac dR,\qquad P=0{,}35\,|\vec v|+b.$$
+<ul>
+<li>El primer término arrastra el agua con el dedo.</li>
+<li>El segundo la empuja hacia afuera, y eso genera las ondas de presión.</li>
+<li>Al tocar, $b = 0{,}14$; luego $b$ se multiplica por 0,7 en cada paso, como un golpe que se apaga.</li>
+<li>$|\vec u_\text{obj}|$ no pasa de 0,28.</li>
+</ul>
+<p>La velocidad de la celda se mezcla con la objetivo, con más fuerza en el centro del disco:</p>
+$$\vec u\leftarrow\vec u+\left(\vec u_\text{obj}-\vec u\right)\cdot0{,}6\left(1-\frac{d^2}{R^2}\right),$$
+<p>y la celda se pone en equilibrio con esa velocidad, conservando su densidad $\rho$.</p>
+</section>
+
+<section>
+<h2>Ondas y remolinos</h2>
+<p>Un empujón comprime el agua, y esa diferencia de densidad viaja como onda de presión a la velocidad del sonido de la red:</p>
+$$c_s=\frac1{\sqrt3}\approx0{,}58\ \text{celdas por paso}.$$
+<p>Al chocar con las paredes, las ondas rebotan. Arrastrar el dedo deja una estela con dos remolinos que giran en sentidos opuestos. Su giro se mide con la vorticidad:</p>
+$$\omega_z=\frac{\partial u_y}{\partial x}-\frac{\partial u_x}{\partial y}.$$
+<p>La viscosidad va frenando todo: un remolino de tamaño $\ell$ se apaga en un tiempo del orden de $\ell^2/\nu$.</p>
+</section>
+
+<section>
+<h2>Tiempo real y resolución</h2>
+<p>Se dan 5 pasos por cada 1/60 s de tiempo real, así el agua se ve igual a 60 y a 120 Hz. Hay un tope de 11 ms de cálculo por cuadro. Si el equipo no alcanza, la malla baja de nivel (entre 12 000 y 80 000 celdas); si sobra tiempo, sube. Las partículas que se ven en el agua se mueven con la velocidad de su celda.</p>
+</section>
+
+<p class="note">Límites del modelo: es un fluido 2D visto desde arriba, como una capa delgada. No hay superficie libre, así que no se simulan olas de altura: lo que se ve son ondas de presión y corrientes. Las ondas viajan mucho más lento que el sonido real en el agua, para que se puedan ver.</p>
+</body>
+</html>
