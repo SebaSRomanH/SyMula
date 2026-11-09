@@ -3,110 +3,120 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a111c">
-<title>Ondas sonoras y modos de una sala</title>
+<meta name="theme-color" content="#0b1226">
+<title>Sonido en una sala</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
+/* ===== SyMula: estilo común (igual en todos los simuladores) ===== */
 :root{
-  --bg:#eef2f6;--panel:#ffffff;--line:#c9d4e0;--text:#172230;--muted:#5a6b80;--accent:#b86e0a;--accent-ink:#fff;--plot:#f5f8fb;
-  color-scheme:light;box-sizing:border-box;
+  --bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2;
+  color-scheme:dark;box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){--bg:#0a111c;--panel:#111a27;--line:#253247;--text:#dde6ef;--muted:#8b9bb0;--accent:#f0a742;--accent-ink:#1a1206;--plot:#0d1522;color-scheme:dark}
+  :root:not([data-theme="light"]){--bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2}
 }
-:root[data-theme="dark"]{--bg:#0a111c;--panel:#111a27;--line:#253247;--text:#dde6ef;--muted:#8b9bb0;--accent:#f0a742;--accent-ink:#1a1206;--plot:#0d1522;color-scheme:dark}
+:root[data-theme="dark"]{--bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2}
 *,*::before,*::after{box-sizing:border-box}
-html{height:100%;background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--text);
-  font:400 14px/1.4 Barlow,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
-.stage{position:relative;flex:1;min-height:0;background:#0a111c}
-#room{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
-.readout{position:absolute;top:10px;left:12px;color:#dde6ef;pointer-events:none;text-shadow:0 1px 3px #000}
-.readout b{display:block;font:600 clamp(24px,6vw,34px)/1 "Barlow Semi Condensed",Barlow,sans-serif;font-variant-numeric:tabular-nums}
-.readout span{font-size:13px;color:#aab8c8}
-.readout .lvl{color:#7fd3ff;font-variant-numeric:tabular-nums}
-.readout .mode{color:#f0a742;font-weight:600}
-.view{position:absolute;top:10px;right:10px;display:flex;border:1px solid rgba(221,230,239,.2);border-radius:8px;overflow:hidden;background:rgba(10,17,28,.7)}
-.view button{font:500 13px Barlow,sans-serif;padding:7px 10px;border:0;background:transparent;color:#dde6ef;cursor:pointer}
-.view button[aria-pressed="true"]{background:#f0a742;color:#1a1206}
-.hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:13px;color:#aab8c8;white-space:nowrap;pointer-events:none;transition:opacity .7s}
-.hint.off{opacity:0}
-.panel{background:var(--panel);border-top:1px solid var(--line);padding:10px clamp(10px,3vw,20px) 12px;display:flex;flex-direction:column;gap:8px}
-.ptitle{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
-#plot{display:block;width:100%;height:96px;border-radius:6px;background:var(--plot);touch-action:none;cursor:pointer}
-.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:none;font:500 13px Barlow,sans-serif;padding:6px 10px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:var(--text);cursor:pointer;font-variant-numeric:tabular-nums}
-.chips .wait{font-size:13px;color:var(--muted);padding:6px 2px}
-.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.rng{display:flex;align-items:center;gap:8px;flex:1;min-width:200px;font-size:13px;color:var(--muted)}
-.rng input{flex:1;accent-color:var(--accent)}
-.rng output{min-width:5.5em;text-align:right;font-variant-numeric:tabular-nums}
-.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow-x:auto;flex:1;scrollbar-width:none}
-.seg::-webkit-scrollbar{display:none}
-.seg button{flex:1 0 auto;font:500 13px Barlow,sans-serif;padding:7px 10px;border:0;background:transparent;color:var(--text);cursor:pointer}
-.seg button+button{border-left:1px solid var(--line)}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
-.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn{font:500 13px Barlow,sans-serif;padding:7px 12px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);cursor:pointer}
+html{height:100%;background:var(--bg)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+  font:700 15px/1.3 Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.home{position:absolute;top:10px;left:10px;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;z-index:3;
+  background:rgba(18,26,54,.88);border:1px solid var(--line);color:var(--ink);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.card{position:absolute;top:10px;left:72px;right:10px;max-width:460px;min-height:52px;padding:7px 12px;border-radius:16px;z-index:2;pointer-events:none;
+  background:rgba(18,26,54,.88);border:1px solid var(--line);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.card h1{font:800 18px/1.15 Nunito,sans-serif;margin:0;color:var(--acc)}
+.card p{margin:2px 0 0;font-size:14px;color:#d8ddf7}
+.card .data{font-size:13px;color:#8fd8ff;font-variant-numeric:tabular-nums}
+.card p:empty{display:none}
+.toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:92%;padding:10px 18px;border-radius:999px;z-index:3;
+  background:var(--acc);color:var(--acc-ink);font-weight:800;text-align:center;pointer-events:none;transition:opacity .4s}
+.toast.off{opacity:0}
+.dock{background:var(--panel);border-top:1px solid var(--line);padding:8px 10px 10px;display:flex;flex-direction:column;gap:8px}
+.dock>*{width:100%;max-width:760px;margin:0 auto}
+.row{display:flex;gap:8px}
+.tile{flex:1 1 0;min-width:0;min-height:60px;padding:6px 3px;border-radius:16px;border:1px solid var(--line);background:var(--btn);color:var(--ink);
+  font:800 13px/1.1 Nunito,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;touch-action:manipulation}
+.tile svg{width:26px;height:26px;flex:none}
+.tile[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.tile:active{transform:scale(.96)}
+.tile:disabled{opacity:.4;cursor:default}
+.lbl{font-size:12px;font-weight:800;color:var(--soft);margin-bottom:-3px;padding:0 2px}
+button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 [hidden]{display:none!important}
-button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* ===== fin del estilo común ===== */
+.tile.s{font-size:11.5px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-width:62px;min-height:52px;padding:4px 10px;border-radius:14px;border:1px solid var(--line);background:var(--btn);color:var(--ink);
+  font:800 17px/1 Nunito,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;touch-action:manipulation}
+.chip small{font-size:11px;font-weight:700;color:var(--soft);font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.chip[aria-pressed="true"] small{color:#5a4100}
+.chips .wait{font-size:13px;color:var(--soft);padding:16px 2px}
+.sheet{display:flex;flex-direction:column;gap:8px;max-height:32vh;overflow-y:auto;padding:2px 0 8px;border-bottom:1px solid var(--line)}
+.rng{display:flex;align-items:center;gap:10px;min-height:44px;font-size:13px;color:var(--soft)}
+.rng span{width:88px;flex:none}
+.rng input{flex:1;height:32px;accent-color:var(--acc)}
+.rng output{width:64px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+#plot{display:block;width:100%;height:92px;border-radius:12px;background:#0d1530;touch-action:none;cursor:pointer}
 </style>
 </head>
 <body>
 <div class="stage">
-  <canvas id="room" aria-label="Sala vista desde arriba con el campo de presión"></canvas>
-  <div class="readout">
-    <b id="freq">0 Hz</b>
-    <span id="lam"></span><br>
-    <span class="mode" id="modeLbl"></span><br>
-    <span class="lvl" id="lvl"></span><br>
-    <span class="lvl" id="lisPos"></span>
-  </div>
-  <div class="view" role="group" aria-label="Vista">
-    <button type="button" data-view="p" aria-pressed="true">Presión</button>
-    <button type="button" data-view="i" aria-pressed="false">Intensidad</button>
-  </div>
-  <div class="hint" id="hint">Arrastra un parlante para moverlo</div>
+  <canvas id="room" aria-label="Sala vista desde arriba: arrastra el parlante o el oyente"></canvas>
+  <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
+  <div class="card" id="card" aria-live="polite"><h1>Sonido en una sala</h1><p id="say">Toca una nota y arrastra el parlante o el oyente.</p><p class="data" id="data">0 Hz · λ = 0 m · oyente 0 dB</p></div>
+  <div class="toast off" id="toast"></div>
 </div>
-<div class="panel">
-  <div class="row">
-    <div class="seg" role="group" aria-label="Forma de la sala">
-      <button type="button" data-shape="rect" aria-pressed="true">Rectangular</button>
-      <button type="button" data-shape="circle" aria-pressed="false">Circular</button>
-      <button type="button" data-shape="tri" aria-pressed="false">Triangular</button>
-      <button type="button" data-shape="ellipse" aria-pressed="false">Elíptica</button>
-      <button type="button" data-shape="para" aria-pressed="false">Romboide</button>
+<nav class="dock" aria-label="Controles">
+  <div class="sheet" id="sheet" hidden>
+    <div class="lbl">Qué mostrar</div>
+    <div class="row" role="group" aria-label="Vista">
+      <button class="tile" type="button" data-view="p" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2 12c2.5-6 5-6 7.5 0s5 6 7.5 0 3.5-4 5-2"/></svg>Presión</button>
+      <button class="tile" type="button" data-view="i" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="8" opacity=".5"/></svg>Fuerza del sonido</button>
     </div>
-  </div>
-  <div class="row">
-    <div class="seg" role="group" aria-label="Fuente seleccionada" id="srcSeg" style="flex:0 1 auto"></div>
-    <button class="btn" id="addSrc" type="button">Agregar fuente</button>
-    <button class="btn" id="delSrc" type="button">Quitar</button>
-    <label class="rng" id="phaseWrap" hidden>Fase<input id="phaseIn" type="range" min="0" max="345" step="15" value="0"><output id="phaseOut">0°</output></label>
-  </div>
-  <div class="row">
-    <div class="seg" role="group" aria-label="Patrón del parlante">
-      <button type="button" data-pat="omni" aria-pressed="true">Omnidireccional</button>
-      <button type="button" data-pat="cardioid" aria-pressed="false">Unidireccional</button>
-      <button type="button" data-pat="dipole" aria-pressed="false">Bidireccional</button>
+    <div class="lbl">Parlantes</div>
+    <div class="row" id="srcSeg" role="group" aria-label="Parlante elegido"></div>
+    <div class="row">
+      <button class="tile" type="button" id="addSrc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar parlante</button>
+      <button class="tile" type="button" id="delSrc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>Quitar parlante</button>
     </div>
-    <label class="rng" id="orientWrap" hidden>Orientación<input id="orient" type="range" min="0" max="355" step="5" value="0"><output id="orientOut">0°</output></label>
+    <div class="row" role="group" aria-label="Hacia dónde suena">
+      <button class="tile" type="button" data-pat="omni" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>Todo alrededor</button>
+      <button class="tile" type="button" data-pat="cardioid" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12c0-5 4-7 8-7s8 3 8 7-4 7-8 7-8-2-8-7z"/><circle cx="6" cy="12" r="2" fill="currentColor"/></svg>Hacia adelante</button>
+      <button class="tile" type="button" data-pat="dipole" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="6.5" cy="12" r="4.5"/><circle cx="17.5" cy="12" r="4.5"/></svg>Adelante y atrás</button>
+    </div>
+    <label class="rng" id="orientWrap" hidden><span>Orientación</span><input id="orient" type="range" min="0" max="355" step="5" value="0"><output id="orientOut">0°</output></label>
+    <label class="rng" id="phaseWrap" hidden><span>Fase</span><input id="phaseIn" type="range" min="0" max="345" step="15" value="0"><output id="phaseOut">0°</output></label>
+    <label class="rng"><span>Absorción de las paredes</span><input id="damp" type="range" min="2" max="40" step="1" value="8"><output id="t60"></output></label>
+    <div class="lbl" id="ptl">Respuesta de la sala: toca para elegir frecuencia</div>
+    <canvas id="plot" aria-label="Respuesta en frecuencia de la sala"></canvas>
+    <div class="lbl" id="dims"></div>
   </div>
-  <div class="ptitle"><span id="ptl">Respuesta de la sala: toca o arrastra para elegir frecuencia</span><span id="dims"></span></div>
-  <canvas id="plot" aria-label="Respuesta en frecuencia de la sala"></canvas>
+  <div id="shapeBox" style="display:flex;flex-direction:column;gap:8px">
+  <div class="lbl">Forma de la sala</div>
+  <div class="row" role="group" aria-label="Forma de la sala">
+    <button class="tile s" type="button" data-shape="rect" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="6" width="18" height="12"/></svg>Rectángulo</button>
+    <button class="tile s" type="button" data-shape="circle" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.5"/></svg>Círculo</button>
+    <button class="tile s" type="button" data-shape="tri" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 4l9 16H3z"/></svg>Triángulo</button>
+    <button class="tile s" type="button" data-shape="ellipse" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><ellipse cx="12" cy="12" rx="10" ry="6.5"/></svg>Elipse</button>
+    <button class="tile s" type="button" data-shape="para" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M7 6h15l-5 12H2z"/></svg>Romboide</button>
+  </div>
+  </div>
+  <div class="lbl">Notas en que la sala resuena</div>
   <div class="chips" id="chips" role="group" aria-label="Modos normales"></div>
   <div class="row">
-    <label class="rng">Absorción<input id="damp" type="range" min="2" max="40" step="1" value="8"><output id="t60"></output></label>
-    <button class="btn" id="listen" type="button" aria-pressed="false">Escuchar</button>
-    <button class="btn" id="pause" type="button">Pausar</button>
-    <button class="btn" id="reset" type="button">Silencio</button>
+    <button class="tile" type="button" id="listen" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h3.5L13 4.5v15L7.5 15H4z" fill="currentColor"/><path d="M16.5 8.5q2 3.5 0 7M19 6q4 6 0 12"/></svg><span id="listenLbl">Escuchar</span></button>
+    <button class="tile" type="button" id="pause"><svg viewBox="0 0 24 24" id="pauseIco"></svg><span id="pauseLbl">Pausa</span></button>
+    <button class="tile" type="button" id="reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12h18"/></svg>Silencio</button>
+    <button class="tile" type="button" id="more" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
   </div>
-</div>
+</nav>
 
 <script>
 (function(){
@@ -120,22 +130,22 @@ const TRI_H = SIDE*Math.sqrt(3)/2;
 const ELL_W = 5.5, ELL_H = 3.5;  // sala elíptica: ejes (m)
 const PARA_B = 4.5, PARA_S = 3.5, PARA_ANG = 60*Math.PI/180;   // romboide: lados y ángulo
 const PARA_H = PARA_S*Math.sin(PARA_ANG), PARA_OFF = PARA_S*Math.cos(PARA_ANG);
-const CELLS = 30000;            // nodos del rectángulo que contiene la sala
+const CELLS = 48000;            // nodos del rectángulo que contiene la sala (antes 30 000)
 const COUR = 0.5;               // número de Courant (estable si < 1/√2)
 const FMIN = 20, FMAX = 400;
+const BUDGET = 10;              // ms de cálculo por cuadro como máximo
 
-let shape = "rect", rot = false, pendingFirst = false, NX, NY, dx, dt, Wb, Hb, area, mask, fl, nl, nr, nu, nd, K;
-let p0, p1, p2, en, img, px;
+let shape = "rect", rot = false, pendingFirst = false, NX = 0, NY = 0, dx, dt, Wb, Hb, area, mask, fl, nl, nr, nu, nd, K;
+let p0, p1, p2, en, img, px32;
 let freq = 0, phase = 0, stepN = 0, beta = 8, paused = false, view = "p";
-// Fuentes (hasta 3), todas a la misma frecuencia: patrón, orientación (rad, 0 = derecha) y fase (rad)
 const MAX_SRC = 3;
 let srcs = [{x:0, y:0, pattern:"omni", orient:0, ph:0}], sel = 0;
-let lis = {x:0, y:0}, dragLis = false, levelDb = 0;   // oyente: donde se "escucha" el campo
-let modes = [], pk = 1e-6, ek = 1e-9, dirty = true;
-const room = document.getElementById("room"), rctx = room.getContext("2d");
-const plot = document.getElementById("plot"), pctx = plot.getContext("2d");
-const off = document.createElement("canvas"), octx = off.getContext("2d");
+let lis = {x:0, y:0}, dragLis = false, levelDb = 0;
+let modes = [], pk = 1e-6, ek = 1e-9, dirty = true, placed = null;
 const $ = id => document.getElementById(id);
+const room = $("room"), rctx = room.getContext("2d");
+const plot = $("plot"), pctx = plot.getContext("2d");
+const off = document.createElement("canvas"), octx = off.getContext("2d");
 const fmt = (v, d) => v.toFixed(d).replace(".", ",");
 let rect = {x:0, y:0, w:1, h:1}, dpr = 1;
 
@@ -150,7 +160,7 @@ let besselZeros = null;                              // ceros de J'_m: condició
 function computeBesselZeros(){
   besselZeros = [];
   for (let m = 0; m <= 16; m++){
-    const x0 = m ? m : 0.2;                          // los ceros de J'_m están siempre en x > m
+    const x0 = m ? m : 0.2;
     let f0 = dJ(m, x0);
     for (let x = x0+0.05; x < 34; x += 0.05){
       const f1 = dJ(m, x);
@@ -178,7 +188,11 @@ function insideL(X, Y){
 }
 const inside = (X, Y) => rot ? insideL(Y, X) : insideL(X, Y);
 const DIMS = {rect:[LONG, SHORT], circle:[DIAM, DIAM], tri:[SIDE, TRI_H], ellipse:[ELL_W, ELL_H], para:[PARA_B+PARA_OFF, PARA_H]};
+// posiciones en fracciones de la sala apaisada: sobreviven a cambios de tamaño y de orientación
+const toFrac = p => rot ? [(p.y+0.5)/NY, (p.x+0.5)/NX] : [(p.x+0.5)/NX, (p.y+0.5)/NY];
+function fromFrac(p, [u, v]){ const [a, b] = rot ? [v, u] : [u, v]; p.x = Math.min(NX-2, Math.max(1, Math.floor(a*NX))); p.y = Math.min(NY-2, Math.max(1, Math.floor(b*NY))); }
 function setup(keepFreq){
+  const keep = placed === shape && NX ? {s:srcs.map(toFrac), l:toFrac(lis)} : null;
   dpr = Math.min(2, window.devicePixelRatio || 1);
   const cw = room.clientWidth, ch = room.clientHeight;
   room.width = Math.round(cw*dpr); room.height = Math.round(ch*dpr);
@@ -191,34 +205,40 @@ function setup(keepFreq){
   const N = NX*NY;
   mask = new Uint8Array(N);
   for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) mask[y*NX+x] = inside((x+0.5)*dx, (y+0.5)*dx) ? 1 : 0;
-  // vecinos: si el vecino es pared se usa la misma celda (pared rígida, gradiente nulo)
   K = 0; for (let i = 0; i < N; i++) K += mask[i];
   fl = new Int32Array(K); nl = new Int32Array(K); nr = new Int32Array(K); nu = new Int32Array(K); nd = new Int32Array(K);
   let k = 0;
   for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++){
     const i = y*NX+x; if (!mask[i]) continue;
-    fl[k] = i;
+    fl[k] = i;                                       // vecino pared → la misma celda (pared rígida)
     nl[k] = x > 0 && mask[i-1] ? i-1 : i;      nr[k] = x < NX-1 && mask[i+1] ? i+1 : i;
     nu[k] = y > 0 && mask[i-NX] ? i-NX : i;    nd[k] = y < NY-1 && mask[i+NX] ? i+NX : i;
     k++;
   }
   area = K*dx*dx;
   p0 = new Float32Array(N); p1 = new Float32Array(N); p2 = new Float32Array(N); en = new Float32Array(N);
-  off.width = NX; off.height = NY; img = octx.createImageData(NX, NY); px = img.data;
-  const pad = 14, s = Math.min((cw-2*pad)/Wb, (ch-2*pad-46)/Hb);
-  rect = {w:Wb*s, h:Hb*s, x:(cw-Wb*s)/2, y:46+(ch-46-Hb*s)/2};
-  const start = {rect:[0.22, 0.3], circle:[0.33, 0.4], tri:[0.4, 0.62], ellipse:[0.3, 0.4], para:[0.35, 0.5]}[shape];
-  const spots = [start, [1-start[0], 1-start[1]], [0.5, 0.5]];
-  lis.x = Math.round(NX*(1-start[0]*0.9)); lis.y = Math.round(NY*0.55);
-  if (!mask[lis.y*NX+lis.x]){ const i = fl[(K*0.7)|0]; lis.x = i%NX; lis.y = (i/NX)|0; }
-  srcs.forEach((s, k) => {
-    s.x = Math.round(NX*spots[k][0]); s.y = Math.round(NY*spots[k][1]);
-    if (!mask[s.y*NX+s.x]){ const i = fl[(K*(k+1)/(srcs.length+1))|0]; s.x = i%NX; s.y = (i/NX)|0; }
-  });
+  off.width = NX; off.height = NY; img = octx.createImageData(NX, NY); px32 = new Uint32Array(img.data.buffer);
+  const top = $("card").offsetTop + $("card").offsetHeight + 10, pad = 14;
+  const s = Math.min((cw-2*pad)/Wb, (ch-top-pad-14)/Hb);
+  rect = {w:Wb*s, h:Hb*s, x:(cw-Wb*s)/2, y:top+(ch-top-14-Hb*s)/2};
+  const ensure = p => { if (!mask[p.y*NX+p.x]){ const i = fl[(K*0.5)|0]; p.x = i%NX; p.y = (i/NX)|0; } };
+  if (keep){
+    srcs.forEach((s, k) => { fromFrac(s, keep.s[k]); ensure(s); }); fromFrac(lis, keep.l); ensure(lis);
+  } else {
+    const start = {rect:[0.22, 0.3], circle:[0.33, 0.4], tri:[0.4, 0.62], ellipse:[0.3, 0.4], para:[0.35, 0.5]}[shape];
+    const spots = [start, [1-start[0], 1-start[1]], [0.5, 0.5]];
+    lis.x = Math.round(NX*(1-start[0]*0.9)); lis.y = Math.round(NY*0.55);
+    if (!mask[lis.y*NX+lis.x]){ const i = fl[(K*0.7)|0]; lis.x = i%NX; lis.y = (i/NX)|0; }
+    srcs.forEach((s, k) => {
+      s.x = Math.round(NX*spots[k][0]); s.y = Math.round(NY*spots[k][1]);
+      if (!mask[s.y*NX+s.x]){ const i = fl[(K*(k+1)/(srcs.length+1))|0]; s.x = i%NX; s.y = (i/NX)|0; }
+    });
+  }
+  placed = shape;
   stepN = 0; phase = 0; pk = 1e-6; ek = 1e-9;
   computeModes();
   if (!keepFreq || !freq){ freq = modes.length ? modes[0].f : 50; pendingFirst = !modes.length; }
-  $("dims").textContent = {rect:`${fmt(Wb, 1)} × ${fmt(Hb, 1)} m`, circle:`${fmt(DIAM, 1)} m de diámetro`, tri:`${fmt(SIDE, 1)} m de lado`,
+  $("dims").textContent = "Medidas: " + {rect:`${fmt(Wb, 1)} × ${fmt(Hb, 1)} m`, circle:`${fmt(DIAM, 1)} m de diámetro`, tri:`${fmt(SIDE, 1)} m de lado`,
     ellipse:`ejes de ${fmt(ELL_W, 1)} y ${fmt(ELL_H, 1)} m`, para:`lados de ${fmt(PARA_B, 1)} y ${fmt(PARA_S, 1)} m, 60°`}[shape];
   $("ptl").textContent = (shape === "rect" || shape === "circle") ? "Respuesta de la sala: toca o arrastra para elegir frecuencia"
                                                                   : "Modos de la sala (curva promedio): toca para elegir frecuencia";
@@ -268,14 +288,13 @@ function computeModes(){
 // ---------- Patrón del parlante ----------
 // Omnidireccional: un punto (monopolo).
 // Bidireccional (figura 8): dos puntos en contrafase separados d → p ∝ cos θ.
-// Unidireccional (cardioide): el punto trasero va invertido y retrasado d/c → p ∝ (1 + cos θ)/2,
-// con el nulo hacia atrás. Ambos se normalizan para dar el mismo nivel en el eje que el omni.
+// Unidireccional (cardioide): el punto trasero va invertido y retrasado d/c → p ∝ (1 + cos θ)/2.
 const D_SRC = 2;                                     // separación entre los dos puntos, en celdas
-function srcPoints(s){                               // [centro, adelante, atrás] en coordenadas de celda
+function srcPoints(s){
   const h = D_SRC/2, ux = Math.cos(s.orient), uy = Math.sin(s.orient);
   return [[s.x, s.y], [s.x+h*ux, s.y+h*uy], [s.x-h*ux, s.y-h*uy]];
 }
-function srcAmps(s, f){                              // amplitudes complejas [re, im] de cada punto, con la fase de la fuente
+function srcAmps(s, f){
   let A;
   if (s.pattern === "omni") A = [[1, 0], [0, 0], [0, 0]];
   else {
@@ -286,11 +305,10 @@ function srcAmps(s, f){                              // amplitudes complejas [re
   const c = Math.cos(s.ph), sn = Math.sin(s.ph);
   return A.map(([r, i]) => [r*c - i*sn, r*sn + i*c]);
 }
-// Forma del modo en un punto (celdas): [parte coseno, parte seno]; y su norma
 function modePsi(md, cx, cy){
   if (shape === "rect") return [Math.cos(md.a*Math.PI*(cx+0.5)/NX)*Math.cos(md.b*Math.PI*(cy+0.5)/NY), 0];
   const R = DIAM/2, X = (cx+0.5)*dx-R, Y = (cy+0.5)*dx-R, j = J(md.a, md.kx*Math.hypot(X, Y)), th = Math.atan2(Y, X);
-  return [j*Math.cos(md.a*th), j*Math.sin(md.a*th)];   // par degenerado cos/sen del círculo
+  return [j*Math.cos(md.a*th), j*Math.sin(md.a*th)];
 }
 const modeNorm = md => shape === "rect" ? (md.a ? 2 : 1)*(md.b ? 2 : 1)/area : 1/md.Nn;
 function inject(cx, cy, v){                          // reparte una fuente puntual entre 4 celdas (bilineal)
@@ -300,9 +318,10 @@ function inject(cx, cy, v){                          // reparte una fuente puntu
   }
 }
 
-// Medición numérica de los modos: se deja vibrar la sala (malla 2× más gruesa, sin pérdidas)
-// desde un campo inicial aleatorio y suave, se registra la presión en 64 puntos y se buscan
-// los picos del espectro. Se corrige la dispersión para que coincidan con la malla fina.
+// Medición numérica de los modos: se deja vibrar la sala (malla más gruesa, sin pérdidas) desde un
+// campo inicial aleatorio y suave, se registra la presión en 64 puntos y se buscan los picos del
+// espectro. Se corrige la dispersión para que coincidan con la malla fina. La malla gruesa conserva
+// el espaciado de la versión de 30 000 celdas para que el cálculo no tarde más.
 function fft(re, im){
   const n = re.length;
   for (let i = 1, j = 0; i < n; i++){
@@ -322,7 +341,7 @@ function fft(re, im){
   }
 }
 function numericModes(forShape, token){
-  const F = 2, dxc = dx*F, NXc = Math.ceil(NX/F), NYc = Math.ceil(NY/F), Nc = NXc*NYc;
+  const F = Math.max(2, Math.round(2*Math.sqrt(CELLS/30000))), dxc = dx*F, NXc = Math.ceil(NX/F), NYc = Math.ceil(NY/F), Nc = NXc*NYc;
   const m = new Uint8Array(Nc);
   for (let y = 0; y < NYc; y++) for (let x = 0; x < NXc; x++) m[y*NXc+x] = inside((x+0.5)*dxc, (y+0.5)*dxc) ? 1 : 0;
   let Kc = 0; for (let i = 0; i < Nc; i++) Kc += m[i];
@@ -338,7 +357,7 @@ function numericModes(forShape, token){
   const steps = Math.ceil(T/dtc), M = Math.floor(steps/DEC);
   let q0 = new Float32Array(Nc), q1 = new Float32Array(Nc), q2 = new Float32Array(Nc);
   const sig2 = 2*(0.2/dxc)**2;
-  for (let b = 0; b < 60; b++){                      // 60 manchas gaussianas de signo aleatorio
+  for (let b = 0; b < 60; b++){
     const c = cf[(Math.random()*Kc)|0], bx = c%NXc, by = (c/NXc)|0, amp = Math.random() < 0.5 ? -1 : 1;
     for (let k = 0; k < Kc; k++){ const i = cf[k], ddx = i%NXc-bx, ddy = ((i/NXc)|0)-by; q1[i] += amp*Math.exp(-(ddx*ddx+ddy*ddy)/sig2); }
   }
@@ -365,8 +384,8 @@ function numericModes(forShape, token){
     const re = new Float64Array(NF), im = new Float64Array(NF);
     for (let r = 0; r < NR; r++){
       re.fill(0); im.fill(0);
-      let mean = 0; for (let t = 0; t < M; t++) mean += rec[r*M+t]/M;      // quita el modo (0,0), que no oscila
-      for (let t = 0; t < M; t++){ const u = 2*Math.PI*t/(M-1); re[t] = (rec[r*M+t]-mean)*(0.42 - 0.5*Math.cos(u) + 0.08*Math.cos(2*u)); }   // ventana de Blackman
+      let mean = 0; for (let t = 0; t < M; t++) mean += rec[r*M+t]/M;
+      for (let t = 0; t < M; t++){ const u = 2*Math.PI*t/(M-1); re[t] = (rec[r*M+t]-mean)*(0.42 - 0.5*Math.cos(u) + 0.08*Math.cos(2*u)); }
       fft(re, im);
       for (let k = 0; k < NF/2; k++) P[k] += re[k]*re[k] + im[k]*im[k];
     }
@@ -401,8 +420,7 @@ function step(){
     const v = (2*c - B*p0[i] + C2*(p1[nl[k]]+p1[nr[k]]+p1[nu[k]]+p1[nd[k]]-4*c))*A;
     p2[i] = v; en[i] += a*(v*v - en[i]);
   }
-  // parlante omnidireccional: fuente puntual con encendido suave de 3 periodos
-  const ramp = Math.min(1, stepN/(3*per)), env = ramp*ramp*(3-2*ramp);
+  const ramp = Math.min(1, stepN/(3*per)), env = ramp*ramp*(3-2*ramp);   // encendido suave de 3 periodos
   phase += 2*Math.PI*freq*dt; if (phase > 2*Math.PI) phase -= 2*Math.PI;
   const amp = C2*env;
   for (const s of srcs){
@@ -424,23 +442,22 @@ function step(){
 function response(f, psis, norms){
   const w = 2*Math.PI*f, A = srcs.flatMap(s => srcAmps(s, f)), den = q => (q*q - w*w)**2 + (2*beta*w)**2;
   let s0r = 0, s0i = 0; for (const [r, i] of A){ s0r += r; s0i += i; }
-  let R = (s0r*s0r + s0i*s0i)/area/den(0);           // modo (0,0): compresión uniforme de la sala cerrada
+  let R = (s0r*s0r + s0i*s0i)/area/den(0);
   for (let k = 0; k < modes.length; k++){
     const fk = modes[k].f;
     let g;
-    if (psis){                                       // rectángulo y círculo: acoplamiento exacto
+    if (psis){
       let cr = 0, ci = 0, sr = 0, si = 0;
       for (let j = 0; j < A.length; j++){ const [pc, ps] = psis[k][j]; cr += A[j][0]*pc; ci += A[j][1]*pc; sr += A[j][0]*ps; si += A[j][1]*ps; }
       g = norms[k]*(cr*cr + ci*ci + sr*sr + si*si);
-    } else {                                         // promedio sobre posiciones (fuente pequeña frente a λ)
-      // cada fuente por separado + interferencia entre fuentes (correlación J0(k·d) de los modos)
+    } else {
       const q = (fk/f)**2, km = 2*Math.PI*fk/C_SOUND;
       let acc = 0;
       for (let a = 0; a < srcs.length; a++){
         const pa = srcs[a].pattern;
         acc += pa === "omni" ? 1 : pa === "dipole" ? 0.5*q : 0.25*(1 + 0.5*q);
         for (let b = a+1; b < srcs.length; b++){
-          let ar = 0, ai = 0, br = 0, bi = 0;               // contenido monopolar de cada fuente
+          let ar = 0, ai = 0, br = 0, bi = 0;
           for (let j = 0; j < 3; j++){ ar += A[3*a+j][0]; ai += A[3*a+j][1]; br += A[3*b+j][0]; bi += A[3*b+j][1]; }
           const d = Math.hypot(srcs[a].x-srcs[b].x, srcs[a].y-srcs[b].y)*dx;
           acc += 2*(ar*br + ai*bi)*J(0, km*d);
@@ -459,8 +476,6 @@ function drawPlot(){
   const w = plot.clientWidth, h = plot.clientHeight;
   if (plot.width !== Math.round(w*dpr) || plot.height !== Math.round(h*dpr)){ plot.width = Math.round(w*dpr); plot.height = Math.round(h*dpr); }
   pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const css = getComputedStyle(document.documentElement);
-  const muted = css.getPropertyValue("--muted").trim(), acc = css.getPropertyValue("--accent").trim(), line = css.getPropertyValue("--line").trim();
   if (dirty){
     const exact = shape === "rect" || shape === "circle", pts = srcs.flatMap(srcPoints);
     const psis = exact ? modes.map(md => pts.map(([x, y]) => modePsi(md, x, y))) : null;
@@ -471,34 +486,34 @@ function drawPlot(){
     dirty = false;
   }
   pctx.clearRect(0, 0, w, h);
-  pctx.font = "11px Barlow, sans-serif"; pctx.fillStyle = muted; pctx.strokeStyle = line; pctx.lineWidth = 1;
+  pctx.font = "700 11px Nunito, sans-serif"; pctx.fillStyle = "#a3aed8"; pctx.strokeStyle = "#2c3a6e"; pctx.lineWidth = 1;
   for (const f of [20, 50, 100, 200, 400]){
     const X = fx(f)*w; pctx.beginPath(); pctx.moveTo(X, 0); pctx.lineTo(X, h); pctx.stroke();
     pctx.fillText(f + " Hz", Math.min(X+3, w-38), h-4);
   }
-  pctx.strokeStyle = muted; pctx.globalAlpha = 0.5;
+  pctx.strokeStyle = "#a3aed8"; pctx.globalAlpha = 0.5;
   for (const md of modes){ if (md.f > FMAX) break; const X = fx(md.f)*w; pctx.beginPath(); pctx.moveTo(X, 0); pctx.lineTo(X, 5); pctx.stroke(); }
   pctx.globalAlpha = 1;
-  pctx.strokeStyle = acc; pctx.lineWidth = 1.6; pctx.beginPath();
+  pctx.strokeStyle = "#ffc94a"; pctx.lineWidth = 1.8; pctx.beginPath();
   curve.forEach((v, k) => { const X = k/400*w, Y = 8 + (1-v)*(h-24); k ? pctx.lineTo(X, Y) : pctx.moveTo(X, Y); });
   pctx.stroke();
-  const X = fx(freq)*w;
-  pctx.fillStyle = acc; pctx.fillRect(X-1, 0, 2, h);
+  pctx.fillStyle = "#ffc94a"; pctx.fillRect(fx(freq)*w-1, 0, 2, h);
 }
 
 // ---------- Dibujo de la sala ----------
 function lut(stops){
-  const t = new Uint8Array(768);
+  const t = new Uint32Array(256);
   for (let k = 0; k < 256; k++){
     const v = k/255; let j = 0;
     while (j < stops.length-2 && v > stops[j+1][0]) j++;
-    const [a, ca] = stops[j], [b, cb] = stops[j+1], u = (v-a)/(b-a);
-    for (let c = 0; c < 3; c++) t[k*3+c] = Math.round(ca[c] + (cb[c]-ca[c])*u);
+    const [a, ca] = stops[j], [b, cb] = stops[j+1], u = (v-a)/(b-a), c = [0, 1, 2].map(m => Math.round(ca[m] + (cb[m]-ca[m])*u));
+    t[k] = 0xff000000 | (c[2] << 16) | (c[1] << 8) | c[0];
   }
   return t;
 }
-const LUT_P = lut([[0,[90,180,255]],[0.25,[25,80,160]],[0.5,[10,17,28]],[0.75,[200,95,35]],[1,[255,205,140]]]);
-const LUT_I = lut([[0,[10,17,28]],[0.3,[25,70,120]],[0.6,[40,160,150]],[0.85,[235,200,110]],[1,[255,246,220]]]);
+const LUT_P = lut([[0,[90,180,255]],[0.25,[25,80,160]],[0.5,[11,18,38]],[0.75,[200,95,35]],[1,[255,205,140]]]);
+const LUT_I = lut([[0,[11,18,38]],[0.3,[25,70,120]],[0.6,[40,160,150]],[0.85,[235,200,110]],[1,[255,246,220]]]);
+const OUT = 0xff000000 | (38 << 16) | (18 << 8) | 11;
 function wallPath(){
   rctx.beginPath();
   if (shape === "rect") rctx.rect(rect.x, rect.y, rect.w, rect.h);
@@ -514,114 +529,89 @@ function wallPath(){
     rctx.closePath();
   }
 }
+const cellX = x => rect.x + (x+0.5)/NX*rect.w, cellY = y => rect.y + (y+0.5)/NY*rect.h;
 function drawRoom(){
   let mp = 0, me = 0;
   for (let k = 0; k < K; k++){ const i = fl[k], a = Math.abs(p1[i]); if (a > mp) mp = a; if (en[i] > me) me = en[i]; }
   pk = Math.max(mp, pk*0.985, 1e-6); ek = Math.max(me, ek*0.985, 1e-12);
-  const L = view === "p" ? LUT_P : LUT_I;
+  const L = view === "p" ? LUT_P : LUT_I, kp = 127.5/pk, ke = 1/ek;
   for (let i = 0, N = NX*NY; i < N; i++){
-    const o = i*4;
-    if (!mask[i]){ px[o] = 10; px[o+1] = 17; px[o+2] = 28; px[o+3] = 255; continue; }
-    const v = view === "p" ? 0.5 + 0.5*p1[i]/pk : Math.sqrt(en[i]/ek);
-    const k = (v <= 0 ? 0 : v >= 1 ? 255 : (v*255)|0)*3;
-    px[o] = L[k]; px[o+1] = L[k+1]; px[o+2] = L[k+2]; px[o+3] = 255;
+    if (!mask[i]){ px32[i] = OUT; continue; }
+    const v = view === "p" ? 127.5 + p1[i]*kp : 255*Math.sqrt(en[i]*ke);
+    px32[i] = L[v <= 0 ? 0 : v >= 255 ? 255 : v|0];
   }
   octx.putImageData(img, 0, 0);
   rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  rctx.fillStyle = "#0a111c"; rctx.fillRect(0, 0, room.clientWidth, room.clientHeight);
+  rctx.fillStyle = "#0b1226"; rctx.fillRect(0, 0, room.clientWidth, room.clientHeight);
   rctx.save(); wallPath(); rctx.clip();
   rctx.imageSmoothingEnabled = true; rctx.imageSmoothingQuality = "high";
   rctx.drawImage(off, rect.x, rect.y, rect.w, rect.h);
   rctx.restore();
-  rctx.strokeStyle = "#9fb1c6"; rctx.lineWidth = 3; rctx.lineJoin = "round"; wallPath(); rctx.stroke();
+  rctx.strokeStyle = "#a3aed8"; rctx.lineWidth = 3; rctx.lineJoin = "round"; wallPath(); rctx.stroke();
   // parlantes
   srcs.forEach((sr, k) => {
-    const pattern = sr.pattern, orient = sr.orient;
-    const X = rect.x + (sr.x+0.5)/NX*rect.w, Y = rect.y + (sr.y+0.5)/NY*rect.h;
-    rctx.strokeStyle = "rgba(255,255,255,0.8)"; rctx.lineWidth = 1.5;
-    if (pattern === "omni"){
-      for (const r of [11, 16]){ rctx.beginPath(); rctx.arc(X, Y, r, 0, Math.PI*2); rctx.stroke(); }
-    } else {                                           // diagrama polar del parlante, orientado
+    const X = cellX(sr.x), Y = cellY(sr.y);
+    rctx.strokeStyle = "rgba(255,255,255,0.85)"; rctx.lineWidth = 1.8;
+    if (sr.pattern === "omni"){
+      for (const r of [12, 18]){ rctx.beginPath(); rctx.arc(X, Y, r, 0, Math.PI*2); rctx.stroke(); }
+    } else {
       rctx.beginPath();
       for (let t = 0; t <= 96; t++){
-        const th = t/96*Math.PI*2, r = 26*(pattern === "cardioid" ? (1+Math.cos(th))/2 : Math.abs(Math.cos(th))), a = th + orient;
-        const qx = X + r*Math.cos(a), qy = Y + r*Math.sin(a);
-        t ? rctx.lineTo(qx, qy) : rctx.moveTo(qx, qy);
+        const th = t/96*Math.PI*2, r = 28*(sr.pattern === "cardioid" ? (1+Math.cos(th))/2 : Math.abs(Math.cos(th))), a = th + sr.orient;
+        t ? rctx.lineTo(X + r*Math.cos(a), Y + r*Math.sin(a)) : rctx.moveTo(X + r*Math.cos(a), Y + r*Math.sin(a));
       }
       rctx.stroke();
-      rctx.setLineDash([3, 3]); rctx.beginPath();
-      rctx.moveTo(X - 30*Math.cos(orient), Y - 30*Math.sin(orient)); rctx.lineTo(X + 30*Math.cos(orient), Y + 30*Math.sin(orient));
-      rctx.stroke(); rctx.setLineDash([]);
     }
-    rctx.fillStyle = "#ffffff"; rctx.beginPath(); rctx.arc(X, Y, 5, 0, Math.PI*2); rctx.fill();
+    rctx.fillStyle = "#ffffff"; rctx.beginPath(); rctx.arc(X, Y, 7, 0, Math.PI*2); rctx.fill();
     if (srcs.length > 1){
-      rctx.strokeStyle = k === sel ? "#f0a742" : "rgba(255,255,255,0.35)"; rctx.lineWidth = 2;
-      rctx.beginPath(); rctx.arc(X, Y, 8, 0, Math.PI*2); rctx.stroke();
-      rctx.fillStyle = k === sel ? "#f0a742" : "#dde6ef"; rctx.font = "600 12px Barlow, sans-serif";
-      rctx.fillText(String(k+1), X + 9, Y - 9);
+      rctx.strokeStyle = k === sel ? "#ffc94a" : "rgba(255,255,255,0.35)"; rctx.lineWidth = 2.5;
+      rctx.beginPath(); rctx.arc(X, Y, 10, 0, Math.PI*2); rctx.stroke();
+      rctx.fillStyle = k === sel ? "#ffc94a" : "#eef1ff"; rctx.font = "800 13px Nunito, sans-serif";
+      rctx.fillText(String(k+1), X + 11, Y - 11);
     }
   });
-  // oyente (audífonos) con referencias: origen en la esquina inferior izquierda,
-  // líneas guía a los ejes con sus coordenadas y distancia a cada parlante
-  {
-    const X = rect.x + (lis.x+0.5)/NX*rect.w, Y = rect.y + (lis.y+0.5)/NY*rect.h;
-    const ox = rect.x, oy = rect.y + rect.h, xm = (lis.x+0.5)*dx, ym = Hb - (lis.y+0.5)*dx;
-    rctx.save();
-    rctx.font = "600 11px Barlow, sans-serif"; rctx.lineWidth = 1;
-    // origen y ejes
-    rctx.strokeStyle = "rgba(221,230,239,0.75)"; rctx.fillStyle = "rgba(221,230,239,0.85)";
-    rctx.beginPath(); rctx.moveTo(ox, oy); rctx.lineTo(ox + 26, oy); rctx.moveTo(ox, oy); rctx.lineTo(ox, oy - 26); rctx.stroke();
-    rctx.beginPath(); rctx.arc(ox, oy, 3, 0, Math.PI*2); rctx.fill();
-    rctx.fillText("0", ox - 10, oy + 12); rctx.fillText("x", ox + 29, oy + 4); rctx.fillText("y", ox - 3, oy - 30);
-    // guías hasta los ejes
-    rctx.strokeStyle = "rgba(127,211,255,0.55)"; rctx.setLineDash([4, 4]);
-    rctx.beginPath(); rctx.moveTo(X, Y); rctx.lineTo(X, oy); rctx.moveTo(X, Y); rctx.lineTo(ox, Y); rctx.stroke();
-    rctx.setLineDash([]); rctx.fillStyle = "#7fd3ff";
-    rctx.fillText(fmt(xm, 1) + " m", X - 14, oy + 13);
-    rctx.save(); rctx.translate(ox - 5, Y + 14); rctx.rotate(-Math.PI/2); rctx.fillText(fmt(ym, 1) + " m", 0, 0); rctx.restore();
-    // distancia a cada parlante
-    rctx.strokeStyle = "rgba(255,255,255,0.3)"; rctx.setLineDash([2, 5]);
-    srcs.forEach((s, k) => {
-      const sx = rect.x + (s.x+0.5)/NX*rect.w, sy = rect.y + (s.y+0.5)/NY*rect.h;
-      rctx.beginPath(); rctx.moveTo(X, Y); rctx.lineTo(sx, sy); rctx.stroke();
-      const d = Math.hypot(s.x - lis.x, s.y - lis.y)*dx;
-      rctx.fillStyle = "rgba(221,230,239,0.85)";
-      rctx.fillText((srcs.length > 1 ? (k+1) + ": " : "") + fmt(d, 1) + " m", (X+sx)/2 + 4, (Y+sy)/2 - 4);
-    });
-    rctx.restore();
-    rctx.strokeStyle = "#7fd3ff"; rctx.fillStyle = "#7fd3ff"; rctx.lineWidth = 2.2;
-    rctx.beginPath(); rctx.arc(X, Y+2, 9, Math.PI, 0); rctx.stroke();
-    rctx.fillRect(X-11, Y, 5, 8); rctx.fillRect(X+6, Y, 5, 8);
-    rctx.font = "600 11px Barlow, sans-serif"; rctx.fillText("Oyente", X-17, Y+21);
-  }
+  // oyente: distancia a cada parlante y posición desde la esquina
+  const X = cellX(lis.x), Y = cellY(lis.y);
+  rctx.save();
+  rctx.font = "700 12px Nunito, sans-serif"; rctx.strokeStyle = "rgba(255,255,255,0.3)"; rctx.setLineDash([2, 5]); rctx.lineWidth = 1;
+  srcs.forEach((s, k) => {
+    const sx = cellX(s.x), sy = cellY(s.y);
+    rctx.beginPath(); rctx.moveTo(X, Y); rctx.lineTo(sx, sy); rctx.stroke();
+    rctx.fillStyle = "rgba(238,241,255,0.85)";
+    rctx.fillText((srcs.length > 1 ? (k+1) + ": " : "") + fmt(Math.hypot(s.x - lis.x, s.y - lis.y)*dx, 1) + " m", (X+sx)/2 + 4, (Y+sy)/2 - 4);
+  });
+  rctx.restore();
+  rctx.strokeStyle = "#5ec8f2"; rctx.fillStyle = "#5ec8f2"; rctx.lineWidth = 2.6;
+  rctx.beginPath(); rctx.arc(X, Y+2, 10, Math.PI, 0); rctx.stroke();
+  rctx.fillRect(X-12.5, Y, 6, 9); rctx.fillRect(X+6.5, Y, 6, 9);
+  rctx.font = "800 12px Nunito, sans-serif"; rctx.textAlign = "center"; rctx.fillText("Oyente", X, Y+24); rctx.textAlign = "start";
   // escala de 1 m
-  const m1 = rect.w/Wb, bx = rect.x+rect.w, by = rect.y+rect.h+12;
-  rctx.strokeStyle = "#dde6ef"; rctx.lineWidth = 2;
+  const m1 = rect.w/Wb, bx = rect.x+rect.w, by = rect.y+rect.h+11;
+  rctx.strokeStyle = "#eef1ff"; rctx.lineWidth = 2;
   rctx.beginPath(); rctx.moveTo(bx-m1, by); rctx.lineTo(bx, by); rctx.stroke();
-  rctx.fillStyle = "#dde6ef"; rctx.font = "12px Barlow, sans-serif"; rctx.fillText("1 m", bx-m1-30, by+4);
+  rctx.fillStyle = "#eef1ff"; rctx.font = "700 12px Nunito, sans-serif"; rctx.fillText("1 m", bx-m1-28, by+4);
 }
 
 // ---------- Interfaz ----------
-function nearMode(){
-  for (const md of modes) if (Math.abs(md.f-freq)/md.f < 0.004) return md;
-  return null;
-}
+function nearMode(){ for (const md of modes) if (Math.abs(md.f-freq)/md.f < 0.004) return md; return null; }
+const modeName = md => md.a === null ? `modo ${md.idx}` : `modo (${md.a},${md.b})`;
 function updateLabels(){
-  $("freq").textContent = fmt(freq, freq < 100 ? 1 : 0) + " Hz";
-  $("lam").textContent = "λ = " + fmt(C_SOUND/freq, 2) + " m";
   const md = nearMode();
-  $("modeLbl").textContent = !modes.length ? "Calculando modos…" : md ? `${modeName(md)}: resonancia` : "Entre modos";
-  $("t60").textContent = "T60 ≈ " + fmt(6.91/beta, 2) + " s";
+  $("say").textContent = !modes.length ? "Calculando las notas de esta sala…"
+                       : md ? "La sala resuena: el sonido es fuerte en unas zonas y débil en otras."
+                            : "Toca una nota y arrastra el parlante o el oyente.";
+  $("t60").textContent = fmt(6.91/beta, 2) + " s";
   document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", !!md && +c.dataset.k === modes.indexOf(md)));
+  dataT = 0;
 }
-const modeName = md => md.a === null ? `Modo ${md.idx}` : `Modo (${md.a},${md.b})`;
 function buildChips(){
   const box = $("chips"); box.innerHTML = "";
-  if (!modes.length){ box.innerHTML = '<span class="wait">Calculando los modos de esta sala…</span>'; return; }
+  if (!modes.length){ box.innerHTML = '<span class="wait">Calculando las notas de esta sala…</span>'; return; }
   modes.slice(0, 14).forEach((md, k) => {
     const b = document.createElement("button");
     b.className = "chip"; b.type = "button"; b.dataset.k = k;
-    b.textContent = (md.a === null ? `${md.idx}.º` : `(${md.a},${md.b})`) + ` ${fmt(md.f, 1)} Hz`;
+    b.innerHTML = `${k+1}<small>${fmt(md.f, md.f < 100 ? 1 : 0)} Hz</small>`;
+    b.setAttribute("aria-label", `Nota ${k+1}, ${fmt(md.f, 1)} hercios`);
     b.addEventListener("click", () => setFreq(md.f));
     box.appendChild(b);
   });
@@ -631,7 +621,7 @@ function setFreq(f){ freq = Math.min(FMAX, Math.max(FMIN, f)); updateLabels(); }
 function plotPick(e){
   const r = plot.getBoundingClientRect(), t = Math.min(1, Math.max(0, (e.clientX-r.left)/r.width));
   let f = xf(t);
-  for (const md of modes){ if (Math.abs(fx(md.f)-t)*r.width < 6){ f = md.f; break; } }   // imán a los modos
+  for (const md of modes){ if (Math.abs(fx(md.f)-t)*r.width < 8){ f = md.f; break; } }   // imán a los modos
   setFreq(f);
 }
 let plotDrag = false;
@@ -646,24 +636,17 @@ function moveSrc(e){
   const x = Math.floor((X-rect.x)/rect.w*NX), y = Math.floor((Y-rect.y)/rect.h*NY);
   if (x < 1 || y < 1 || x > NX-2 || y > NY-2 || !mask[y*NX+x]) return;   // solo dentro de la sala
   if (dragLis){ lis.x = x; lis.y = y; return; }
-  srcs[sel].x = x; srcs[sel].y = y; dirty = true; $("hint").classList.add("off");
-}
-function pickSrc(e){                                 // tocar cerca de un parlante lo selecciona
-  const r = room.getBoundingClientRect(), X = e.clientX-r.left, Y = e.clientY-r.top;
-  let best = -1, bd = 30;
-  srcs.forEach((s, k) => {
-    const d = Math.hypot(rect.x + (s.x+0.5)/NX*rect.w - X, rect.y + (s.y+0.5)/NY*rect.h - Y);
-    if (d < bd){ bd = d; best = k; }
-  });
-  if (best >= 0 && best !== sel){ sel = best; syncSrcUI(); }
+  srcs[sel].x = x; srcs[sel].y = y; dirty = true;
 }
 room.addEventListener("pointerdown", e => {
+  const r = room.getBoundingClientRect(), X = e.clientX-r.left, Y = e.clientY-r.top;
+  const dl = Math.hypot(cellX(lis.x)-X, cellY(lis.y)-Y);
+  let best = -1, bd = 1e9;
+  srcs.forEach((s, k) => { const d = Math.hypot(cellX(s.x)-X, cellY(s.y)-Y); if (d < bd){ bd = d; best = k; } });
+  if (Math.min(dl, bd) > 44) return;                // hay que tocar el parlante o el oyente (44 px de margen)
   roomDrag = true; room.setPointerCapture(e.pointerId);
-  const r = room.getBoundingClientRect();
-  const lx = rect.x + (lis.x+0.5)/NX*rect.w, ly = rect.y + (lis.y+0.5)/NY*rect.h;
-  const ds = Math.min(...srcs.map(s => Math.hypot(rect.x + (s.x+0.5)/NX*rect.w - (e.clientX-r.left), rect.y + (s.y+0.5)/NY*rect.h - (e.clientY-r.top))));
-  dragLis = Math.hypot(lx-(e.clientX-r.left), ly-(e.clientY-r.top)) < Math.min(30, ds);
-  if (!dragLis) pickSrc(e);
+  dragLis = dl < bd;
+  if (!dragLis && best !== sel){ sel = best; syncSrcUI(); }
   moveSrc(e);
 });
 room.addEventListener("pointermove", e => { if (roomDrag) moveSrc(e); });
@@ -680,27 +663,21 @@ document.querySelectorAll("[data-shape]").forEach(b => b.addEventListener("click
   document.querySelectorAll("[data-shape]").forEach(x => x.setAttribute("aria-pressed", x === b));
   setup(false);
 }));
-document.querySelectorAll("[data-pat]").forEach(b => b.addEventListener("click", () => {
-  srcs[sel].pattern = b.dataset.pat; dirty = true; syncSrcUI();
-}));
-$("orient").addEventListener("input", e => {
-  srcs[sel].orient = +e.target.value*Math.PI/180; $("orientOut").textContent = e.target.value + "°"; dirty = true;
-});
-$("phaseIn").addEventListener("input", e => {
-  srcs[sel].ph = +e.target.value*Math.PI/180; $("phaseOut").textContent = e.target.value + "°"; dirty = true;
-});
+document.querySelectorAll("[data-pat]").forEach(b => b.addEventListener("click", () => { srcs[sel].pattern = b.dataset.pat; dirty = true; syncSrcUI(); }));
+$("orient").addEventListener("input", e => { srcs[sel].orient = +e.target.value*Math.PI/180; $("orientOut").textContent = e.target.value + "°"; dirty = true; });
+$("phaseIn").addEventListener("input", e => { srcs[sel].ph = +e.target.value*Math.PI/180; $("phaseOut").textContent = e.target.value + "°"; dirty = true; });
 function syncSrcUI(){
   const s = srcs[sel], seg = $("srcSeg");
   seg.innerHTML = "";
   srcs.forEach((_, k) => {
     const b = document.createElement("button");
-    b.type = "button"; b.textContent = "Fuente " + (k+1); b.setAttribute("aria-pressed", k === sel);
+    b.type = "button"; b.className = "tile"; b.textContent = "Parlante " + (k+1); b.setAttribute("aria-pressed", k === sel);
     b.addEventListener("click", () => { sel = k; syncSrcUI(); });
     seg.appendChild(b);
   });
   seg.hidden = srcs.length < 2;
   $("addSrc").disabled = srcs.length >= MAX_SRC;
-  $("delSrc").hidden = srcs.length < 2;
+  $("delSrc").disabled = srcs.length < 2;
   $("phaseWrap").hidden = srcs.length < 2;
   document.querySelectorAll("[data-pat]").forEach(x => x.setAttribute("aria-pressed", x.dataset.pat === s.pattern));
   $("orientWrap").hidden = s.pattern === "omni";
@@ -721,10 +698,13 @@ $("delSrc").addEventListener("click", () => {
   srcs.splice(sel, 1); sel = Math.max(0, sel-1); dirty = true; syncSrcUI();
 });
 $("damp").addEventListener("input", e => { beta = +e.target.value; dirty = true; updateLabels(); });
-$("pause").addEventListener("click", e => { paused = !paused; e.target.textContent = paused ? "Reanudar" : "Pausar"; });
+const PLAY = '<path d="M7 4.5l13 7.5-13 7.5z" fill="currentColor"/>', PAUSE = '<rect x="5.5" y="4.5" width="4.5" height="15" rx="1.2" fill="currentColor"/><rect x="14" y="4.5" width="4.5" height="15" rx="1.2" fill="currentColor"/>';
+$("pause").addEventListener("click", () => { paused = !paused; $("pauseIco").innerHTML = paused ? PLAY : PAUSE; $("pauseLbl").textContent = paused ? "Seguir" : "Pausa"; });
 $("reset").addEventListener("click", () => { p0.fill(0); p1.fill(0); p2.fill(0); en.fill(0); stepN = 0; pk = 1e-6; ek = 1e-9; });
+$("more").addEventListener("click", () => {
+  const open = $("sheet").hidden; $("sheet").hidden = !open; $("shapeBox").hidden = open; $("more").setAttribute("aria-pressed", open); dirty = true;
+});
 
-// ---------- Bucle ----------
 // ---------- Sonido real ----------
 // Se reproduce un tono a la frecuencia elegida. Su volumen sigue el nivel que la simulación
 // calcula en el oyente, comparado con el de una sola fuente en campo libre a 1 m (en 2D ese
@@ -738,10 +718,12 @@ function roomLevel(){
   }
   return 10*Math.log10(Math.max(1e-12, e/Math.max(1, n))/(FF/freq));
 }
+let toastT = 0;
+function toast(t){ const el = $("toast"); el.textContent = t; el.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add("off"), 4500); }
 function toggleListen(){
   listening = !listening;
   $("listen").setAttribute("aria-pressed", listening);
-  $("listen").textContent = listening ? "Silenciar" : "Escuchar";
+  $("listenLbl").textContent = listening ? "Callar" : "Escuchar";
   if (listening){
     if (!actx){
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -750,32 +732,45 @@ function toggleListen(){
     }
     actx.resume();
     osc = actx.createOscillator(); osc.type = "sine"; osc.frequency.value = freq; osc.connect(gainN); osc.start();
-    const h = $("hint"); h.textContent = "Usa audífonos: bajo 100 Hz el parlante del celular casi no suena"; h.classList.remove("off");
-    setTimeout(() => h.classList.add("off"), 5000);
+    toast("Usa audífonos: bajo 100 Hz el parlante del celular casi no suena.");
   } else if (osc){
     const t = actx.currentTime; gainN.gain.cancelScheduledValues(t); gainN.gain.setTargetAtTime(0, t, 0.03);
     const o = osc; setTimeout(() => o.stop(), 200); osc = null;
   }
 }
 $("listen").addEventListener("click", toggleListen);
-function updateAudio(){
+let dataT = 0;
+function updateAudio(now){
   levelDb = roomLevel();
-  const near = srcs.map(s => Math.hypot(s.x - lis.x, s.y - lis.y)*dx);
-  $("lisPos").textContent = `Posición: x = ${fmt((lis.x+0.5)*dx, 1)} m, y = ${fmt(Hb - (lis.y+0.5)*dx, 1)} m; a ${fmt(Math.min(...near), 1)} m del parlante más cercano`;
-  $("lvl").textContent = `Oyente: ${levelDb >= 0 ? "+" : "−"}${fmt(Math.abs(levelDb), 0)} dB respecto de campo libre a 1 m`;
+  if (now - dataT > 150){
+    dataT = now;
+    const md = nearMode();
+    $("data").textContent = `${fmt(freq, freq < 100 ? 1 : 0)} Hz · λ = ${fmt(C_SOUND/freq, 2)} m · oyente ${levelDb >= 0 ? "+" : "−"}${fmt(Math.abs(levelDb), 0)} dB` + (md ? ` · ${modeName(md)}` : "");
+  }
   if (!listening || !osc) return;
   const t = actx.currentTime, g = Math.min(0.8, 0.08*Math.pow(10, levelDb/20));
   osc.frequency.setTargetAtTime(freq, t, 0.02);
   gainN.gain.setTargetAtTime(g, t, 0.08);
 }
 
-function frame(){
+// ---------- Bucle ----------
+// Cámara lenta: unos 10 cuadros de 1/60 s por periodo. Los pasos se reparten según el tiempo real
+// (igual a 60 Hz que a 120 Hz) y nunca usan más de BUDGET ms por cuadro.
+const SPF_MAX = Math.round(24*Math.sqrt(CELLS/30000));
+let last = 0, acc = 0;
+function frame(now){
+  const dt60 = last ? Math.min(50, now-last)/16.7 : 1; last = now;
   if (!paused){
-    // cámara lenta: unos 10 cuadros por periodo, entre 6 y 24 pasos por cuadro
-    const per = 1/(freq*dt), spf = Math.max(6, Math.min(24, Math.round(per/10)));
-    for (let k = 0; k < spf; k++) step();
+    const per = 1/(freq*dt), spf = Math.max(6, Math.min(SPF_MAX, Math.round(per/10)));
+    acc += spf*dt60;
+    const want = Math.min(Math.floor(acc), 2*SPF_MAX); acc -= Math.floor(acc);
+    const t0 = performance.now(); let done = 0;
+    while (done < want){ step(); done++; if ((done & 3) === 0 && performance.now()-t0 > BUDGET) break; }
+    if (done < want) acc = 0;
   }
-  drawRoom(); drawPlot(); updateAudio();
+  drawRoom();
+  if (!$("sheet").hidden) drawPlot();
+  updateAudio(now);
   requestAnimationFrame(frame);
 }
 let rt = 0, lastW = 0, lastH = 0;
@@ -783,8 +778,8 @@ new ResizeObserver(() => {
   clearTimeout(rt);
   rt = setTimeout(() => { if (room.clientWidth !== lastW || room.clientHeight !== lastH){ lastW = room.clientWidth; lastH = room.clientHeight; setup(true); } }, 150);
 }).observe(room);
+$("pauseIco").innerHTML = PAUSE;
 setup(false); syncSrcUI(); lastW = room.clientWidth; lastH = room.clientHeight;
-setTimeout(() => $("hint").classList.add("off"), 6000);
 requestAnimationFrame(frame);
 })();
 </script>

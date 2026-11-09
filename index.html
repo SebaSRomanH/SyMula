@@ -3,39 +3,41 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1424">
+<meta name="theme-color" content="#0b1226">
 <title>SyMula</title>
 <meta name="description" content="Simuladores interactivos de física que corren en el navegador.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 /* Oscuro por diseño en ambos temas */
 :root{
-  --bg:#0b1424;--card:#121d30;--line:#24344d;--text:#e6edf5;--muted:#93a4b8;--accent:#f0a742;
+  --bg:#0b1226;--card:#121a36;--line:#2c3a6e;--text:#eef1ff;--muted:#a3aed8;--accent:#ffc94a;
   color-scheme:dark;box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){--bg:#0b1424;--card:#121d30;--line:#24344d;--text:#e6edf5;--muted:#93a4b8;--accent:#f0a742}
+  :root:not([data-theme="light"]){--bg:#0b1226;--card:#121a36;--line:#2c3a6e;--text:#eef1ff;--muted:#a3aed8;--accent:#ffc94a}
 }
-:root[data-theme="dark"]{--bg:#0b1424;--card:#121d30;--line:#24344d;--text:#e6edf5;--muted:#93a4b8;--accent:#f0a742}
+:root[data-theme="dark"]{--bg:#0b1226;--card:#121a36;--line:#2c3a6e;--text:#eef1ff;--muted:#a3aed8;--accent:#ffc94a}
 *,*::before,*::after{box-sizing:border-box}
 html{background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--text);
-  font:400 15px/1.45 Barlow,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+  font:700 15px/1.45 Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
 main{max-width:880px;margin:0 auto;padding:32px 16px 40px}
-h1{font:600 clamp(34px,9vw,48px)/1 "Barlow Semi Condensed",Barlow,sans-serif;margin:0;letter-spacing:.01em}
+h1{font:800 clamp(36px,10vw,50px)/1 Nunito,sans-serif;margin:0}
 h1 span{color:var(--accent)}
 .lead{color:var(--muted);margin:8px 0 26px;max-width:46ch}
 .list{list-style:none;margin:0;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr))}
-.list a{display:flex;gap:14px;align-items:flex-start;height:100%;padding:14px;border-radius:12px;
+.list a{display:flex;gap:14px;align-items:center;height:100%;min-height:96px;padding:14px;border-radius:18px;
   background:var(--card);border:1px solid var(--line);color:inherit;text-decoration:none;transition:border-color .15s}
 .list a:hover{border-color:var(--accent)}
-.list a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.ico{flex:none;width:48px;height:48px;border-radius:10px;display:grid;place-items:center;background:#0b1424;color:var(--accent)}
-.list h2{font:600 18px/1.2 "Barlow Semi Condensed",Barlow,sans-serif;margin:2px 0 4px}
-.list p{margin:0;color:var(--muted);font-size:14px}
+.list a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.list a:active{transform:scale(.98)}
+.ico{flex:none;width:60px;height:60px;border-radius:16px;display:grid;place-items:center;background:var(--bg);color:var(--accent)}
+.ico svg{width:34px;height:34px}
+.list h2{font:800 18px/1.2 Nunito,sans-serif;margin:0 0 4px}
+.list p{margin:0;color:var(--muted);font-size:14px;font-weight:600}
 footer{margin-top:28px;font-size:13px;color:var(--muted)}
 footer a{color:var(--text)}
 </style>
@@ -43,33 +45,33 @@ footer a{color:var(--text)}
 <body>
 <main>
   <h1>Sy<span>M</span>ula</h1>
-  <p class="lead">Simuladores interactivos de física. Corren en el navegador, sin instalar nada; funcionan mejor en el celular en vertical.</p>
+  <p class="lead">Simuladores de física para tocar y descubrir. Funcionan en el navegador, mejor en el celular en vertical.</p>
 
   <ul class="list">
     <li><a href="gravitacion.html">
-      <span class="ico"><svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><ellipse cx="15" cy="15" rx="12" ry="7.5"/><circle cx="10" cy="15" r="3" fill="currentColor"/><circle cx="27" cy="15" r="1.8" fill="currentColor" stroke="none"/></svg></span>
-      <span><h2>Gravitación: leyes de Kepler</h2>
-      <p>Crea planetas, lánzalos y comprueba las elipses, las áreas iguales y la relación T² contra a³. Cambia la ley de fuerza para ver qué deja de cumplirse.</p></span>
+      <span class="ico"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="9" stroke-dasharray="2.5 2.5"/><circle cx="18.4" cy="5.6" r="2.3" fill="currentColor" stroke="none"/></svg></span>
+      <span><h2>Planetas y gravedad</h2>
+      <p>Crea planetas, lánzalos y descubre las tres leyes de Kepler.</p></span>
     </a></li>
     <li><a href="ondas-sonoras.html">
       <span class="ico"><svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="15" r="2" fill="currentColor"/><path d="M13 9a8 8 0 0 1 0 12M17.5 5.5a13 13 0 0 1 0 19M22 2.5a18 18 0 0 1 0 25"/></svg></span>
-      <span><h2>Ondas sonoras en una sala</h2>
-      <p>Mueve parlantes y oyente en salas de distintas formas, encuentra los modos de resonancia y escucha cómo cambia el volumen.</p></span>
+      <span><h2>Sonido en una sala</h2>
+      <p>Mueve el parlante y el oyente, toca las notas de la sala y escucha dónde suena fuerte.</p></span>
     </a></li>
     <li><a href="flujo-tubo.html">
       <span class="ico"><svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 6h26M2 24h26"/><circle cx="11" cy="15" r="3.5"/><path d="M2 11h5M2 19h5M16 12c3 0 4 3 7 3s3-2 5-2M16 18c3 0 4-3 7-3"/></svg></span>
       <span><h2>Flujo en un tubo</h2>
-      <p>Coloca obstáculos dentro de un tubo y observa cómo el fluido los rodea y forma remolinos, con agua, aire, aceite, glicerina o miel.</p></span>
+      <p>Pon formas dentro de un tubo y mira cómo el agua, el aire o la miel las rodean.</p></span>
     </a></li>
     <li><a href="flujo-tactil.html">
       <span class="ico"><svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="15" cy="15" r="2.5" fill="currentColor"/><circle cx="15" cy="15" r="7"/><circle cx="15" cy="15" r="12" opacity=".5"/></svg></span>
       <span><h2>Flujo táctil</h2>
-      <p>Una piscina a pantalla completa: toca y arrastra el dedo para agitar el agua y crear ondas y vórtices. Doble toque cambia la vista.</p></span>
+      <p>Una piscina en la pantalla: mueve el dedo y crea ondas y remolinos.</p></span>
     </a></li>
     <li><a href="lanzamiento.html">
       <span class="ico"><svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 27h24"/><circle cx="15" cy="6" r="3" fill="currentColor"/><circle cx="15" cy="13" r="3" opacity=".55"/><circle cx="15" cy="20" r="3" opacity=".3"/></svg></span>
       <span><h2>Lanzamiento vertical</h2>
-      <p>Lanza una pelota hacia arriba a escala real en la Tierra, la Luna, Marte o Júpiter, con marcas cada 0,1 s y la altura que predice la teoría.</p></span>
+      <p>Lanza una pelota hacia arriba en la Tierra, la Luna, Marte o Júpiter y mide cuánto sube.</p></span>
     </a></li>
   </ul>
 
