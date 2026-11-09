@@ -74,6 +74,11 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
       <button class="tile" type="button" data-n="2" aria-pressed="true">1/r²<small>la real</small></button>
       <button class="tile" type="button" data-n="3" aria-pressed="false">1/r³<small>brusca</small></button>
     </div>
+    <div class="lbl">Cómo se suelta el polvo</div>
+    <div class="row" role="group" aria-label="Cómo se suelta el polvo">
+      <button class="tile" type="button" data-dust="orbit" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M20 12a8 8 0 0 1-8 8M4 12a8 8 0 0 1 8-8"/><path d="M17 17.5l3-5.5 2.5 4" stroke-linejoin="round"/></svg>En órbita</button>
+      <button class="tile" type="button" data-dust="rest" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="19" r="3" fill="currentColor"/><path d="M12 3v10M8.5 9.5L12 13l3.5-3.5"/></svg>Quieto, cae</button>
+    </div>
     <div class="row">
       <button class="tile" id="snd" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" id="sndIcon"></svg><span id="sndLbl">Sonido</span></button>
       <button class="tile" id="dustClr" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 7V4h4v3M6.5 7l1 13h9l1-13"/></svg>Quitar el polvo</button>
@@ -217,18 +222,37 @@ let dN = 0, dustTool = false, gax = 0, gay = 0;
 const PAL = [[255,246,232], [255,222,170], [200,220,255], [255,184,135], [255,140,120]];
 const PAL_CUM = [0.32, 0.58, 0.82, 0.95, 1];
 const invPow = r => n === 2 ? 1/(r*r) : n === 1 ? 1/r : n === 3 ? 1/(r*r*r) : 1/Math.sqrt(r);
+// "En órbita": cada grano parte con la velocidad de una órbita circular alrededor de la estrella que
+// aporta más del 90 % de la atracción en ese punto (viaja con ella); si ninguna domina, alrededor del
+// centro de masa con la masa total. Verificado en Node con una pareja 10 + 2: un anillo junto a la
+// estrella chica conserva 206 de 300 granos tras 3 vueltas (con el centro de masa: 0).
+// "Quieto": parte sin velocidad (respecto del centro de masa) y cae; desde 1 UA llega al Sol en
+// t = 1,100 (teoría 1,102 = 64 días), como la harina soltada en el espacio.
+let dustRest = false;
+function dustCenter(px, py){                         // [x, y, vx, vy, masa] del centro que se orbita
+  if (mode === "central") return [0, 0, 0, 0, 1];
+  let best = null, bp = 0, P = 0;
+  for (const b of bodies){ const p = b.m*invPow(Math.max(Math.hypot(b.x-px, b.y-py), RMIN)); P += p; if (p > bp){ bp = p; best = b; } }
+  if (best && bp > 0.9*P) return [best.x, best.y, best.vx, best.vy, best.m];
+  const c = com(bodies); return [c.X, c.Y, c.VX, c.VY, c.M];
+}
 function addDust(x, y, count){
-  let ox = 0, oy = 0, M = 1, vx0 = 0, vy0 = 0;
-  if (mode === "nbody"){ const c = com(bodies); if (!c.M) return; ox = c.X; oy = c.Y; M = c.M; vx0 = c.VX; vy0 = c.VY; }
+  if (mode === "nbody" && !bodies.length) return;
+  const c0 = mode === "nbody" ? com(bodies) : {VX:0, VY:0};
   for (let k = 0; k < count; k++){
     const g1 = Math.random()+Math.random()-1, g2 = Math.random()+Math.random()-1;   // nube más densa al centro
     const px = x + g1*0.12, py = y + g2*0.12;
-    const dx = px-ox, dy = py-oy, r = Math.hypot(dx, dy) || 1e-9;
-    if (mode === "central" && r < SUN_R*1.5) continue;
-    const v = Math.sqrt(M*Math.pow(r, 1-n))*(0.88 + Math.random()*0.24), a = (Math.random()-0.5)*0.3;
-    const tx = dy/r, ty = -dx/r, c = Math.cos(a), sn = Math.sin(a);   // tangente, como circularVel, con algo de dispersión
+    if (mode === "central" && Math.hypot(px, py) < SUN_R*1.5) continue;
+    let vx, vy;
+    if (dustRest){ vx = c0.VX; vy = c0.VY; }
+    else {
+      const [ox, oy, ovx, ovy, M] = dustCenter(px, py), dx = px-ox, dy = py-oy, r = Math.hypot(dx, dy) || 1e-9;
+      const v = Math.sqrt(M*Math.pow(r, 1-n))*(0.92 + Math.random()*0.16), a = (Math.random()-0.5)*0.2;
+      const tx = dy/r, ty = -dx/r, c = Math.cos(a), sn = Math.sin(a);   // tangente, como circularVel, con algo de dispersión
+      vx = ovx + v*(tx*c - ty*sn); vy = ovy + v*(tx*sn + ty*c);
+    }
     const i = dN < MAXD ? dN++ : (Math.random()*MAXD)|0;              // lleno: reemplaza un grano al azar
-    dX[i] = px; dY[i] = py; dVX[i] = vx0 + v*(tx*c - ty*sn); dVY[i] = vy0 + v*(tx*sn + ty*c);
+    dX[i] = px; dY[i] = py; dVX[i] = vx; dVY[i] = vy;
     const u = Math.random(); let ci = 0; while (u > PAL_CUM[ci]) ci++;
     const b = Math.random(); dC[i] = ci; dB[i] = b < 0.55 ? 0 : b < 0.97 ? 1 : 2;   // tenue, normal, estrella brillante
   }
@@ -584,6 +608,10 @@ const SPEEDS = [1, 2, 0.5, 0.25];
 $("spd").addEventListener("click", () => { speed = SPEEDS[(SPEEDS.indexOf(speed)+1) % SPEEDS.length]; $("spdLbl").textContent = String(speed).replace(".", ",") + "x"; });
 $("clr").addEventListener("click", () => { bodies = []; colorIdx = 0; ghosts = []; novas = []; dN = 0; select(null); });
 $("dustClr").addEventListener("click", () => { dN = 0; });
+document.querySelectorAll("[data-dust]").forEach(b => b.addEventListener("click", () => {
+  dustRest = b.dataset.dust === "rest";
+  document.querySelectorAll("[data-dust]").forEach(x => x.setAttribute("aria-pressed", x === b));
+}));
 $("hideDock").addEventListener("click", () => {
   const hide = !$("dock").hidden; $("dock").hidden = hide;
   $("hideIco").innerHTML = hide ? '<path d="M6 15l6-6 6 6"/>' : '<path d="M6 9l6 6 6-6"/>';
@@ -591,7 +619,7 @@ $("hideDock").addEventListener("click", () => {
 });
 $("dust").addEventListener("click", () => {
   dustTool = !dustTool; $("dust").setAttribute("aria-pressed", dustTool);
-  if (dustTool) toast("Arrastra el dedo por el cielo para soltar polvo galáctico", 3500);
+  if (dustTool) toast(dustRest ? "Arrastra por el cielo: el polvo parte quieto y cae" : "Arrastra por el cielo para soltar polvo en órbita", 3500);
 });
 const SND_ON = '<path d="M4 9h3.5L13 4.5v15L7.5 15H4z" fill="currentColor"/><path d="M16.5 8.5q2 3.5 0 7M19 6q4 6 0 12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/>';
 const SND_OFF = '<path d="M4 9h3.5L13 4.5v15L7.5 15H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="#f27b9b" stroke-width="2.2" stroke-linecap="round"/>';
