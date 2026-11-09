@@ -57,7 +57,10 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 .energy{font-size:14px;color:#8fd8ff;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .info{flex:none;width:40px;height:40px;margin-left:auto;border-radius:12px;border:1px solid var(--line);background:var(--btn);color:var(--ink);font:800 17px Nunito,sans-serif;cursor:pointer}
 .info[aria-expanded="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
-.corner.wide{left:72px;width:auto;padding:0 14px;display:flex;align-items:center;gap:8px;font:800 14px Nunito,sans-serif}
+.corner.wide{width:auto;padding:0 14px;display:flex;align-items:center;gap:8px;font:800 14px Nunito,sans-serif}
+.lbar{position:absolute;left:72px;bottom:10px;display:flex;gap:8px;z-index:3}
+.lbar .corner{position:static}
+.corner[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
 .zoom{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:8px;z-index:3}
 .zoom .corner{position:static}
 .corner:disabled{opacity:.4}
@@ -73,7 +76,10 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
   <div class="card" id="card"><div class="ctop"><h1 id="title"></h1><span class="energy" id="energy" aria-live="polite"></span><button class="info" id="info" type="button" aria-expanded="false" aria-label="Mostrar la explicación">?</button></div><div id="explain" hidden><p id="text"></p><p class="data" id="data"></p></div></div>
   <div class="toast off" id="toast"></div>
   <button class="corner" id="hideDock" type="button" aria-label="Ocultar los botones"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" id="hideIco"><path d="M6 9l6 6 6-6"/></svg></button>
-  <button class="corner wide" id="view" type="button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span id="viewLbl">Sol al centro</span></button>
+  <div class="lbar">
+    <button class="corner wide" id="panBtn" type="button" aria-pressed="false"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11V4a1.5 1.5 0 0 1 3 0v7M14 11V5.5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-6 7-2.5 0-4-1.5-5.5-3.5L3.6 14a1.5 1.5 0 0 1 2.3-1.9L8 14"/></svg>Mover</button>
+    <button class="corner" id="center" type="button" aria-label="Centrar la vista"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+  </div>
   <div class="zoom">
     <button class="corner" id="zin" type="button" aria-label="Acercar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="corner" id="zout" type="button" aria-label="Alejar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
@@ -109,9 +115,10 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
   </div>
   <div id="nbRow" hidden style="display:flex;flex-direction:column;gap:8px">
     <div class="row" role="group" aria-label="Masa nueva">
-      <button class="tile" type="button" data-size="0.5" aria-pressed="false">0,5<small>masa</small></button>
-      <button class="tile" type="button" data-size="1" aria-pressed="true">1<small>masa</small></button>
-      <button class="tile" type="button" data-size="3" aria-pressed="false">3<small>masa</small></button>
+      <button class="tile" type="button" data-size="0.5" aria-pressed="false">50<small>unidades</small></button>
+      <button class="tile" type="button" data-size="1" aria-pressed="true">100<small>unidades</small></button>
+      <button class="tile" type="button" data-size="3" aria-pressed="false">300<small>unidades</small></button>
+      <button class="tile" type="button" data-size="5" aria-pressed="false">500<small>unidades</small></button>
       <button class="tile" type="button" id="mergeOn" aria-pressed="true">Se juntan<small>al chocar</small></button>
     </div>
     <div class="row" role="group" aria-label="Escenas">
@@ -127,6 +134,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
     <button class="tile" id="spd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13l4-4M12 3v2"/></svg><span id="spdLbl">1x</span></button>
     <button class="tile" id="clr" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 7V4h4v3M6.5 7l1 13h9l1-13"/></svg>Borrar</button>
     <button class="tile" id="dust" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="13" r="1.6"/><circle cx="9" cy="8" r="1.3"/><circle cx="10" cy="16" r="1.8"/><circle cx="14" cy="11" r="1.4"/><circle cx="17" cy="6" r="1.1"/><circle cx="18" cy="15" r="1.6"/><circle cx="13" cy="20" r="1.1"/><circle cx="21" cy="10" r="1"/></svg>Polvo</button>
+    <button class="tile" id="comet" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="17.5" cy="6.5" r="3" fill="currentColor" stroke="none"/><path d="M15 9L4 20M13 7.5L5 15.5M16.5 11L9 18.5"/></svg>Cometa</button>
     <button class="tile" id="more" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
   </div>
 </nav>
@@ -153,15 +161,8 @@ function resize(){
 }
 new ResizeObserver(resize).observe(cv);
 // cámara: en "Masas que se atraen" sigue con suavidad a la masa más grande; con el Sol queda en el origen
-let camX = 0, camY = 0, snapCam = false, followBody = null, uz = 1;
-function viewTarget(){                               // [x, y] que queda al centro, y el cuerpo seguido
-  if (view.kind === "planet"){ if (sel && bodies.includes(sel)) return [sel.x, sel.y, sel]; setView({kind:"sun"}); }
-  if (view.kind === "body"){ if (bodies.includes(view.b)) return [view.b.x, view.b.y, view.b]; setView({kind:"big"}); }
-  if (mode === "central" || !bodies.length) return [0, 0, null];
-  if (view.kind === "com"){ const c = com(bodies); return [c.X, c.Y, null]; }
-  let big = bodies[0]; for (const b of bodies) if (b.m > big.m) big = b;
-  return [big.x, big.y, big];
-}
+// vista fija: solo se mueve si la persona la desplaza (camX, camY) o hace zoom (uz)
+let camX = 0, camY = 0, uz = 1;
 const toWorld = (sx, sy) => [(sx-cx)/scale + camX, (sy-cy)/scale + camY];
 const toScreen = (x, y) => [cx+(x-camX)*scale, cy+(y-camY)*scale];
 const radius = m => 0.035*Math.cbrt(m);
@@ -221,7 +222,8 @@ function mergeN(bs){                                 // choque: fusión con cons
   }
   return false;
 }
-const fmtM = m => m.toFixed(1).replace(".", ",");
+// Las masas se muestran en unidades: 100 unidades = 1 Sol (la masa interna de la física).
+const UNITS = 100, fmtM = m => Math.round(m*UNITS).toLocaleString("es-CL");
 function com(bs){
   let M = 0, X = 0, Y = 0, VX = 0, VY = 0;
   for (const b of bs){ M += b.m; X += b.m*b.x; Y += b.m*b.y; VX += b.m*b.vx; VY += b.m*b.vy; }
@@ -371,15 +373,15 @@ function circularVel(x, y){                          // perpendicular al radio, 
   const dx = x-ox, dy = y-oy, r = Math.hypot(dx, dy) || 1e-9, v = Math.sqrt(M*Math.pow(r, 1-n));
   return [dy/r*v, -dx/r*v];
 }
-function predict(x, y, vx, vy){
+function predict(x, y, vx, vy, massless){
   const pts = [[x, y]];
   if (mode === "central"){
     const p = {x, y, vx, vy, ax:0, ay:0}; [p.ax, p.ay] = accC(x, y);
     for (let k = 0; k < 2400; k++){ stepC(p); if (!aliveC(p)){ pts.push([p.x, p.y]); break; } if (k % 4 === 0) pts.push([p.x, p.y]); }
   } else {
-    if (bodies.length >= MAXN) return pts;
+    if (bodies.length >= MAXN && !massless) return pts;
     const bs = bodies.map(b => ({x:b.x, y:b.y, vx:b.vx, vy:b.vy, ax:0, ay:0, m:b.m}));
-    const me = {x, y, vx, vy, ax:0, ay:0, m:newMass}; bs.push(me); zeroMomentum(bs); accN(bs);
+    const me = {x, y, vx, vy, ax:0, ay:0, m:massless ? 1e-6 : newMass}; bs.push(me); zeroMomentum(bs); accN(bs);
     for (let k = 0; k < 1600; k++){ stepN(bs); if (k % 4 === 0) pts.push([me.x, me.y]); }
   }
   return pts;
@@ -387,7 +389,7 @@ function predict(x, y, vx, vy){
 
 // ---------- Escenarios de N cuerpos ----------
 function preset(name){
-  snapCam = true;
+  camX = 0; camY = 0;
   bodies = []; colorIdx = 0;
   const add = (x, y, vx, vy, m) => bodies.push(makeBody(x, y, vx, vy, m));
   if (name === "binaria"){                           // separación 1: fuerza = 1 con cualquier ley
@@ -399,9 +401,9 @@ function preset(name){
   } else if (name === "cuadrado"){                   // 4 masas iguales, órbita circular para la ley activa
     const ac = Math.SQRT2*Math.pow(2, -n/2) + Math.pow(2, -n), v = Math.sqrt(ac);
     for (let k = 0; k < 4; k++){ const a = k*Math.PI/2, x = Math.cos(a), y = Math.sin(a); add(x, y, y*v, -x*v, 1); }
-  } else if (name === "nova"){                       // estrella de 6 masas; cae otra de 3 → 9 masas: supernova
-    add(0, 0, 0, 0, 6); add(0, -2.8, 0.2, 0, 3);
-    for (const r of [2.3, 3.1]){ const v = Math.sqrt(9*Math.pow(r, 1-n)); add(-r, 0, 0, v, 0.1); }
+  } else if (name === "nova"){                       // estrella de 750 unidades; cae otra de 300 → 1050: supernova
+    add(0, 0, 0, 0, 7.5); add(0, -2.8, 0.2, 0, 3);
+    for (const r of [2.3, 3.1]){ const v = Math.sqrt(10.5*Math.pow(r, 1-n)); add(-r, 0, 0, v, 0.1); }
   } else if (name === "sistema"){                    // estrella masiva y 3 planetas livianos que se perturban
     add(0, 0, 0, 0, 3);
     for (const [r, m] of [[0.7, 0.05], [1.2, 0.08], [1.85, 0.12]]){
@@ -427,13 +429,91 @@ function tone(f0, f1, dur, type = "sine", vol = 0.14){
 }
 const sPop = () => tone(420, 760, 0.1), sEat = () => tone(260, 80, 0.5, "triangle", 0.22);
 
+// ---------- Cometas ----------
+// Sin masa, como el polvo: sienten la gravedad pero no atraen a nadie. Paso adaptativo más fino
+// (ETA_C) porque pasan muy cerca de la estrella. Dos colas que apuntan en contra de la estrella que más
+// lo atrae: la de gas (azul, recta) y la de polvo (curvada hacia atrás). Cerca de la estrella sueltan
+// polvo que sigue su órbita, como el que produce las lluvias de estrellas.
+const MAXC = 4, ETA_C = 0.008, KMAX_C = 400;
+let comets = [], cometTool = false;
+function addComet(x, y, vx, vy){
+  if (comets.length >= MAXC) comets.shift();
+  comets.push({x, y, vx, vy, trail:[[x, y]]}); sPop();
+}
+function cometSource(c){                             // [x, y] de la estrella que más lo atrae
+  if (mode === "central" || !bodies.length) return [0, 0];
+  let best = bodies[0], bp = 0;
+  for (const b of bodies){ const q = b.m*invPow(Math.max(Math.hypot(b.x-c.x, b.y-c.y), RMIN)); if (q > bp){ bp = q; best = b; } }
+  return [best.x, best.y];
+}
+function stepComets(T){
+  let Mt = 1; if (mode === "nbody"){ Mt = 0; for (const b of bodies) Mt += b.m; }
+  for (const c of comets){
+    if (!Mt){ c.dead = true; continue; }
+    let rmin = Math.hypot(c.x, c.y);
+    if (mode === "nbody"){ rmin = Infinity; for (const b of bodies) rmin = Math.min(rmin, Math.hypot(b.x-c.x, b.y-c.y)); }
+    const k = Math.min(KMAX_C, Math.max(4, Math.ceil(T/(ETA_C*Math.sqrt(Math.pow(Math.max(rmin, RMIN), n+1)/Mt))))), h = T/k;
+    if (!accDust(c.x, c.y)){ c.dead = true; continue; }
+    for (let s = 0; s < k; s++){                     // leapfrog
+      c.vx += gax*h/2; c.vy += gay*h/2; c.x += c.vx*h; c.y += c.vy*h;
+      if (!accDust(c.x, c.y)){ c.dead = true; break; }
+      c.vx += gax*h/2; c.vy += gay*h/2;
+    }
+    if (c.dead) continue;
+    if (c.x*c.x + c.y*c.y > ESCAPE*ESCAPE){ c.dead = true; continue; }
+    const l = c.trail[c.trail.length-1];
+    if (Math.hypot(c.x-l[0], c.y-l[1]) > TRAIL_STEP){ c.trail.push([c.x, c.y]); if (c.trail.length > TRAIL) c.trail.shift(); }
+    const [sx, sy] = cometSource(c), r = Math.max(Math.hypot(c.x-sx, c.y-sy), 0.05);
+    let want = Math.min(6, 0.5/(r*r))*T/0.015;       // más polvo cuanto más cerca de la estrella
+    while (want > 0){
+      if (Math.random() < want){
+        const ux = (c.x-sx)/r, uy = (c.y-sy)/r, sp = Math.hypot(c.vx, c.vy)*0.04;
+        addDustRaw(c.x, c.y, c.vx + ux*sp*0.5 + (Math.random()-0.5)*sp, c.vy + uy*sp*0.5 + (Math.random()-0.5)*sp, Math.random() < 0.6 ? 2 : 0, Math.random() < 0.05 ? 2 : 1);
+      }
+      want -= 1;
+    }
+  }
+  if (comets.some(c => c.dead)){
+    if (comets.some(c => c.dead && accDust(c.x, c.y) === false)) toast("El cometa chocó con la estrella y se evaporó.", 3000);
+    comets = comets.filter(c => !c.dead);
+  }
+}
+function drawComets(){
+  for (const c of comets){
+    const t = c.trail;                               // órbita recorrida, tenue
+    if (t.length > 1){
+      ctx.strokeStyle = "rgba(170,215,255,0.22)"; ctx.lineWidth = 1.2; ctx.beginPath();
+      t.forEach(([x, y], k) => { const [X, Y] = toScreen(x, y); k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+      ctx.stroke();
+    }
+    const [X, Y] = toScreen(c.x, c.y), [sx, sy] = cometSource(c), r = Math.max(Math.hypot(c.x-sx, c.y-sy), 0.05);
+    const ux = (c.x-sx)/r, uy = (c.y-sy)/r, v = Math.hypot(c.vx, c.vy) || 1;
+    const L = Math.min(1.8, Math.max(0.06, 0.32/(r*r)))*scale;            // largo de la cola en px
+    const tail = (dx, dy, len, w, c0, c1) => {
+      const ex = X + dx*len, ey = Y + dy*len, nx = -dy, ny = dx;
+      const g = ctx.createLinearGradient(X, Y, ex, ey); g.addColorStop(0, c0); g.addColorStop(1, c1);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(X + nx*2, Y + ny*2);
+      ctx.lineTo(ex + nx*w, ey + ny*w); ctx.lineTo(ex - nx*w, ey - ny*w); ctx.lineTo(X - nx*2, Y - ny*2); ctx.fill();
+    };
+    ctx.globalCompositeOperation = "lighter";
+    let dx = ux - 0.45*c.vx/v, dy = uy - 0.45*c.vy/v; const dl = Math.hypot(dx, dy) || 1; dx /= dl; dy /= dl;
+    tail(dx, dy, L*0.8, Math.min(16, 4 + L*0.12), "rgba(255,236,200,0.55)", "rgba(255,236,200,0)");   // polvo
+    tail(ux, uy, L, Math.min(9, 2 + L*0.05), "rgba(140,200,255,0.75)", "rgba(140,200,255,0)");        // gas
+    glow(X, Y, 9, "rgba(210,235,255,0.85)", "rgba(210,235,255,0)");
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(X, Y, 2.6, 0, Math.PI*2); ctx.fill();
+  }
+}
+
 // ---------- Supernova, estrella de neutrones y agujero negro ----------
-// Umbrales reales en masas solares: una estrella de unas 8 masas o más termina en supernova; expulsa
+// Umbral pedido: 1000 unidades (10 Soles, cerca del umbral real de ~8 Soles). Una estrella que llega ahí
+// hace supernova y deja una estrella de neutrones; si ese resto llega a 1000 unidades es un agujero negro.
+// (Antes: una estrella de unas 8 masas o más termina en supernova; expulsa
 // la mayor parte de su gas (aquí el 70 %, como polvo que sale disparado) y deja un resto compacto.
 // Si el resto supera unas 3 masas es un agujero negro; si no, una estrella de neutrones, que también
 // colapsa en agujero negro cuando acumula más de 3 masas. La gravedad del resto, a distancia, es la de
 // cualquier masa igual: lo distinto es que nada que lo toque vuelve a salir.
-const M_NOVA = 8, M_BH = 3, NOVA_KEEP = 0.3;
+const M_NOVA = 10, M_BH = 10, NOVA_KEEP = 0.3;   // en masa interna: 10 = 1000 unidades
 const KIND_TXT = {neutron:"estrella de neutrones", bh:"agujero negro"};
 let novas = [];
 function addDustRaw(x, y, vx, vy, ci, bi){
@@ -451,10 +531,10 @@ function collapse(b){
     }
     novas.push({x:b.x, y:b.y, t:0});
     tone(160, 28, 1.8, "sawtooth", 0.22);
-    toast(`Supernova: la estrella llegó a ${fmt(M, 1)} masas, explotó y dejó ${b.kind === "bh" ? "un agujero negro" : "una estrella de neutrones"} de ${fmt(b.m, 1)}.`, 5000);
+    toast(`Supernova: la estrella llegó a ${fmtM(M)} unidades, explotó y dejó ${b.kind === "bh" ? "un agujero negro" : "una estrella de neutrones"} de ${fmtM(b.m)}.`, 5000);
   } else if (b.kind === "neutron" && b.m >= M_BH){
     b.kind = "bh"; tone(90, 30, 1.2, "triangle", 0.25);
-    toast(`La estrella de neutrones superó ${M_BH} masas y colapsó en un agujero negro.`, 4500);
+    toast(`La estrella de neutrones llegó a ${fmtM(M_BH)} unidades y colapsó en un agujero negro.`, 4500);
   }
 }
 function drawBody(b, X, Y, pr, time){
@@ -490,7 +570,7 @@ let ghosts = [];
 const fmt = (v, d) => v.toFixed(d).replace(".", ",");
 function onMerge(big, small){
   big.mShow0 = big.m - small.m; big.mt = 0;
-  ghosts.push({x:small.x, y:small.y, r:Math.max(7, radius(small.m)*scale*1.5), color:small.color, to:big, t:0, label:`${fmt(big.m-small.m,1)} + ${fmt(small.m,1)} = ${fmt(big.m,1)}`});
+  ghosts.push({x:small.x, y:small.y, r:Math.max(7, radius(small.m)*scale*1.5), color:small.color, to:big, t:0, label:`${fmtM(big.m-small.m)} + ${fmtM(small.m)} = ${fmtM(big.m)}`});
   sEat();
 }
 function onEaten(p){ ghosts.push({x:p.x, y:p.y, r:7, color:p.color, to:null, t:0, label:""}); sEat(); }
@@ -549,7 +629,7 @@ function updateCard(){
   let title, text;
   if (mode === "nbody"){
     title = "Masas";
-    text = (mergeOn ? "Todas se atraen. Al chocar se juntan; una estrella de 8 masas o más explota como supernova."
+    text = (mergeOn ? "Todas se atraen. Al chocar se juntan; una estrella que llega a 1000 unidades explota como supernova."
                     : "Todas se atraen entre sí. Al chocar se atraviesan.");
   } else if (kep === 1){
     title = "Elipses";
@@ -593,7 +673,7 @@ function updateData(){
 }
 function updateData0(){
   if (mode === "nbody"){
-    $("data").textContent = bodies.length ? "Masas: " + bodies.map(b => fmt(shownMass(b), 1)).join(" · ") + "   Total: " + fmt(bodies.reduce((s, b) => s + b.m, 0), 1) : "Toca para poner una masa.";
+    $("data").textContent = bodies.length ? "Masas: " + bodies.map(b => fmtM(shownMass(b))).join(" · ") + "   Total: " + fmtM(bodies.reduce((s, b) => s + b.m, 0)) : "Toca para poner una masa.";
     return;
   }
   if (!sel){ $("data").textContent = "Toca el cielo para crear un planeta, o toca uno para seguirlo."; return; }
@@ -618,8 +698,7 @@ function setLaw(v){
   select(sel); updateCard();
 }
 function setMode(m){
-  mode = m; bodies = []; colorIdx = 0; ghosts = []; novas = []; dN = 0; camX = 0; camY = 0; zoom = 1; scale = baseScale*uz; select(null);
-  setView(m === "central" ? {kind:"sun"} : {kind:"big"});
+  mode = m; bodies = []; colorIdx = 0; ghosts = []; novas = []; comets = []; dN = 0; camX = 0; camY = 0; setUZ(1); scale = baseScale*uz; select(null);
   document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === mode));
   $("kepRow").hidden = mode !== "central"; $("nbRow").hidden = mode !== "nbody";
   if (mode === "central"){
@@ -651,36 +730,62 @@ $("play").addEventListener("click", () => { paused = !paused; $("playIcon").inne
 // Reloj: a 1x avanzan SUB·DT = 0,015 unidades por 1/60 s, así 1 año (2π) dura unos 7 s.
 const SPEEDS = [1, 2, 0.5, 0.25];
 $("spd").addEventListener("click", () => { speed = SPEEDS[(SPEEDS.indexOf(speed)+1) % SPEEDS.length]; $("spdLbl").textContent = String(speed).replace(".", ",") + "x"; });
-$("clr").addEventListener("click", () => { bodies = []; colorIdx = 0; ghosts = []; novas = []; dN = 0; select(null); });
+$("clr").addEventListener("click", () => { bodies = []; colorIdx = 0; ghosts = []; novas = []; comets = []; dN = 0; select(null); });
 $("dustClr").addEventListener("click", () => { dN = 0; });
 $("info").addEventListener("click", () => {
   const open = $("explain").hidden; $("explain").hidden = !open;
   $("info").setAttribute("aria-expanded", open); $("info").setAttribute("aria-label", open ? "Ocultar la explicación" : "Mostrar la explicación");
 });
-// ---------- Vista: qué sigue la cámara ----------
-// Con masas: la más grande, el centro de masa o cada masa por turno. Con el Sol: el Sol o el planeta elegido.
-let view = {kind:"sun"};
-function viewList(){
-  if (mode === "central") return sel ? [{kind:"sun"}, {kind:"planet"}] : [{kind:"sun"}];
-  return [{kind:"big"}, {kind:"com"}, ...[...bodies].sort((a, b) => b.m - a.m).map(b => ({kind:"body", b}))];
-}
-function viewLabel(){
-  if (view.kind === "sun") return "Sol al centro";
-  if (view.kind === "planet") return "Sigue al planeta";
-  if (view.kind === "big") return "Sigue a la más grande";
-  if (view.kind === "com") return "Centro de masa";
-  return "Sigue a la de " + fmt(view.b.m, 1);
-}
-function setView(v){ view = v; $("viewLbl").textContent = viewLabel(); }
-$("view").addEventListener("click", () => {
-  const L = viewList(), k = L.findIndex(v => v.kind === view.kind && v.b === view.b);
-  setView(L[(k+1) % L.length]);
-});
 // ---------- Zoom del usuario (se suma al automático) ----------
 function setUZ(v){ uz = Math.min(4, Math.max(0.2, v)); $("zin").disabled = uz >= 4; $("zout").disabled = uz <= 0.2; }
 $("zin").addEventListener("click", () => setUZ(uz*1.4));
 $("zout").addEventListener("click", () => setUZ(uz/1.4));
-cv.addEventListener("wheel", e => { e.preventDefault(); setUZ(uz*Math.exp(-e.deltaY*0.0015)); }, {passive:false});
+// ---------- Moverse por la vista ----------
+// Dos dedos: arrastrar mueve la vista y pellizcar acerca o aleja. Con "Mover" activo basta un dedo.
+// En computador: arrastrar con el botón derecho o el del medio; la rueda acerca o aleja.
+let panMode = false, pan = null, pinch = null, gestureLock = false;
+const touchPts = new Map();
+function zoomAt(f, X, Y){                            // zoom que deja quieto el punto bajo el dedo
+  const [wx, wy] = toWorld(X, Y); setUZ(uz*f); scale = baseScale*uz;
+  const [nx, ny] = toWorld(X, Y); camX += wx-nx; camY += wy-ny;
+}
+function gestureDown(e){
+  const p = pos(e); touchPts.set(e.pointerId, p);
+  if (touchPts.size === 2){
+    drag = null; pan = null; gestureLock = true;
+    const [a, b] = [...touchPts.values()];
+    pinch = {mx:(a[0]+b[0])/2, my:(a[1]+b[1])/2, d:Math.hypot(a[0]-b[0], a[1]-b[1])};
+    return true;
+  }
+  if (gestureLock) return true;
+  if (panMode || e.button === 1 || e.button === 2){ pan = {id:e.pointerId, x:p[0], y:p[1]}; return true; }
+  return false;
+}
+function gestureMove(e){
+  if (!touchPts.has(e.pointerId)) return false;
+  const p = pos(e); touchPts.set(e.pointerId, p);
+  if (pinch && touchPts.size >= 2){
+    const [a, b] = [...touchPts.values()], mx = (a[0]+b[0])/2, my = (a[1]+b[1])/2, d = Math.hypot(a[0]-b[0], a[1]-b[1]);
+    camX -= (mx-pinch.mx)/scale; camY -= (my-pinch.my)/scale;
+    if (pinch.d > 10) zoomAt(d/pinch.d, mx, my);
+    pinch = {mx, my, d}; return true;
+  }
+  if (pan && pan.id === e.pointerId){ camX -= (p[0]-pan.x)/scale; camY -= (p[1]-pan.y)/scale; pan.x = p[0]; pan.y = p[1]; return true; }
+  return gestureLock;
+}
+function gestureUp(e){
+  touchPts.delete(e.pointerId);
+  if (pan && pan.id === e.pointerId){ pan = null; return true; }
+  if (gestureLock){ if (touchPts.size < 2) pinch = null; gestureLock = touchPts.size > 0; drag = null; return true; }
+  return false;
+}
+cv.addEventListener("wheel", e => { e.preventDefault(); const [X, Y] = pos(e); zoomAt(Math.exp(-e.deltaY*0.0015), X, Y); }, {passive:false});
+cv.addEventListener("contextmenu", e => e.preventDefault());
+$("panBtn").addEventListener("click", () => {
+  panMode = !panMode; $("panBtn").setAttribute("aria-pressed", panMode);
+  if (panMode) toast("Arrastra para mover la vista. Con dos dedos también puedes acercar o alejar.", 3500);
+});
+$("center").addEventListener("click", () => { camX = 0; camY = 0; setUZ(1); });
 document.querySelectorAll("[data-dust]").forEach(b => b.addEventListener("click", () => {
   dustRest = b.dataset.dust === "rest";
   document.querySelectorAll("[data-dust]").forEach(x => x.setAttribute("aria-pressed", x === b));
@@ -690,8 +795,13 @@ $("hideDock").addEventListener("click", () => {
   $("hideIco").innerHTML = hide ? '<path d="M6 15l6-6 6 6"/>' : '<path d="M6 9l6 6 6-6"/>';
   $("hideDock").setAttribute("aria-label", hide ? "Mostrar los botones" : "Ocultar los botones");
 });
+$("comet").addEventListener("click", () => {
+  cometTool = !cometTool; $("comet").setAttribute("aria-pressed", cometTool);
+  if (cometTool){ dustTool = false; $("dust").setAttribute("aria-pressed", false); toast("Toca el cielo para soltar un cometa, o arrastra para lanzarlo", 3500); }
+});
 $("dust").addEventListener("click", () => {
   dustTool = !dustTool; $("dust").setAttribute("aria-pressed", dustTool);
+  if (dustTool){ cometTool = false; $("comet").setAttribute("aria-pressed", false); }
   if (dustTool) toast(dustRest ? "Arrastra por el cielo: el polvo parte quieto y cae" : "Arrastra por el cielo para soltar polvo en órbita", 3500);
 });
 const SND_ON = '<path d="M4 9h3.5L13 4.5v15L7.5 15H4z" fill="currentColor"/><path d="M16.5 8.5q2 3.5 0 7M19 6q4 6 0 12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/>';
@@ -703,16 +813,21 @@ $("snd").addEventListener("click", () => { soundOn = !soundOn; syncSound(); });
 function pos(e){ const r = cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
 const dragVel = () => [(drag.ex-drag.sx)/scale*1.6, (drag.ey-drag.sy)/scale*1.6];
 cv.addEventListener("pointerdown", e => {
-  cv.setPointerCapture(e.pointerId); const [sx, sy] = pos(e);
+  try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+  if (gestureDown(e)) return;
+  const [sx, sy] = pos(e);
   if (dustTool){ drag = {dust:true}; addDust(...toWorld(sx, sy), 60); return; }
+  if (cometTool){ drag = {sx, sy, ex:sx, ey:sy, comet:true}; return; }
   drag = {sx, sy, ex:sx, ey:sy};
 });
 cv.addEventListener("pointermove", e => {
+  if (gestureMove(e)) return;
   if (!drag) return;
   if (drag.dust){ addDust(...toWorld(...pos(e)), 14); return; }
   [drag.ex, drag.ey] = pos(e);
 });
-cv.addEventListener("pointerup", () => {
+cv.addEventListener("pointerup", e => {
+  if (gestureUp(e)) return;
   if (drag && drag.dust){ drag = null; return; }
   if (!drag) return;
   const [x, y] = toWorld(drag.sx, drag.sy);
@@ -721,13 +836,18 @@ cv.addEventListener("pointerup", () => {
     const hit = bodies.find(b => { const [X, Y] = toScreen(b.x, b.y); return Math.hypot(X-drag.sx, Y-drag.sy) < 30; });
     if (hit){ select(hit); drag = null; return; }
   }
+  if (drag.comet){                                     // tocar: órbita muy alargada; arrastrar: lanzar
+    if (mode === "central" && Math.hypot(x, y) <= SUN_R*1.5){ drag = null; return; }
+    const [cvx, cvy] = circularVel(x, y), [vx, vy] = moved ? dragVel() : [cvx*0.45, cvy*0.45];
+    addComet(x, y, vx, vy); drag = null; return;
+  }
   if (mode === "nbody" || Math.hypot(x, y) > SUN_R*1.5){
     const [vx, vy] = moved ? dragVel() : circularVel(x, y);
     addPlanet(x, y, vx, vy);
   }
   drag = null;
 });
-cv.addEventListener("pointercancel", () => drag = null);
+cv.addEventListener("pointercancel", e => { gestureUp(e); drag = null; });
 
 // ---------- Dibujo ----------
 const STARS = Array.from({length:140}, () => ({x:Math.random(), y:Math.random(), r:0.3+Math.random()*1.1, p:Math.random()*6.28}));
@@ -820,12 +940,19 @@ function draw(time){
     if (kep === 2 && sel) drawSectors();
   }
   drawDust();
+  drawComets();
   // estelas
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   for (const b of bodies){
     const t = b.trail, CH = 50;
     ctx.strokeStyle = b.color; ctx.lineWidth = b === sel ? 2.6 : 1.8;
-    for (let s = 0; s < t.length-1; s += CH){ ctx.globalAlpha = 0.05 + 0.6*(s/t.length); path(t.slice(s, Math.min(t.length, s+CH+1))); ctx.stroke(); }
+    for (let s = 0; s < t.length-1; s += CH){
+      ctx.globalAlpha = 0.05 + 0.6*(s/t.length); ctx.beginPath();
+      const e = Math.min(t.length, s+CH+1), ox = cx - camX*scale, oy = cy - camY*scale;
+      ctx.moveTo(ox + t[s][0]*scale, oy + t[s][1]*scale);
+      for (let k = s+1; k < e; k++) ctx.lineTo(ox + t[k][0]*scale, oy + t[k][1]*scale);
+      ctx.stroke();
+    }
   }
   ctx.globalAlpha = 1;
   if (mode === "central"){
@@ -853,9 +980,8 @@ function draw(time){
     const [X, Y] = toScreen(b.x, b.y);
     const pr = mode === "nbody" ? Math.max(7, radius(shownMass(b))*scale*1.5) : (b === sel ? 8 : 6);
     drawBody(b, X, Y, pr, time);
-    if (b === followBody && mode === "nbody"){ ctx.strokeStyle = "rgba(255,255,255,0.75)"; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(X, Y, pr + (b.kind === "bh" ? pr*1.7 : 7), 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]); }
     if (b === sel && mode === "central"){ ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, pr+5, 0, Math.PI*2); ctx.stroke(); }
-    if (mode === "nbody") pill(fmt(shownMass(b), 1) + (KIND_TXT[b.kind] ? " · " + KIND_TXT[b.kind] : ""), X, Y - pr - (b.kind === "bh" ? 22 : 12));
+    if (mode === "nbody") pill(fmtM(shownMass(b)) + (KIND_TXT[b.kind] ? " · " + KIND_TXT[b.kind] : ""), X, Y - pr - (b.kind === "bh" ? 22 : 12));
   }
   for (const gh of ghosts){
     if (!gh.label || !gh.to) continue;
@@ -871,9 +997,9 @@ function draw(time){
   if (drag && !drag.dust){
     const [x, y] = toWorld(drag.sx, drag.sy);
     const moving = Math.hypot(drag.ex-drag.sx, drag.ey-drag.sy) >= 8;
-    const [vx, vy] = moving ? dragVel() : circularVel(x, y);
-    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.setLineDash([2, 7]); ctx.lineWidth = 2;
-    path(predict(x, y, vx, vy)); ctx.stroke(); ctx.setLineDash([]);
+    const [cvx, cvy] = circularVel(x, y), [vx, vy] = moving ? dragVel() : drag.comet ? [cvx*0.45, cvy*0.45] : [cvx, cvy];
+    ctx.strokeStyle = drag.comet ? "rgba(170,215,255,0.7)" : "rgba(255,255,255,0.6)"; ctx.setLineDash([2, 7]); ctx.lineWidth = 2;
+    path(predict(x, y, vx, vy, drag.comet)); ctx.stroke(); ctx.setLineDash([]);
     if (moving){
       ctx.strokeStyle = "#ffc94a"; ctx.lineWidth = 4;
       ctx.beginPath(); ctx.moveTo(drag.sx, drag.sy); ctx.lineTo(drag.ex, drag.ey); ctx.stroke();
@@ -922,18 +1048,10 @@ function frame(time){
       bodies = bodies.filter(b => Math.hypot(b.x, b.y) < ESCAPE);
     }
     if (dN) stepDust(T);
+    if (comets.length) stepComets(T);
   }
   // cámara: sigue a la masa más grande y se aleja lo necesario para mostrar a las demás (hasta 0,3×)
-  let [tx, ty, followed] = viewTarget(), zt = 1;
-  followBody = followed;
-  if (mode === "nbody" && bodies.length){
-    let far = 0; for (const b of bodies) far = Math.max(far, Math.hypot(b.x-tx, b.y-ty) + radius(b.m));
-    const card = document.querySelector(".card"), cardBottom = card.offsetTop + card.offsetHeight;
-    const half = 0.9*Math.min(Wd/2, cy - cardBottom - 12, Hd - cy - 12);   // espacio libre alrededor del centro de la vista
-    zt = Math.min(1, Math.max(0.3, half/(far*baseScale + 1e-9)));
-  }
-  const kc = snapCam ? 1 : Math.min(1, 0.12*dt60); camX += (tx-camX)*kc; camY += (ty-camY)*kc;
-  zoom += (zt-zoom)*(snapCam ? 1 : Math.min(1, 0.06*dt60)); scale = baseScale*zoom*uz; snapCam = false;   // una escena nueva aparece ya encuadrada
+  scale = baseScale*uz;
   draw(time || 0);
   if ((time || 0) - dataT > 150){ dataT = time || 0; updateData(); }
   requestAnimationFrame(frame);

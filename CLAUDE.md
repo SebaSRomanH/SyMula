@@ -26,12 +26,13 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   ley de fuerza 1/rⁿ con n = 0,5 / 1 / 2 / 3, modo Sol fijo y modo N cuerpos (hasta 4) con fusión
   que conserva masa y momento. Vistas de 1.ª ley (elipse osculadora y focos), 2.ª (áreas por sectores
   de tiempo igual) y 3.ª (gráfico T² vs a³ medido por vuelta). Unidades: r = 1 UA, 1 año = 2π.
-  Hasta 6 masas. Panel superior mínimo con la energía (φ = −r^(1−n)/(n−1), ln r si n = 1) y la
-  explicación detrás de "?". Botón de vista (la más grande, centro de masa, cada masa; con el Sol: Sol o
-  planeta) con zoom automático más botones +/− y rueda del mouse. Polvo "en órbita" o "quieto". Polvo galáctico: granos sin masa
-  (Euler simpléctico, paso adaptativo por grano) dibujados con resplandor tipo Vía Láctea. Una estrella
-  que llega a 8 masas hace supernova: expulsa el 70 % como polvo y deja estrella de neutrones o, si el
-  resto supera 3 masas, agujero negro (una estrella de neutrones que pasa de 3 también colapsa).
+  Hasta 6 masas, mostradas en unidades (100 unidades = 1 Sol = masa interna 1). Panel superior mínimo con
+  la energía (φ = −r^(1−n)/(n−1), ln r si n = 1) y la explicación detrás de "?". Vista fija: se mueve
+  arrastrando con dos dedos, con el botón "Mover" o con el botón derecho del mouse; zoom con +/−, pellizco
+  o rueda. Polvo galáctico sin masa ("en órbita" alrededor de la estrella dominante o "quieto"),
+  dibujado con resplandor tipo Vía Láctea. Cometas sin masa con cola de gas y de polvo que sueltan polvo
+  cerca de la estrella. Una estrella que llega a 1000 unidades hace supernova (expulsa el 70 % como
+  polvo) y deja una estrella de neutrones, que colapsa en agujero negro al llegar a 1000 unidades.
 - `ondas-sonoras.html`: ondas de presión 2D por diferencias finitas en salas rectangular, circular,
   triangular, elíptica y romboide (paredes rígidas). Modos analíticos (rectángulo, Bessel en círculo,
   Lamé en triángulo) y medidos por FFT en elipse/romboide. Hasta 3 fuentes omni/cardioide/dipolo con
