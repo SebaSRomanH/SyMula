@@ -50,8 +50,17 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 [hidden]{display:none!important}
 /* ===== fin del estilo común ===== */
 .tile small{display:block;font-size:11px;font-weight:700;opacity:.75;margin-top:-2px}
-.card{max-width:520px}
-.card p{font-size:13.5px}
+.card{right:auto;max-width:calc(100% - 82px);pointer-events:auto;display:flex;flex-direction:column;justify-content:center;padding:6px 6px 6px 12px}
+.card p{font-size:13.5px;padding-right:6px}
+.ctop{display:flex;align-items:center;gap:10px}
+.card h1{font-size:16px;white-space:nowrap}
+.energy{font-size:14px;color:#8fd8ff;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.info{flex:none;width:40px;height:40px;margin-left:auto;border-radius:12px;border:1px solid var(--line);background:var(--btn);color:var(--ink);font:800 17px Nunito,sans-serif;cursor:pointer}
+.info[aria-expanded="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.corner.wide{left:72px;width:auto;padding:0 14px;display:flex;align-items:center;gap:8px;font:800 14px Nunito,sans-serif}
+.zoom{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:8px;z-index:3}
+.zoom .corner{position:static}
+.corner:disabled{opacity:.4}
 .toast{bottom:72px}
 .corner{position:absolute;left:10px;bottom:10px;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;z-index:3;cursor:pointer;padding:0;
   background:rgba(18,26,54,.88);border:1px solid var(--line);color:var(--ink);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
@@ -61,9 +70,14 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 <div class="stage">
   <canvas id="cv" aria-label="Sistema solar: toca para crear un planeta, toca un planeta para seguirlo, arrastra para lanzarlo"></canvas>
   <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
-  <div class="card" aria-live="polite"><h1 id="title"></h1><p id="text"></p><p class="data" id="data"></p></div>
+  <div class="card" id="card"><div class="ctop"><h1 id="title"></h1><span class="energy" id="energy" aria-live="polite"></span><button class="info" id="info" type="button" aria-expanded="false" aria-label="Mostrar la explicación">?</button></div><div id="explain" hidden><p id="text"></p><p class="data" id="data"></p></div></div>
   <div class="toast off" id="toast"></div>
   <button class="corner" id="hideDock" type="button" aria-label="Ocultar los botones"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" id="hideIco"><path d="M6 9l6 6 6-6"/></svg></button>
+  <button class="corner wide" id="view" type="button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span id="viewLbl">Sol al centro</span></button>
+  <div class="zoom">
+    <button class="corner" id="zin" type="button" aria-label="Acercar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button class="corner" id="zout" type="button" aria-label="Alejar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+  </div>
 </div>
 <nav class="dock" id="dock" aria-label="Controles">
   <div class="sheet" id="sheet" hidden style="display:flex;flex-direction:column;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line)">
@@ -135,11 +149,19 @@ function resize(){
   Wd = cv.clientWidth; Hd = cv.clientHeight;
   cv.width = Math.round(Wd*dpr); cv.height = Math.round(Hd*dpr);
   const top = document.querySelector(".card").offsetHeight + 20;
-  baseScale = 0.245*Math.min(Wd, Hd - top*0.6); scale = baseScale*zoom; cx = Wd/2; cy = top/2 + Hd/2;   // deja espacio a la tarjeta de arriba
+  baseScale = 0.245*Math.min(Wd, Hd - top*0.6); scale = baseScale*zoom*uz; cx = Wd/2; cy = top/2 + Hd/2;   // deja espacio a la tarjeta de arriba
 }
 new ResizeObserver(resize).observe(cv);
 // cámara: en "Masas que se atraen" sigue con suavidad a la masa más grande; con el Sol queda en el origen
-let camX = 0, camY = 0, snapCam = false;
+let camX = 0, camY = 0, snapCam = false, followBody = null, uz = 1;
+function viewTarget(){                               // [x, y] que queda al centro, y el cuerpo seguido
+  if (view.kind === "planet"){ if (sel && bodies.includes(sel)) return [sel.x, sel.y, sel]; setView({kind:"sun"}); }
+  if (view.kind === "body"){ if (bodies.includes(view.b)) return [view.b.x, view.b.y, view.b]; setView({kind:"big"}); }
+  if (mode === "central" || !bodies.length) return [0, 0, null];
+  if (view.kind === "com"){ const c = com(bodies); return [c.X, c.Y, null]; }
+  let big = bodies[0]; for (const b of bodies) if (b.m > big.m) big = b;
+  return [big.x, big.y, big];
+}
 const toWorld = (sx, sy) => [(sx-cx)/scale + camX, (sy-cy)/scale + camY];
 const toScreen = (x, y) => [cx+(x-camX)*scale, cy+(y-camY)*scale];
 const radius = m => 0.035*Math.cbrt(m);
@@ -526,24 +548,46 @@ const LAWTXT = {0.5:"1/√r", 1:"1/r", 2:"1/r²", 3:"1/r³"};
 function updateCard(){
   let title, text;
   if (mode === "nbody"){
-    title = "Masas que se atraen";
+    title = "Masas";
     text = (mergeOn ? "Todas se atraen. Al chocar se juntan; una estrella de 8 masas o más explota como supernova."
-                    : "Todas se atraen entre sí. Al chocar se atraviesan.") + " La vista sigue a la más grande.";
+                    : "Todas se atraen entre sí. Al chocar se atraviesan.");
   } else if (kep === 1){
-    title = "Elipses · 1.ª ley de Kepler";
+    title = "Elipses";
     text = n === 2 ? "Cada planeta da vueltas en una elipse, con el Sol en uno de sus focos."
                    : `Con gravedad ${LAWTXT[n]} la órbita no es una elipse: el punto más cercano se corre en cada vuelta.`;
   } else if (kep === 2){
-    title = "Áreas iguales · 2.ª ley";
+    title = "Áreas";
     text = "En tiempos iguales el planeta barre áreas iguales: cerca del Sol va más rápido.";
   } else {
-    title = "Tiempo de vuelta · 3.ª ley";
+    title = "Tiempos";
     text = n === 2 ? "Mientras más lejos, más tarda en dar la vuelta: T² = a³ (en años y UA)."
                    : `Con gravedad ${LAWTXT[n]} los puntos se salen de la recta T² = a³.`;
   }
-  $("title").textContent = title; $("text").textContent = text;
+  const LAW = {1:"1.ª ley de Kepler. ", 2:"2.ª ley de Kepler. ", 3:"3.ª ley de Kepler. "};
+  $("title").textContent = title; $("text").textContent = (mode === "central" ? LAW[kep] : "") + text;
+}
+// Energía. Potencial de la ley 1/rⁿ: φ(r) = −r^(1−n)/(n−1), y ln r cuando n = 1.
+// Con el Sol: energía por unidad de masa del planeta elegido (negativa = ligado, si n > 1).
+// Con masas: energía total, cinética + potencial de cada par; se conserva salvo en choques y supernovas.
+const phi = r => n === 1 ? Math.log(r) : -Math.pow(r, 1-n)/(n-1);
+const fmtS = v => (v < 0 ? "−" : "") + fmt(Math.abs(v), Math.abs(v) < 10 ? 2 : 1);
+function energyText(){
+  if (mode === "central"){
+    if (!sel) return "";
+    const E = (sel.vx*sel.vx + sel.vy*sel.vy)/2 + phi(Math.max(Math.hypot(sel.x, sel.y), RMIN));
+    return `Energía ${fmtS(E)} · ${n > 1 && E >= 0 ? "se escapa" : "ligado"}`;
+  }
+  if (!bodies.length) return "";
+  let K = 0, U = 0;
+  for (const b of bodies) K += b.m*(b.vx*b.vx + b.vy*b.vy)/2;
+  for (let i = 0; i < bodies.length; i++) for (let j = i+1; j < bodies.length; j++){
+    const a = bodies[i], b = bodies[j], r = Math.max(Math.hypot(b.x-a.x, b.y-a.y), mergeOn ? RMIN : radius(a.m)+radius(b.m));
+    U += a.m*b.m*phi(r);
+  }
+  return `Energía total ${fmtS(K + U)}`;
 }
 function updateData(){
+  $("energy").textContent = energyText();
   updateData0();
   if (dN) $("data").textContent += (mode === "nbody" ? "   " : "  ·  ") + "Polvo: " + dN.toLocaleString("es-CL") + " granos";
 }
@@ -574,7 +618,8 @@ function setLaw(v){
   select(sel); updateCard();
 }
 function setMode(m){
-  mode = m; bodies = []; colorIdx = 0; ghosts = []; novas = []; dN = 0; camX = 0; camY = 0; zoom = 1; scale = baseScale; select(null);
+  mode = m; bodies = []; colorIdx = 0; ghosts = []; novas = []; dN = 0; camX = 0; camY = 0; zoom = 1; scale = baseScale*uz; select(null);
+  setView(m === "central" ? {kind:"sun"} : {kind:"big"});
   document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === mode));
   $("kepRow").hidden = mode !== "central"; $("nbRow").hidden = mode !== "nbody";
   if (mode === "central"){
@@ -608,6 +653,34 @@ const SPEEDS = [1, 2, 0.5, 0.25];
 $("spd").addEventListener("click", () => { speed = SPEEDS[(SPEEDS.indexOf(speed)+1) % SPEEDS.length]; $("spdLbl").textContent = String(speed).replace(".", ",") + "x"; });
 $("clr").addEventListener("click", () => { bodies = []; colorIdx = 0; ghosts = []; novas = []; dN = 0; select(null); });
 $("dustClr").addEventListener("click", () => { dN = 0; });
+$("info").addEventListener("click", () => {
+  const open = $("explain").hidden; $("explain").hidden = !open;
+  $("info").setAttribute("aria-expanded", open); $("info").setAttribute("aria-label", open ? "Ocultar la explicación" : "Mostrar la explicación");
+});
+// ---------- Vista: qué sigue la cámara ----------
+// Con masas: la más grande, el centro de masa o cada masa por turno. Con el Sol: el Sol o el planeta elegido.
+let view = {kind:"sun"};
+function viewList(){
+  if (mode === "central") return sel ? [{kind:"sun"}, {kind:"planet"}] : [{kind:"sun"}];
+  return [{kind:"big"}, {kind:"com"}, ...[...bodies].sort((a, b) => b.m - a.m).map(b => ({kind:"body", b}))];
+}
+function viewLabel(){
+  if (view.kind === "sun") return "Sol al centro";
+  if (view.kind === "planet") return "Sigue al planeta";
+  if (view.kind === "big") return "Sigue a la más grande";
+  if (view.kind === "com") return "Centro de masa";
+  return "Sigue a la de " + fmt(view.b.m, 1);
+}
+function setView(v){ view = v; $("viewLbl").textContent = viewLabel(); }
+$("view").addEventListener("click", () => {
+  const L = viewList(), k = L.findIndex(v => v.kind === view.kind && v.b === view.b);
+  setView(L[(k+1) % L.length]);
+});
+// ---------- Zoom del usuario (se suma al automático) ----------
+function setUZ(v){ uz = Math.min(4, Math.max(0.2, v)); $("zin").disabled = uz >= 4; $("zout").disabled = uz <= 0.2; }
+$("zin").addEventListener("click", () => setUZ(uz*1.4));
+$("zout").addEventListener("click", () => setUZ(uz/1.4));
+cv.addEventListener("wheel", e => { e.preventDefault(); setUZ(uz*Math.exp(-e.deltaY*0.0015)); }, {passive:false});
 document.querySelectorAll("[data-dust]").forEach(b => b.addEventListener("click", () => {
   dustRest = b.dataset.dust === "rest";
   document.querySelectorAll("[data-dust]").forEach(x => x.setAttribute("aria-pressed", x === b));
@@ -694,7 +767,7 @@ function drawEllipse(p){
     ctx.strokeStyle = "#ffc94a"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(Fx-6, Fy-6); ctx.lineTo(Fx+6, Fy+6); ctx.moveTo(Fx+6, Fy-6); ctx.lineTo(Fx-6, Fy+6); ctx.stroke();
     pill("foco vacío", Fx, Fy+20, "#ffc94a");
-    pill("Sol en un foco", cx, cy + Math.max(SUN_R*scale, 16) + 18, "#ffc94a");
+    const [S0x, S0y] = toScreen(0, 0); pill("Sol en un foco", S0x, S0y + Math.max(SUN_R*scale, 16) + 18, "#ffc94a");
     const q = a*(1-e), Q = a*(1+e);
     const [Px, Py] = toScreen(q*Math.cos(ang), q*Math.sin(ang)), [Ax, Ay] = toScreen(-Q*Math.cos(ang), -Q*Math.sin(ang));
     ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.arc(Px, Py, 4, 0, Math.PI*2); ctx.arc(Ax, Ay, 4, 0, Math.PI*2); ctx.fill();
@@ -708,7 +781,7 @@ function drawSectors(){
     const odd = s.k % 2;
     ctx.fillStyle = odd ? "rgba(94,200,242,0.28)" : "rgba(255,201,74,0.28)";
     ctx.strokeStyle = odd ? "rgba(94,200,242,0.8)" : "rgba(255,201,74,0.8)"; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.beginPath(); ctx.moveTo(...toScreen(0, 0));
     for (const [x, y] of s.pts){ const [X, Y] = toScreen(x, y); ctx.lineTo(X, Y); }
     ctx.closePath(); ctx.fill(); ctx.stroke();
     if (s.area !== undefined){
@@ -719,7 +792,7 @@ function drawSectors(){
 }
 function drawKepler3(){                               // gráfico T² contra a³ con la recta T² = a³
   const pts = bodies.filter(b => b.T).map(b => ({x:Math.pow(b.a, 3), y:Math.pow(b.T/YEAR, 2), c:b.color}));
-  const W = Math.min(170, Wd*0.42), H = W*0.85, X0 = Wd - W - 12, Y0 = Hd - H - 12;
+  const W = Math.min(170, Wd*0.42), H = W*0.85, X0 = Wd - W - 72, Y0 = Hd - H - 72;
   let mx = 1.5; for (const p of pts) mx = Math.max(mx, p.x*1.15, p.y*1.15);
   ctx.fillStyle = "rgba(10,15,42,0.85)"; ctx.strokeStyle = "#2e3a73"; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.roundRect ? ctx.roundRect(X0, Y0, W, H, 10) : ctx.rect(X0, Y0, W, H); ctx.fill(); ctx.stroke();
@@ -741,8 +814,9 @@ function draw(time){
   ctx.globalAlpha = 1;
   if (mode === "central"){
     ctx.strokeStyle = "rgba(238,241,255,0.12)"; ctx.setLineDash([3, 6]); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(cx, cy, scale, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(238,241,255,0.35)"; ctx.font = "700 11px Nunito, sans-serif"; ctx.fillText("1 UA", cx + scale*0.72 + 4, cy - scale*0.72);
+    const [ux0, uy0] = toScreen(0, 0);
+    ctx.beginPath(); ctx.arc(ux0, uy0, scale, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(238,241,255,0.35)"; ctx.font = "700 11px Nunito, sans-serif"; ctx.fillText("1 UA", ux0 + scale*0.72 + 4, uy0 - scale*0.72);
     if (kep === 2 && sel) drawSectors();
   }
   drawDust();
@@ -760,11 +834,11 @@ function draw(time){
       ctx.fillStyle = "#ffc94a";
       for (const [x, y] of sel.peris){ const [X, Y] = toScreen(x, y); ctx.beginPath(); ctx.arc(X, Y, 3.5, 0, Math.PI*2); ctx.fill(); }
     }
-    const sr = Math.max(SUN_R*scale, 16);
-    glow(cx, cy, sr*3.4, "rgba(255,201,74,0.5)", "rgba(255,150,40,0)");
-    const g = ctx.createRadialGradient(cx-sr*0.3, cy-sr*0.35, sr*0.1, cx, cy, sr);
+    const sr = Math.max(SUN_R*scale, 16), [sx0, sy0] = toScreen(0, 0);
+    glow(sx0, sy0, sr*3.4, "rgba(255,201,74,0.5)", "rgba(255,150,40,0)");
+    const g = ctx.createRadialGradient(sx0-sr*0.3, sy0-sr*0.35, sr*0.1, sx0, sy0, sr);
     g.addColorStop(0, "#fff6c8"); g.addColorStop(0.45, "#ffd23f"); g.addColorStop(1, "#ffa31a");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, sr, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx0, sy0, sr, 0, Math.PI*2); ctx.fill();
   }
   // cuerpos que están siendo comidos
   for (const gh of ghosts){
@@ -779,6 +853,7 @@ function draw(time){
     const [X, Y] = toScreen(b.x, b.y);
     const pr = mode === "nbody" ? Math.max(7, radius(shownMass(b))*scale*1.5) : (b === sel ? 8 : 6);
     drawBody(b, X, Y, pr, time);
+    if (b === followBody && mode === "nbody"){ ctx.strokeStyle = "rgba(255,255,255,0.75)"; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(X, Y, pr + (b.kind === "bh" ? pr*1.7 : 7), 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]); }
     if (b === sel && mode === "central"){ ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, pr+5, 0, Math.PI*2); ctx.stroke(); }
     if (mode === "nbody") pill(fmt(shownMass(b), 1) + (KIND_TXT[b.kind] ? " · " + KIND_TXT[b.kind] : ""), X, Y - pr - (b.kind === "bh" ? 22 : 12));
   }
@@ -849,16 +924,16 @@ function frame(time){
     if (dN) stepDust(T);
   }
   // cámara: sigue a la masa más grande y se aleja lo necesario para mostrar a las demás (hasta 0,3×)
-  let tx = 0, ty = 0, zt = 1;
+  let [tx, ty, followed] = viewTarget(), zt = 1;
+  followBody = followed;
   if (mode === "nbody" && bodies.length){
-    let big = bodies[0]; for (const b of bodies) if (b.m > big.m) big = b; tx = big.x; ty = big.y;
     let far = 0; for (const b of bodies) far = Math.max(far, Math.hypot(b.x-tx, b.y-ty) + radius(b.m));
     const card = document.querySelector(".card"), cardBottom = card.offsetTop + card.offsetHeight;
     const half = 0.9*Math.min(Wd/2, cy - cardBottom - 12, Hd - cy - 12);   // espacio libre alrededor del centro de la vista
     zt = Math.min(1, Math.max(0.3, half/(far*baseScale + 1e-9)));
   }
   const kc = snapCam ? 1 : Math.min(1, 0.12*dt60); camX += (tx-camX)*kc; camY += (ty-camY)*kc;
-  zoom += (zt-zoom)*(snapCam ? 1 : Math.min(1, 0.06*dt60)); scale = baseScale*zoom; snapCam = false;   // una escena nueva aparece ya encuadrada
+  zoom += (zt-zoom)*(snapCam ? 1 : Math.min(1, 0.06*dt60)); scale = baseScale*zoom*uz; snapCam = false;   // una escena nueva aparece ya encuadrada
   draw(time || 0);
   if ((time || 0) - dataT > 150){ dataT = time || 0; updateData(); }
   requestAnimationFrame(frame);
