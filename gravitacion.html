@@ -116,7 +116,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 "use strict";
 // Física: unidades con r = 1 (1 UA) de referencia y G·M☉ = 1, así una órbita circular en r = 1
 // tarda 2π unidades = 1 año. Sol fijo: a(r) = 1/r^n.  Masas que se atraen: cada masa j acelera a i con m_j / r^n.
-const DT = 0.0025, SUB = 12, SUN_R = 0.07, ESCAPE = 14, TRAIL = 1500, MAXP = 10, MAXN = 6, RMIN = 0.02;
+const DT = 0.0025, SUB = 6, SUN_R = 0.07, ESCAPE = 14, TRAIL = 1500, MAXP = 10, MAXN = 6, RMIN = 0.02;
 const ETA = 0.015, MAXSUB = 4000, TRAIL_STEP = 0.006, YEAR = 2*Math.PI;
 const COLORS = ["#5ec8f2","#f27b9b","#9be37c","#c7a2ff","#ffd166","#4fd1c5","#ff8a5c","#f0a742"];
 const INFO_C = {}, INFO_N = "", FML = {}, KEP = {};   // (textos de la versión técnica: no se usan aquí)
@@ -579,8 +579,9 @@ $("mergeOn").addEventListener("click", e => { mergeOn = !mergeOn; e.currentTarge
 $("more").addEventListener("click", () => { const open = $("sheet").hidden; $("sheet").hidden = !open; $("more").setAttribute("aria-pressed", open); });
 const PLAY = '<path d="M7 4.5l13 7.5-13 7.5z" fill="currentColor"/>', PAUSE = '<rect x="5.5" y="4.5" width="4.5" height="15" rx="1.2" fill="currentColor"/><rect x="14" y="4.5" width="4.5" height="15" rx="1.2" fill="currentColor"/>';
 $("play").addEventListener("click", () => { paused = !paused; $("playIcon").innerHTML = paused ? PLAY : PAUSE; $("playLbl").textContent = paused ? "Seguir" : "Pausa"; });
-const SPEEDS = [1, 2, 0.5];
-$("spd").addEventListener("click", () => { speed = SPEEDS[(SPEEDS.indexOf(speed)+1) % SPEEDS.length]; $("spdLbl").textContent = fmt(speed, speed < 1 ? 1 : 0) + "x"; });
+// Reloj: a 1x avanzan SUB·DT = 0,015 unidades por 1/60 s, así 1 año (2π) dura unos 7 s.
+const SPEEDS = [1, 2, 0.5, 0.25];
+$("spd").addEventListener("click", () => { speed = SPEEDS[(SPEEDS.indexOf(speed)+1) % SPEEDS.length]; $("spdLbl").textContent = String(speed).replace(".", ",") + "x"; });
 $("clr").addEventListener("click", () => { bodies = []; colorIdx = 0; ghosts = []; novas = []; dN = 0; select(null); });
 $("dustClr").addEventListener("click", () => { dN = 0; });
 $("hideDock").addEventListener("click", () => {
