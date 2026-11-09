@@ -46,6 +46,13 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   de la malla para que Reynolds no dependa de la resolución.
 - `flujo-tactil.html`: piscina a pantalla completa, LBM, el dedo agita el agua y genera ondas.
 - `lanzamiento.html`: lanzamiento vertical a escala real con cámara que se aleja y marcas cada 0,1 s.
+- `nave.html` (Beta): nave que planea viajes por órbitas con el Sol fijo (G·M☉ = 1, UA, 1 año = 2π).
+  Venus, Tierra y Marte en círculos exactos; la nave (leapfrog) solo siente al Sol. Plan del motor =
+  instante y Δv a lo largo de la velocidad (Antes/Después ±0,025 años, Frenar/Acelerar ±0,3 km/s),
+  predicción blanca/amarilla con el punto de máximo acercamiento. "Ruta auto" = Hohmann con ventana
+  de lanzamiento. Llegar iguala la velocidad del destino (< 0,045 UA). Combustible 12 km/s, se recarga
+  en los planetas. Cápsula en órbita circular al azar. La física está entre `// @fisica` y
+  `// @fin-fisica` para probarla en Node.
 
 ## Fichas de fórmulas (PDF)
 - `docs/<simulador>.pdf`: máximo dos hojas por simulador con las fórmulas que usa; se enlazan desde `index.html`.

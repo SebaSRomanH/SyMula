@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nave espacial: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:14mm 15mm}
+body{font:10pt/1.45 Nunito,sans-serif;color:#1a2238;margin:0}
+header{border-bottom:3px solid #ffc94a;padding-bottom:6px;margin-bottom:8px}
+h1{font-size:20pt;margin:0;color:#0b1226;font-weight:800}
+.sub{color:#5a6480;font-size:9.5pt;margin:2px 0 0}
+h2{font-size:11.5pt;margin:10px 0 3px;color:#0b1226;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#ffc94a;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:3px 0 5px}
+ul{margin:3px 0 5px;padding-left:18px}
+.katex-display{margin:5px 0}
+table{border-collapse:collapse;width:100%;font-size:9pt;margin:4px 0}
+td,th{border-bottom:1px solid #dde2ee;padding:2px 6px;text-align:left}
+th{color:#5a6480;font-weight:700}
+.note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 9px;font-size:9pt;margin:6px 0}
+section{break-inside:avoid}
+section.split{break-inside:auto}
+</style>
+</head>
+<body>
+<header>
+<h1>Nave espacial (Beta)</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (nave.html)</p>
+</header>
+
+<section>
+<h2>Unidades y movimiento</h2>
+<p>Las distancias están en UA y se toma $G\,M_\odot=1$. Así, una órbita circular en $r=1$ tarda $2\pi$ unidades de tiempo (1 año) y va a velocidad 1, que equivale a 29,78 km/s.</p>
+<p>Solo el Sol atrae a la nave:</p>
+$$\ddot{\vec r}=-\frac{\vec r}{r^3}.$$
+<p>La nave avanza con el integrador leapfrog, con paso $h\le\min(0{,}003,\;0{,}02\,r^{3/2})$. Los planetas y la cápsula siguen órbitas circulares exactas:</p>
+$$\theta(t)=\theta_0+\omega t,\qquad \omega=r^{-3/2},\qquad v_c=\sqrt{1/r}.$$
+</section>
+
+<section>
+<h2>El motor</h2>
+<p>El plan tiene un instante $t_m$ y un cambio de velocidad $\Delta v$ a lo largo de la dirección de avance:</p>
+$$\vec v\,\leftarrow\,\vec v+\Delta v\,\frac{\vec v}{|\vec v|}.$$
+<ul>
+<li>Con $\Delta v &gt; 0$ (acelerar), la órbita crece del lado opuesto al encendido.</li>
+<li>Con $\Delta v &lt; 0$ (frenar), se achica.</li>
+<li>Al salir de un planeta, la nave parte con su velocidad.</li>
+<li>El combustible es un presupuesto de 12 km/s: cada encendido gasta $|\Delta v|$, y se recarga al llegar a un planeta.</li>
+</ul>
+</section>
+
+<section>
+<h2>Predicción y encuentro</h2>
+<p>Se integra la órbita hacia adelante: la actual en blanco y, después del encendido, la nueva en amarillo. Se busca la mínima distancia al destino en el mismo instante:</p>
+$$d_\text{mín}=\min_t\,\big|\vec r_\text{nave}(t)-\vec r_\text{destino}(t)\big|.$$
+<p>El horizonte es una vuelta de la nueva órbita, $2\pi a^{3/2}$, con $a=-1/(2E)$ y $E=\tfrac12v^2-1/r$; como máximo, 3 años. Si $d_\text{mín}&lt;0{,}045$ UA hay encuentro: se marca en verde y, al llegar, la nave se detiene.</p>
+</section>
+
+<section class="split">
+<h2>Ruta automática: transferencia de Hohmann</h2>
+<p>Para ir de una órbita circular $r_1$ a otra $r_2$, la ruta más económica con dos encendidos es media elipse de semieje</p>
+$$a=\frac{r_1+r_2}{2},\qquad t_H=\pi\,a^{3/2}.$$
+<p>Los dos encendidos son</p>
+$$\Delta v_1=\sqrt{\tfrac{1}{r_1}}\left(\sqrt{\tfrac{2r_2}{r_1+r_2}}-1\right),\qquad \Delta v_2=\sqrt{\tfrac{1}{r_2}}\left(1-\sqrt{\tfrac{2r_1}{r_1+r_2}}\right).$$
+<p><b>Ventana de lanzamiento:</b> mientras la nave viaja, el destino avanza $\omega_2 t_H$. Por eso al salir debe ir adelantado</p>
+$$\varphi=\pi-\omega_2\,t_H.$$
+<p>El ángulo entre ambos cambia a razón $\omega_2-\omega_1$, así que el simulador espera</p>
+$$t_\text{espera}=\frac{\left[\varphi-(\theta_2-\theta_1)\right]\bmod 2\pi}{\omega_2-\omega_1}$$
+<p>(con los signos invertidos si $\omega_2&lt;\omega_1$). La misma ventana se repite cada periodo sinódico, $2\pi/|\omega_2-\omega_1|$.</p>
+<table>
+<tr><th>Viaje</th><th>$\Delta v_1$</th><th>$\Delta v_2$</th><th>Duración</th><th>Ventana cada</th></tr>
+<tr><td>Tierra → Marte</td><td>2,95 km/s</td><td>2,65 km/s</td><td>0,71 años</td><td>2,14 años</td></tr>
+<tr><td>Tierra → Venus</td><td>2,50 km/s</td><td>2,71 km/s</td><td>0,40 años</td><td>1,60 años</td></tr>
+<tr><td>Venus → Marte</td><td>5,77 km/s</td><td>4,77 km/s</td><td>0,59 años</td><td>0,91 años</td></tr>
+</table>
+<p>Verificado con el integrador del simulador: la nave pasa a menos de 0,001 UA del destino.</p>
+</section>
+
+<section>
+<h2>Llegar</h2>
+<p>Junto al destino se iguala su velocidad, lo que gasta</p>
+$$\Delta v_\text{llegar}=\big|\vec v_\text{nave}-\vec v_\text{destino}\big|.$$
+<p>En un planeta, la nave queda girando con él. Con la cápsula, la nave la recoge y sigue en su órbita.</p>
+</section>
+
+<p class="note">Límites de esta versión Beta: los planetas no atraen a la nave, así que no hay asistencias gravitatorias ni captura en órbita del planeta. Las órbitas de los planetas son círculos en un mismo plano. La ruta automática solo sale desde un planeta o desde una órbita casi redonda.</p>
+</body>
+</html>

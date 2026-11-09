@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1226">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Nave espacial (Beta)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== SyMula: estilo común (igual en todos los simuladores) ===== */
+:root{
+  --bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2;
+  color-scheme:dark;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2}
+}
+:root[data-theme="dark"]{--bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;background:var(--bg)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+  font:700 15px/1.3 Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.home{position:absolute;top:10px;left:10px;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;z-index:3;
+  background:rgba(18,26,54,.88);border:1px solid var(--line);color:var(--ink);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.card{position:absolute;top:10px;left:72px;right:10px;max-width:460px;min-height:52px;padding:7px 12px;border-radius:16px;z-index:2;pointer-events:none;
+  background:rgba(18,26,54,.88);border:1px solid var(--line);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.card h1{font:800 18px/1.15 Nunito,sans-serif;margin:0;color:var(--acc)}
+.card p{margin:2px 0 0;font-size:14px;color:#d8ddf7}
+.card .data{font-size:13px;color:#8fd8ff;font-variant-numeric:tabular-nums}
+.card p:empty{display:none}
+.toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:92%;padding:10px 18px;border-radius:999px;z-index:3;
+  background:var(--acc);color:var(--acc-ink);font-weight:800;text-align:center;pointer-events:none;transition:opacity .4s}
+.toast.off{opacity:0}
+.dock{background:var(--panel);border-top:1px solid var(--line);padding:8px 10px 10px;display:flex;flex-direction:column;gap:8px}
+.dock>*{width:100%;max-width:760px;margin:0 auto}
+.row{display:flex;gap:8px}
+.tile{flex:1 1 0;min-width:0;min-height:60px;padding:6px 3px;border-radius:16px;border:1px solid var(--line);background:var(--btn);color:var(--ink);
+  font:800 13px/1.1 Nunito,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;touch-action:manipulation}
+.tile svg{width:26px;height:26px;flex:none}
+.tile[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.tile:active{transform:scale(.96)}
+.tile:disabled{opacity:.4;cursor:default}
+.lbl{font-size:12px;font-weight:800;color:var(--soft);margin-bottom:-3px;padding:0 2px}
+button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+[hidden]{display:none!important}
+/* ===== fin del estilo común ===== */
+.beta{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--cyan);color:#06243a;font-size:11px;vertical-align:3px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="cv" aria-label="Nave espacial: planea el viaje entre planetas usando las órbitas"></canvas>
+  <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
+  <div class="card" id="card" aria-live="polite"><h1>Nave espacial<span class="beta">Beta</span></h1><p id="say">Elige un destino y planea el viaje.</p><p class="data" id="data">Combustible 12,0 km/s</p></div>
+  <div class="toast off" id="toast"></div>
+</div>
+<nav class="dock" aria-label="Controles">
+  <div class="lbl">Destino</div>
+  <div class="row" role="group" aria-label="Destino">
+    <button class="tile" type="button" data-target="venus" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#e8c27a"/></svg>Venus</button>
+    <button class="tile" type="button" data-target="tierra" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#4ea3ff"/><path d="M8 9c2 0 2.5 2 4.5 1s2-2.5 3.5-2M7.5 15c2.5-1 3.5 1.5 6 .5" stroke="#7fd07a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Tierra</button>
+    <button class="tile" type="button" data-target="marte" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#e0613a"/><path d="M7 10c3 1 6-1 10 1" stroke="#a8432a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Marte</button>
+    <button class="tile" type="button" data-target="capsula" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="7" y="5" width="10" height="14" rx="5" fill="currentColor" fill-opacity=".25"/><circle cx="12" cy="10" r="2" fill="#5ec8f2" stroke="none"/><path d="M4 12h3M17 12h3"/></svg>Cápsula</button>
+  </div>
+  <div class="lbl">Plan del motor</div>
+  <div class="row" role="group" aria-label="Plan del motor">
+    <button class="tile" type="button" id="earlier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l-3 2M3 4l3 3M6 3v4H2"/></svg>Antes</button>
+    <button class="tile" type="button" id="later"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M21 4l-3 3M18 3v4h4"/></svg>Después</button>
+    <button class="tile" type="button" id="brake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 12h12"/></svg>Frenar</button>
+    <button class="tile" type="button" id="boost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 12h12M12 6v12"/></svg>Acelerar</button>
+    <button class="tile" type="button" id="auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M7 17c6-1 4-9 10-10" stroke-dasharray="2.5 2.5"/></svg>Ruta auto</button>
+  </div>
+  <div class="row">
+    <button class="tile" type="button" id="play"><svg viewBox="0 0 24 24" id="playIco"></svg><span id="playLbl">Seguir</span></button>
+    <button class="tile" type="button" id="spd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13l4-4M12 3v2"/></svg><span id="spdLbl">1x</span></button>
+    <button class="tile" type="button" id="dock" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>Llegar</button>
+    <button class="tile" type="button" id="clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>Quitar plan</button>
+    <button class="tile" type="button" id="reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5"/></svg>Reiniciar</button>
+  </div>
+</nav>
+<script>
+(function(){
+"use strict";
+// @fisica ----------------------------------------------------------------------------------------
+// Unidades: r en UA y G·M☉ = 1, así una órbita circular en r = 1 tarda 2π (1 año) y va a velocidad 1
+// (29,78 km/s, la de la Tierra). Solo el Sol atrae a la nave; los planetas giran en órbitas circulares
+// exactas. (Beta: la gravedad de los planetas sobre la nave no se incluye.)
+const KMS = 29.78, YEAR = 2*Math.PI, H_MAX = 0.003, SUN_R = 0.05, LOST_R = 6;
+const wrap2pi = x => ((x % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+const omega = r => Math.pow(r, -1.5);                // velocidad angular de una órbita circular
+function bodyAng(b, t){ return b.th0 + omega(b.r)*t; }
+function bodyState(b, t){
+  const a = bodyAng(b, t), v = Math.sqrt(1/b.r), c = Math.cos(a), s = Math.sin(a);
+  return {x:b.r*c, y:b.r*s, vx:-v*s, vy:v*c};
+}
+function leap(s, h){                                 // leapfrog con el Sol fijo: a = −r/r³
+  let q = Math.pow(s.x*s.x + s.y*s.y, -1.5);
+  s.vx -= s.x*q*h/2; s.vy -= s.y*q*h/2;
+  s.x += s.vx*h; s.y += s.vy*h;
+  q = Math.pow(s.x*s.x + s.y*s.y, -1.5);
+  s.vx -= s.x*q*h/2; s.vy -= s.y*q*h/2;
+}
+function propagate(s, T){                            // avanza s un tiempo T; false si cae al Sol
+  if (T <= 0) return true;
+  const r = Math.max(Math.hypot(s.x, s.y), SUN_R), k = Math.ceil(T/Math.min(H_MAX, 0.02*Math.pow(r, 1.5))), h = T/k;
+  for (let i = 0; i < k; i++){ leap(s, h); if (s.x*s.x + s.y*s.y < SUN_R*SUN_R) return false; }
+  return true;
+}
+function burnProgrades(s, dv){                       // encendido a lo largo de la velocidad (dv < 0: frena)
+  const v = Math.hypot(s.vx, s.vy) || 1; s.vx += s.vx/v*dv; s.vy += s.vy/v*dv;
+}
+// Transferencia de Hohmann entre órbitas circulares r1 → r2: una media elipse de semieje a = (r1+r2)/2
+// que dura tH = π·a^1,5. El destino debe ir adelantado lead = π − ω2·tH al salir; se espera hasta que
+// el ángulo entre ambos llegue a ese valor (cambia a razón ω2 − ω1).
+function hohmann(r1, th1, target, t){
+  const r2 = target.r, a = (r1 + r2)/2, tH = Math.PI*Math.pow(a, 1.5);
+  const lead = Math.PI - omega(r2)*tH, d0 = bodyAng(target, t) - th1, rate = omega(r2) - omega(r1);
+  const wait = rate > 0 ? wrap2pi(lead - d0)/rate : wrap2pi(d0 - lead)/(-rate);
+  const dv1 = Math.sqrt(1/r1)*(Math.sqrt(2*r2/(r1 + r2)) - 1);
+  const dv2 = Math.sqrt(1/r2)*(1 - Math.sqrt(2*r1/(r1 + r2)));
+  return {wait, dv1, dv2, tH};
+}
+// @fin-fisica -----------------------------------------------------------------------------------
+
+const R_CAP = 0.045, FUEL_MAX = 12/KMS, DV_STEP = 0.01, T_STEP = 0.025*YEAR, SPEEDS = [1, 4, 0.25];
+const PLANETS = {
+  venus: {name:"Venus", r:0.723, th0:2.4, color:"#e8c27a", px:6.5},
+  tierra:{name:"la Tierra", r:1, th0:0, color:"#4ea3ff", px:7},
+  marte: {name:"Marte", r:1.524, th0:1.1, color:"#e0613a", px:5.5}
+};
+const BODIES = Object.values(PLANETS);
+const $ = id => document.getElementById(id), cv = $("cv"), ctx = cv.getContext("2d");
+const fmt = (v, d) => v.toFixed(d).replace(".", ",").replace(/^-/, "−");
+
+let t = 0, running = false, speed = 1, fuel = FUEL_MAX, plan = null, target = PLANETS.marte;
+let ship = {x:0, y:0, vx:0, vy:0, docked:PLANETS.tierra}, capsule = null, trail = [];
+let pred = null, predT = 0, dirty = true, inRange = false, flame = 0, mission = {t0:0, dv:0};
+let W = 0, H = 0, dpr = 1, scale = 1, cx = 0, cy = 0, stars = [];
+
+function newCapsule(){                               // órbita circular al azar, lejos de los planetas
+  let r;
+  do r = 0.8 + Math.random()*0.6; while (BODIES.some(b => Math.abs(b.r - r) < 0.1));
+  return {name:"la cápsula", r, th0:Math.random()*2*Math.PI, color:"#5ec8f2", px:4, capsule:true, picked:false};
+}
+function shipNow(){                                  // estado actual de la nave (copia)
+  return ship.docked ? bodyState(ship.docked, t) : {x:ship.x, y:ship.y, vx:ship.vx, vy:ship.vy};
+}
+function setShip(s){ ship.x = s.x; ship.y = s.y; ship.vx = s.vx; ship.vy = s.vy; }
+
+// ---------- Encender el motor ----------
+function burn(){
+  const s = shipNow(); let dv = plan.dv;
+  if (Math.abs(dv) > fuel){ dv = Math.sign(dv)*fuel; toast("Se acabó el combustible: el motor dio lo que pudo."); }
+  else toast(`Motor encendido: ${dv >= 0 ? "acelera" : "frena"} ${fmt(Math.abs(dv)*KMS, 2)} km/s`);
+  burnProgrades(s, dv); setShip(s); ship.docked = null;
+  fuel -= Math.abs(dv); mission.dv += Math.abs(dv); plan = null; flame = 0.6; dirty = true;
+}
+// ---------- Avanzar en el tiempo ----------
+function advance(T){
+  const tEnd = t + T;
+  while (t < tEnd - 1e-12){
+    const stop = plan && plan.t <= tEnd ? Math.max(t, plan.t) : tEnd;
+    if (!ship.docked){
+      const s = shipNow();
+      if (!propagate(s, stop - t)){ t = stop; lost("La nave cayó al Sol."); return; }
+      setShip(s);
+      if (Math.hypot(s.x, s.y) > LOST_R){ t = stop; lost("La nave se perdió en el espacio."); return; }
+    }
+    t = stop;
+    if (plan && t >= plan.t - 1e-12) burn();
+  }
+}
+function lost(msg){
+  toast(msg + " Vuelve a la Tierra con el combustible lleno.");
+  ship.docked = PLANETS.tierra; fuel = FUEL_MAX; plan = null; trail = []; running = false; syncPlay(); dirty = true;
+}
+
+// ---------- Predicción: la órbita actual (blanca) y la del plan (amarilla) ----------
+function predict(){
+  const P = {white:[], yellow:[], node:null, best:null};
+  const tgt = target && !target.picked && target !== ship.docked ? target : null;
+  let s = shipNow(), tt = t;
+  const H_P = 0.004;
+  let drawUntil = Infinity;
+  const look = (arr, k) => {
+    if (k % 3 === 0 && tt <= drawUntil) arr.push([s.x, s.y]);
+    if (!tgt) return;
+    const a = bodyAng(tgt, tt), tx = tgt.r*Math.cos(a), ty = tgt.r*Math.sin(a), d = Math.hypot(s.x-tx, s.y-ty);
+    if (!P.best || d < P.best.d) P.best = {d, t:tt, sx:s.x, sy:s.y, tx, ty};
+  };
+  const run = (arr, T) => {
+    const k = Math.max(1, Math.ceil(T/H_P)), h = T/k;
+    for (let i = 0; i < k; i++){
+      leap(s, h); tt += h; look(arr, i);
+      const r2 = s.x*s.x + s.y*s.y; if (r2 < SUN_R*SUN_R || r2 > LOST_R*LOST_R) return false;
+    }
+    if (tt <= drawUntil) arr.push([s.x, s.y]);
+    return true;
+  };
+  const horizon = () => {                            // una vuelta de la órbita (o 2 años si se escapa), hasta 3 años
+    const E = (s.vx*s.vx + s.vy*s.vy)/2 - 1/Math.hypot(s.x, s.y);
+    return E < 0 ? Math.min(3*YEAR, 2*Math.PI*Math.pow(-1/(2*E), 1.5)) : 2*YEAR;
+  };
+  if (plan){
+    if (ship.docked){ s = bodyState(ship.docked, plan.t); tt = plan.t; }
+    else { drawUntil = t + horizon(); if (!run(P.white, plan.t - t)) return P; drawUntil = Infinity; }   // la espera se dibuja solo una vuelta
+    P.node = [s.x, s.y];
+    burnProgrades(s, plan.dv);
+    run(P.yellow, horizon());
+  } else if (!ship.docked) run(P.white, horizon());
+  return P;
+}
+
+// ---------- Ruta automática (Hohmann) ----------
+function autoRoute(){
+  if (!target || target.picked){ toast("Elige primero un destino."); return; }
+  if (target === ship.docked){ toast(`Ya estás en ${target.name}.`); return; }
+  const s = shipNow(), r1 = Math.hypot(s.x, s.y), v = Math.hypot(s.vx, s.vy);
+  const e = Math.hypot((v*v - 1/r1)*s.x - (s.x*s.vx + s.y*s.vy)*s.vx, (v*v - 1/r1)*s.y - (s.x*s.vx + s.y*s.vy)*s.vy);
+  if (e > 0.05){ toast("La ruta automática sale desde un planeta o desde una órbita casi redonda."); return; }
+  if (Math.abs(r1 - target.r) < 0.03){ toast("Ya vas por la órbita del destino: usa Antes, Después, Frenar y Acelerar."); return; }
+  const hm = hohmann(r1, Math.atan2(s.y, s.x), target, t);
+  plan = {t:t + hm.wait, dv:Math.sqrt(1/r1)*Math.sqrt(2*target.r/(r1 + target.r)) - v};
+  dirty = true;
+  toast(`Ruta lista: esperar ${fmt(hm.wait/YEAR, 2)} años y ${plan.dv >= 0 ? "acelerar" : "frenar"} ${fmt(Math.abs(plan.dv)*KMS, 2)} km/s. El viaje dura ${fmt(hm.tH/YEAR, 2)} años.`, 5500);
+}
+
+// ---------- Llegar: igualar la velocidad del destino ----------
+function relSpeed(){
+  const s = shipNow(), b = bodyState(target, t);
+  return [Math.hypot(s.x-b.x, s.y-b.y), Math.hypot(s.vx-b.vx, s.vy-b.vy), b];
+}
+function arrive(){
+  if (!inRange) return;
+  const [, dv, b] = relSpeed();
+  if (dv > fuel + 1e-9){ toast(`Falta combustible: para quedarte necesitas ${fmt(dv*KMS, 2)} km/s.`); return; }
+  fuel -= dv; mission.dv += dv; flame = 0.6; plan = null; inRange = false;
+  const yrs = (t - mission.t0)/YEAR;
+  if (target.capsule){
+    target.picked = true; setShip(b); ship.docked = null;
+    toast(`Recogiste la cápsula en ${fmt(yrs, 2)} años usando ${fmt(mission.dv*KMS, 1)} km/s.`, 5500);
+  } else {
+    ship.docked = target; fuel = FUEL_MAX;
+    toast(`Llegaste a ${target.name} en ${fmt(yrs, 2)} años usando ${fmt(mission.dv*KMS, 1)} km/s. Combustible recargado.`, 5500);
+  }
+  mission = {t0:t, dv:0}; running = false; syncPlay(); dirty = true;
+}
+
+// ---------- Controles ----------
+function setTarget(id){
+  target = id === "capsula" ? (capsule = newCapsule()) : PLANETS[id];
+  document.querySelectorAll("[data-target]").forEach(b => b.setAttribute("aria-pressed", b.dataset.target === id));
+  plan = null; mission = {t0:t, dv:0}; inRange = false; running = false; syncPlay(); dirty = true;
+  if (target === ship.docked) toast(`Ya estás en ${target.name}. Elige otro destino.`);
+  else toast(target.capsule ? "Hay una cápsula flotando en su órbita. Planea cómo alcanzarla." : `Destino: ${target.name}. Toca Ruta auto o arma tu plan.`, 4000);
+}
+document.querySelectorAll("[data-target]").forEach(b => b.addEventListener("click", () => setTarget(b.dataset.target)));
+const ensurePlan = () => { if (!plan) plan = {t, dv:0}; dirty = true; };
+$("earlier").addEventListener("click", () => { ensurePlan(); plan.t = Math.max(t, plan.t - T_STEP); });
+$("later").addEventListener("click", () => { ensurePlan(); plan.t += T_STEP; });
+$("brake").addEventListener("click", () => { ensurePlan(); plan.dv = Math.round((plan.dv - DV_STEP)*1e4)/1e4; });
+$("boost").addEventListener("click", () => { ensurePlan(); plan.dv = Math.round((plan.dv + DV_STEP)*1e4)/1e4; });
+$("auto").addEventListener("click", autoRoute);
+$("clear").addEventListener("click", () => { plan = null; dirty = true; });
+$("dock").addEventListener("click", arrive);
+$("reset").addEventListener("click", () => {
+  t = 0; ship.docked = PLANETS.tierra; fuel = FUEL_MAX; plan = null; trail = []; inRange = false; running = false;
+  if (target.capsule) target = capsule = newCapsule();
+  mission = {t0:0, dv:0}; syncPlay(); dirty = true;
+});
+const PLAY = '<path d="M8 5v14l11-7z" fill="currentColor"/>', PAUSE = '<path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/>';
+function syncPlay(){ $("playIco").innerHTML = running ? PAUSE : PLAY; $("playLbl").textContent = running ? "Pausa" : "Seguir"; }
+$("play").addEventListener("click", () => { running = !running; syncPlay(); });
+$("spd").addEventListener("click", () => { speed = SPEEDS[(SPEEDS.indexOf(speed)+1) % SPEEDS.length]; $("spdLbl").textContent = String(speed).replace(".", ",") + "x"; });
+let toastT = 0;
+function toast(msg, ms = 3500){ const el = $("toast"); el.textContent = msg; el.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add("off"), ms); }
+
+// ---------- Textos de la tarjeta ----------
+function updateText(){
+  const tn = target ? target.name : "";
+  let say;
+  if (inRange) say = `Estás junto a ${tn}: toca Llegar para quedarte.`;
+  else if (target && target.picked) say = "Cápsula recogida. Elige otro destino.";
+  else if (plan) say = `El motor se enciende en ${fmt((plan.t - t)/YEAR, 2)} años.` + (running ? "" : " Toca Seguir.");
+  else if (ship.docked && target === ship.docked) say = `Estás en ${tn}. Elige un destino.`;
+  else if (ship.docked) say = `Estás en ${ship.docked.name}. Destino: ${tn}. Toca Ruta auto o arma el plan.`;
+  else say = `Viajando. Destino: ${tn}.`;
+  $("say").textContent = say;
+  let d = `Combustible ${fmt(fuel*KMS, 1)} km/s`;
+  if (plan) d += ` · plan ${plan.dv >= 0 ? "+" : "−"}${fmt(Math.abs(plan.dv)*KMS, 2)} km/s`;
+  if (pred && pred.best) d += ` · pasas a ${fmt(pred.best.d, 2)} UA`;
+  d += ` · año ${fmt(t/YEAR, 2)}`;
+  $("data").textContent = d;
+}
+
+// ---------- Dibujo ----------
+function resize(){
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  const top = $("card").offsetTop + $("card").offsetHeight + 6;
+  scale = 0.5*Math.min(W - 16, H - top - 10)/1.72; cx = W/2; cy = top + (H - top)/2;
+  stars = []; for (let k = 0; k < 160; k++) stars.push([Math.random()*W, Math.random()*H, Math.random()*1.2 + 0.3, Math.random()]);
+}
+window.addEventListener("resize", resize);
+const toS = (x, y) => [cx + x*scale, cy - y*scale];
+function path(pts){ ctx.beginPath(); pts.forEach(([x, y], k) => { const [X, Y] = toS(x, y); k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); }
+function drawShip(X, Y, ang){
+  ctx.save(); ctx.translate(X, Y); ctx.rotate(ang);
+  if (flame > 0){ ctx.fillStyle = `rgba(255,170,60,${Math.min(1, flame*2)})`; ctx.beginPath(); ctx.moveTo(-7, -4); ctx.lineTo(-18 - Math.random()*5, 0); ctx.lineTo(-7, 4); ctx.fill(); }
+  ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-7, -6); ctx.lineTo(-4, 0); ctx.lineTo(-7, 6); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function draw(time){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#0b1226"; ctx.fillRect(0, 0, W, H);
+  for (const [x, y, r, p] of stars){ ctx.fillStyle = `rgba(220,228,255,${0.25 + 0.35*Math.abs(Math.sin(time/1600 + p*9))})`; ctx.fillRect(x, y, r, r); }
+  // Sol
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 34);
+  g.addColorStop(0, "rgba(255,236,170,1)"); g.addColorStop(0.35, "rgba(255,190,70,0.9)"); g.addColorStop(1, "rgba(255,150,40,0)");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 34, 0, Math.PI*2); ctx.fill();
+  // órbitas de los planetas y de la cápsula
+  ctx.lineWidth = 1;
+  for (const b of [...BODIES, ...(capsule && !capsule.picked ? [capsule] : [])]){
+    ctx.strokeStyle = b === target ? "rgba(255,201,74,0.35)" : "rgba(160,175,230,0.18)";
+    ctx.setLineDash(b.capsule ? [3, 5] : []); ctx.beginPath(); ctx.arc(cx, cy, b.r*scale, 0, Math.PI*2); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // estela de la nave
+  if (trail.length > 1){ ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 1.5; path(trail); ctx.stroke(); }
+  // predicción
+  if (pred){
+    if (pred.white.length > 1){ ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 1.5; ctx.setLineDash([4, 6]); path(pred.white); ctx.stroke(); }
+    if (pred.yellow.length > 1){ ctx.strokeStyle = "#ffc94a"; ctx.lineWidth = 2.2; ctx.setLineDash([7, 5]); path(pred.yellow); ctx.stroke(); }
+    ctx.setLineDash([]);
+    if (pred.node){
+      const [X, Y] = toS(...pred.node);
+      ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.moveTo(X, Y-8); ctx.lineTo(X+8, Y); ctx.lineTo(X, Y+8); ctx.lineTo(X-8, Y); ctx.closePath(); ctx.fill();
+    }
+    const b = pred.best;
+    if (b && target){
+      const [SX, SY] = toS(b.sx, b.sy), [TX, TY] = toS(b.tx, b.ty), hit = b.d < R_CAP;
+      ctx.strokeStyle = hit ? "#7be38f" : "rgba(255,255,255,0.5)"; ctx.setLineDash([2, 4]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(SX, SY); ctx.lineTo(TX, TY); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = target.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(TX, TY, target.px + 4, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.arc(SX, SY, 3.5, 0, Math.PI*2); ctx.fill();
+      if (hit){ ctx.strokeStyle = "#7be38f"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(TX, TY, Math.max(14, R_CAP*scale), 0, Math.PI*2); ctx.stroke(); }
+    }
+  }
+  // planetas y cápsula
+  for (const b of [...BODIES, ...(capsule && !capsule.picked ? [capsule] : [])]){
+    const s = bodyState(b, t), [X, Y] = toS(s.x, s.y);
+    if (b === target){ ctx.strokeStyle = `rgba(255,201,74,${0.5 + 0.4*Math.sin(time/250)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, Math.max(b.px + 7, R_CAP*scale), 0, Math.PI*2); ctx.stroke(); }
+    if (b.capsule){
+      ctx.save(); ctx.translate(X, Y); ctx.rotate(time/900);
+      ctx.fillStyle = "#cfd8ee"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-3.5, -6, 7, 12, 3.5) : ctx.rect(-3.5, -6, 7, 12); ctx.fill();
+      ctx.restore();
+      ctx.fillStyle = Math.sin(time/200) > 0 ? "#5ec8f2" : "rgba(94,200,242,0.25)"; ctx.beginPath(); ctx.arc(X, Y, 2, 0, Math.PI*2); ctx.fill();
+    } else { ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(X, Y, b.px, 0, Math.PI*2); ctx.fill(); }
+  }
+  // nave
+  const s = shipNow(); let [X, Y] = toS(s.x, s.y);
+  if (ship.docked){ const r = Math.hypot(s.x, s.y); X += s.x/r*14; Y -= s.y/r*14; }
+  drawShip(X, Y, Math.atan2(-s.vy, s.vx));
+}
+
+// ---------- Bucle ----------
+let lastT = 0;
+function frame(time){
+  const dt = lastT ? Math.min(50, time - lastT) : 16.7; lastT = time;
+  if (running){
+    advance(0.015*speed*dt/16.7);                    // 1 año ≈ 7 s a 1x
+    if (!ship.docked){ const s = shipNow(), l = trail[trail.length-1]; if (!l || Math.hypot(s.x-l[0], s.y-l[1]) > 0.01){ trail.push([s.x, s.y]); if (trail.length > 900) trail.shift(); } }
+  }
+  flame = Math.max(0, flame - dt/1000);
+  // ¿junto al destino?
+  const can = target && !target.picked && target !== ship.docked && relSpeed()[0] < R_CAP;
+  if (can && !inRange && running){ running = false; syncPlay(); toast(`Llegaste junto a ${target.name}. Toca Llegar para igualar su velocidad y quedarte.`, 5000); }
+  inRange = can; $("dock").disabled = !can; $("dock").setAttribute("aria-pressed", can);
+  if (dirty || (running && time - predT > 250)){ pred = predict(); predT = time; dirty = false; }
+  draw(time); updateText();
+  requestAnimationFrame(frame);
+}
+resize(); syncPlay();
+document.querySelector('[data-target="marte"]').setAttribute("aria-pressed", "true");
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
