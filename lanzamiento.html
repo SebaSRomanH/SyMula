@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1424">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Lanzamiento vertical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Escena nocturna por diseño en ambos temas */
+:root{
+  --sky:#0b1424;--hud:#e6edf5;--hud-muted:#93a4b8;--chip:rgba(12,20,34,.72);--chip-line:rgba(230,237,245,.16);--accent:#f0a742;
+  color-scheme:dark;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--sky:#0b1424;--hud:#e6edf5;--hud-muted:#93a4b8;--chip:rgba(12,20,34,.72);--chip-line:rgba(230,237,245,.16);--accent:#f0a742}
+}
+:root[data-theme="dark"]{--sky:#0b1424;--hud:#e6edf5;--hud-muted:#93a4b8;--chip:rgba(12,20,34,.72);--chip-line:rgba(230,237,245,.16);--accent:#f0a742}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;background:var(--sky);scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--sky);overflow:hidden;overscroll-behavior:none;color:var(--hud);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  font:400 14px/1.35 Barlow,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.stage{position:relative;height:100%}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.hud{position:absolute;top:62px;left:56px;right:12px;pointer-events:none}
+.alt{font:600 clamp(30px,8vw,44px)/1 "Barlow Semi Condensed",Barlow,sans-serif;font-variant-numeric:tabular-nums}
+.alt small{font-size:.5em;color:var(--hud-muted);font-weight:500;margin-left:4px}
+.stats{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;color:var(--hud-muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--hud);font-weight:600}
+.pred{margin-top:6px;color:var(--accent);font-size:13px;min-height:1.3em}
+.bar{position:absolute;left:0;right:0;top:10px;display:flex;justify-content:flex-end;gap:8px;padding:0 10px}
+.chip{font:500 14px Barlow,sans-serif;height:38px;padding:0 12px;border-radius:19px;cursor:pointer;
+  background:var(--chip);color:var(--hud);border:1px solid var(--chip-line);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+select.chip{appearance:none;-webkit-appearance:none;padding-right:28px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--hud) 50%),linear-gradient(135deg,var(--hud) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 17px,calc(100% - 10px) 17px;background-size:5px 5px;background-repeat:no-repeat}
+select.chip option{background:#111827;color:#e6edf5}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.icon{width:38px;padding:0;display:grid;place-items:center}
+.icon .exit{display:none}
+.icon.on .exit{display:block}
+.icon.on .enter{display:none}
+.hint{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);background:var(--chip);border:1px solid var(--chip-line);
+  padding:9px 16px;border-radius:999px;white-space:nowrap;pointer-events:none;transition:opacity .7s}
+.hint.off{opacity:0}
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="cv" aria-label="Lanzamiento vertical: toma la pelota y lánzala hacia arriba"></canvas>
+  <div class="hud">
+    <div class="alt" id="alt">0,00<small>m</small></div>
+    <div class="stats">
+      <span>Máx <b id="max">0,00 m</b></span>
+      <span>Velocidad <b id="vel">0,0 m/s</b></span>
+      <span>Tiempo <b id="time">0,00 s</b></span>
+      <span>g <b id="gval">9,81 m/s²</b></span>
+    </div>
+    <div class="pred" id="pred"></div>
+  </div>
+  <div class="hint" id="hint">Toma la pelota y lánzala hacia arriba</div>
+  <div class="bar">
+    <select class="chip" id="grav" aria-label="Gravedad">
+      <option value="9.81">Tierra</option>
+      <option value="1.62">Luna</option>
+      <option value="3.71">Marte</option>
+      <option value="24.79">Júpiter</option>
+    </select>
+    <button class="chip" id="slow" type="button" aria-label="Velocidad del tiempo">1x</button>
+    <button class="chip" id="reset" type="button">Reiniciar</button>
+    <button class="chip icon" id="fs" type="button" aria-label="Pantalla completa">
+      <svg class="enter" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 7V2h5M13 2h5v5M18 13v5h-5M7 18H2v-5"/></svg>
+      <svg class="exit" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2v5H2M18 7h-5V2M13 18v-5h5M2 13h5v5"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+// ---------- Escala real ----------
+const BASE_VIEW = 4;       // metros visibles sobre el suelo al inicio
+const R = 0.11;            // radio de la pelota (m), como un balón de fútbol
+const GROUND = 64;         // px de suelo en pantalla
+const TOP = 165;           // px reservados para controles y panel superior
+const STROBE = 0.1;        // una marca cada 0,1 s de vuelo
+const VMAX = 60;           // m/s
+const REST = 0.55, FRICTION = 0.85, WALL = 0.8;
+
+let g = 9.81, timeScale = 1, view = BASE_VIEW, viewTarget = BASE_VIEW;
+const ball = {x:0, y:R, vx:0, vy:0};
+let phase = "rest", restT = 0, hist = [], strobe = [], path = [];
+let tFlight = 0, landed = true, maxY = 0, nextStrobe = 0;
+
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d"), $ = id => document.getElementById(id);
+let Wp = 0, Hp = 0, dpr = 1, XW = 1;
+const fmt = (v, d) => v.toFixed(d).replace(".", ",");
+
+function resize(){
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  Wp = cv.clientWidth; Hp = cv.clientHeight;
+  cv.width = Math.round(Wp*dpr); cv.height = Math.round(Hp*dpr);
+  XW = (Wp/2) / ((Hp-GROUND-TOP)/BASE_VIEW);    // medio ancho de la "habitación" en metros
+  ball.x = Math.max(-XW+R, Math.min(XW-R, ball.x));
+}
+new ResizeObserver(resize).observe(cv);
+const scale = () => (Hp-GROUND-TOP)/view;      // px por metro
+const toScreen = (x, y) => { const s = scale(); return [Wp/2 + x*s, Hp-GROUND - y*s]; };
+const toWorld = (X, Y) => { const s = scale(); return [(X-Wp/2)/s, (Hp-GROUND-Y)/s]; };
+
+// ---------- Interacción ----------
+const hint = $("hint");
+function pos(e){ const r = cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+cv.addEventListener("pointerdown", e => {
+  const [X, Y] = pos(e), [bx, by] = toScreen(ball.x, ball.y);
+  const rp = Math.max(R*scale(), 7);
+  if (Math.hypot(X-bx, Y-by) > Math.max(56, rp*2)) return;
+  cv.setPointerCapture(e.pointerId);
+  phase = "held"; hist = []; hint.classList.add("off");
+  move(X, Y);
+});
+cv.addEventListener("pointermove", e => { if (phase === "held") move(...pos(e)); });
+function move(X, Y){
+  const [x, y] = toWorld(X, Y);
+  ball.x = Math.max(-XW+R, Math.min(XW-R, x)); ball.y = Math.max(R, y);
+  const t = performance.now()/1000;
+  hist.push({t, x:ball.x, y:ball.y});
+  while (hist.length > 2 && t-hist[0].t > 0.1) hist.shift();
+}
+function release(){
+  if (phase !== "held") return;
+  let vx = 0, vy = 0;
+  if (hist.length > 1){
+    const a = hist[0], b = hist[hist.length-1], dt = b.t-a.t;
+    if (dt > 0.015 && performance.now()/1000-b.t < 0.08){ vx = (b.x-a.x)/dt; vy = (b.y-a.y)/dt; }
+  }
+  const v = Math.hypot(vx, vy); if (v > VMAX){ vx *= VMAX/v; vy *= VMAX/v; }
+  ball.vx = vx; ball.vy = vy;
+  phase = "flight"; landed = false; tFlight = 0; maxY = ball.y; nextStrobe = 0;
+  strobe = []; path = [[ball.x, ball.y]]; viewTarget = BASE_VIEW;
+  if (vy > 0.3){
+    const h = vy*vy/(2*g), tu = vy/g;
+    $("pred").textContent = `Predicción: sube ${fmt(h, 2)} m más en ${fmt(tu, 2)} s  (h = v²/2g, t = v/g)`;
+  } else $("pred").textContent = "";
+}
+cv.addEventListener("pointerup", release);
+cv.addEventListener("pointercancel", release);
+
+$("grav").addEventListener("change", e => { g = +e.target.value; $("gval").textContent = fmt(g, 2) + " m/s²"; });
+const SPEEDS = [1, 0.5, 0.25];
+$("slow").addEventListener("click", e => {
+  timeScale = SPEEDS[(SPEEDS.indexOf(timeScale)+1) % SPEEDS.length];
+  e.target.textContent = String(timeScale).replace(".", ",") + "x";
+});
+$("reset").addEventListener("click", () => {
+  Object.assign(ball, {x:0, y:R, vx:0, vy:0}); phase = "rest"; strobe = []; path = [];
+  maxY = 0; tFlight = 0; viewTarget = BASE_VIEW; $("pred").textContent = "";
+});
+
+// Pantalla completa (oculto donde el navegador no lo permite, como Safari en iPhone)
+const fsBtn = $("fs"), root = document.documentElement;
+const reqFs = root.requestFullscreen || root.webkitRequestFullscreen;
+const isFs = () => document.fullscreenElement || document.webkitFullscreenElement;
+if (!reqFs) fsBtn.hidden = true;
+fsBtn.addEventListener("click", () => {
+  try {
+    const p = isFs() ? (document.exitFullscreen || document.webkitExitFullscreen).call(document) : reqFs.call(root);
+    if (p && p.catch) p.catch(() => { fsBtn.hidden = true; });
+  } catch (err) { fsBtn.hidden = true; }
+});
+const syncFs = () => fsBtn.classList.toggle("on", !!isFs());
+document.addEventListener("fullscreenchange", syncFs);
+document.addEventListener("webkitfullscreenchange", syncFs);
+
+// ---------- Física (solución exacta con g constante) ----------
+function physics(dt){
+  if (phase !== "flight") return;
+  const H = 1/240;
+  for (let t = 0; t < dt; t += H){
+    const h = Math.min(H, dt-t);
+    ball.x += ball.vx*h; ball.y += ball.vy*h - 0.5*g*h*h; ball.vy -= g*h;
+    if (!landed){
+      tFlight += h;
+      while (tFlight >= nextStrobe){ strobe.push([ball.x, ball.y]); nextStrobe += STROBE; }
+    }
+    if (ball.x > XW-R){ ball.x = XW-R; ball.vx = -WALL*Math.abs(ball.vx); }
+    if (ball.x < -XW+R){ ball.x = -XW+R; ball.vx = WALL*Math.abs(ball.vx); }
+    if (ball.y < R){
+      ball.y = R; landed = true;
+      ball.vy = -ball.vy*REST; ball.vx *= FRICTION;
+      if (ball.vy < 0.6){ ball.vy = 0; ball.vx = 0; phase = "rest"; restT = 0; break; }
+    }
+    maxY = Math.max(maxY, ball.y);
+  }
+  path.push([ball.x, ball.y]); if (path.length > 4000) path.shift();
+  if (ball.vy > 0) viewTarget = Math.max(viewTarget, (ball.y + ball.vy*ball.vy/(2*g))*1.12 + 0.4);
+}
+
+// ---------- Dibujo ----------
+function niceStep(raw){
+  const p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw/p;
+  return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10)*p;
+}
+function person(x){
+  const s = scale(), c = (a, b) => toScreen(x+a, b);
+  ctx.strokeStyle = "#3a4b63"; ctx.fillStyle = "#3a4b63"; ctx.lineCap = "round"; ctx.lineWidth = Math.max(1.5, 0.1*s);
+  const line = (a, b, c2, d) => { const [X1, Y1] = c(a, b), [X2, Y2] = c(c2, d); ctx.beginPath(); ctx.moveTo(X1, Y1); ctx.lineTo(X2, Y2); ctx.stroke(); };
+  line(0, 1.42, 0, 0.88); line(0, 0.88, -0.13, 0.05); line(0, 0.88, 0.13, 0.05);
+  line(0, 1.35, -0.2, 0.95); line(0, 1.35, 0.2, 0.95);
+  const [hx, hy] = c(0, 1.58); ctx.beginPath(); ctx.arc(hx, hy, Math.max(2, 0.11*s), 0, Math.PI*2); ctx.fill();
+}
+function draw(){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const s = scale(), gy = Hp-GROUND;
+  const sky = ctx.createLinearGradient(0, 0, 0, gy);
+  sky.addColorStop(0, "#0b1424"); sky.addColorStop(1, "#1a2a42");
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, Wp, gy);
+  // regla de alturas
+  const step = niceStep(view/6), top = (gy)/s;
+  ctx.font = "12px Barlow, sans-serif"; ctx.textBaseline = "middle";
+  for (let h = step; h <= top; h += step){
+    const Y = gy - h*s;
+    ctx.strokeStyle = "rgba(230,237,245,0.07)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(44, Y); ctx.lineTo(Wp, Y); ctx.stroke();
+    ctx.strokeStyle = "rgba(230,237,245,0.5)"; ctx.beginPath(); ctx.moveTo(34, Y); ctx.lineTo(44, Y); ctx.stroke();
+    ctx.fillStyle = "rgba(230,237,245,0.7)";
+    ctx.fillText(fmt(h, step < 1 ? 1 : 0) + " m", 4, Y);
+  }
+  ctx.strokeStyle = "rgba(230,237,245,0.3)"; ctx.beginPath(); ctx.moveTo(44, 0); ctx.lineTo(44, gy); ctx.stroke();
+  // paredes de la habitación cuando la cámara se aleja
+  for (const sx of [-XW, XW]){
+    const [X] = toScreen(sx, 0);
+    if (X > 46 && X < Wp-2){ ctx.strokeStyle = "rgba(230,237,245,0.15)"; ctx.setLineDash([4, 6]); ctx.beginPath(); ctx.moveTo(X, 0); ctx.lineTo(X, gy); ctx.stroke(); ctx.setLineDash([]); }
+  }
+  // altura máxima alcanzada
+  if (maxY > R+0.05){
+    const Y = gy - (maxY-R)*s;
+    ctx.strokeStyle = "rgba(240,167,66,0.55)"; ctx.setLineDash([6, 6]);
+    ctx.beginPath(); ctx.moveTo(44, Y); ctx.lineTo(Wp, Y); ctx.stroke(); ctx.setLineDash([]);
+  }
+  person(Math.max(-XW+0.3, -0.75));
+  // trayectoria y marcas cada 0,1 s
+  if (path.length > 1){
+    ctx.strokeStyle = "rgba(240,167,66,0.35)"; ctx.lineWidth = 1.5; ctx.beginPath();
+    path.forEach(([x, y], k) => { const [X, Y] = toScreen(x, y); k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+    ctx.stroke();
+  }
+  const rp = Math.max(R*s, 6);
+  ctx.strokeStyle = "rgba(230,237,245,0.45)"; ctx.lineWidth = 1;
+  for (const [x, y] of strobe){ const [X, Y] = toScreen(x, y); ctx.beginPath(); ctx.arc(X, Y, rp, 0, Math.PI*2); ctx.stroke(); }
+  // suelo
+  ctx.fillStyle = "#1c2a1f"; ctx.fillRect(0, gy, Wp, GROUND);
+  ctx.fillStyle = "#3f6b45"; ctx.fillRect(0, gy, Wp, 3);
+  // pelota
+  const [bx, by] = toScreen(ball.x, ball.y);
+  const gr = ctx.createRadialGradient(bx-rp*0.35, by-rp*0.35, rp*0.1, bx, by, rp);
+  gr.addColorStop(0, "#ffd9a0"); gr.addColorStop(1, "#e07a1f");
+  ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(bx, by, rp, 0, Math.PI*2); ctx.fill();
+  if (phase === "flight" && Math.hypot(ball.vx, ball.vy) > 0.2){
+    const k = 0.12*s, ex = bx + ball.vx*k, ey = by - ball.vy*k;
+    ctx.strokeStyle = "#7fd3ff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ex, ey); ctx.stroke();
+    const a = Math.atan2(ey-by, ex-bx);
+    ctx.fillStyle = "#7fd3ff"; ctx.beginPath(); ctx.moveTo(ex, ey);
+    ctx.lineTo(ex-8*Math.cos(a-0.45), ey-8*Math.sin(a-0.45)); ctx.lineTo(ex-8*Math.cos(a+0.45), ey-8*Math.sin(a+0.45)); ctx.fill();
+  }
+  if (phase === "held"){ ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(bx, by, rp+6, 0, Math.PI*2); ctx.stroke(); }
+}
+function hud(){
+  $("alt").innerHTML = fmt(Math.max(0, ball.y-R), 2) + "<small>m</small>";
+  $("max").textContent = fmt(Math.max(0, maxY-R), 2) + " m";
+  $("vel").textContent = fmt(phase === "flight" ? Math.hypot(ball.vx, ball.vy) : 0, 1) + " m/s";
+  $("time").textContent = fmt(tFlight, 2) + " s";
+}
+
+let last = 0;
+function frame(now){
+  const dt = last ? Math.min(0.05, (now-last)/1000) : 0; last = now;
+  physics(dt*timeScale);
+  if (phase === "rest"){ restT += dt; if (restT > 1.5) viewTarget = BASE_VIEW; }
+  view += (viewTarget-view)*Math.min(1, dt*2.5);
+  draw(); hud();
+  requestAnimationFrame(frame);
+}
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

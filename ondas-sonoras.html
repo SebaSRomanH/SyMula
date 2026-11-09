@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a111c">
+<title>Ondas sonoras y modos de una sala</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f6;--panel:#ffffff;--line:#c9d4e0;--text:#172230;--muted:#5a6b80;--accent:#b86e0a;--accent-ink:#fff;--plot:#f5f8fb;
+  color-scheme:light;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0a111c;--panel:#111a27;--line:#253247;--text:#dde6ef;--muted:#8b9bb0;--accent:#f0a742;--accent-ink:#1a1206;--plot:#0d1522;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#0a111c;--panel:#111a27;--line:#253247;--text:#dde6ef;--muted:#8b9bb0;--accent:#f0a742;--accent-ink:#1a1206;--plot:#0d1522;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--text);
+  font:400 14px/1.4 Barlow,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+.stage{position:relative;flex:1;min-height:0;background:#0a111c}
+#room{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.readout{position:absolute;top:10px;left:12px;color:#dde6ef;pointer-events:none;text-shadow:0 1px 3px #000}
+.readout b{display:block;font:600 clamp(24px,6vw,34px)/1 "Barlow Semi Condensed",Barlow,sans-serif;font-variant-numeric:tabular-nums}
+.readout span{font-size:13px;color:#aab8c8}
+.readout .lvl{color:#7fd3ff;font-variant-numeric:tabular-nums}
+.readout .mode{color:#f0a742;font-weight:600}
+.view{position:absolute;top:10px;right:10px;display:flex;border:1px solid rgba(221,230,239,.2);border-radius:8px;overflow:hidden;background:rgba(10,17,28,.7)}
+.view button{font:500 13px Barlow,sans-serif;padding:7px 10px;border:0;background:transparent;color:#dde6ef;cursor:pointer}
+.view button[aria-pressed="true"]{background:#f0a742;color:#1a1206}
+.hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:13px;color:#aab8c8;white-space:nowrap;pointer-events:none;transition:opacity .7s}
+.hint.off{opacity:0}
+.panel{background:var(--panel);border-top:1px solid var(--line);padding:10px clamp(10px,3vw,20px) 12px;display:flex;flex-direction:column;gap:8px}
+.ptitle{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+#plot{display:block;width:100%;height:96px;border-radius:6px;background:var(--plot);touch-action:none;cursor:pointer}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;font:500 13px Barlow,sans-serif;padding:6px 10px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:var(--text);cursor:pointer;font-variant-numeric:tabular-nums}
+.chips .wait{font-size:13px;color:var(--muted);padding:6px 2px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rng{display:flex;align-items:center;gap:8px;flex:1;min-width:200px;font-size:13px;color:var(--muted)}
+.rng input{flex:1;accent-color:var(--accent)}
+.rng output{min-width:5.5em;text-align:right;font-variant-numeric:tabular-nums}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow-x:auto;flex:1;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:1 0 auto;font:500 13px Barlow,sans-serif;padding:7px 10px;border:0;background:transparent;color:var(--text);cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn{font:500 13px Barlow,sans-serif;padding:7px 12px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);cursor:pointer}
+[hidden]{display:none!important}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="room" aria-label="Sala vista desde arriba con el campo de presión"></canvas>
+  <div class="readout">
+    <b id="freq">0 Hz</b>
+    <span id="lam"></span><br>
+    <span class="mode" id="modeLbl"></span><br>
+    <span class="lvl" id="lvl"></span><br>
+    <span class="lvl" id="lisPos"></span>
+  </div>
+  <div class="view" role="group" aria-label="Vista">
+    <button type="button" data-view="p" aria-pressed="true">Presión</button>
+    <button type="button" data-view="i" aria-pressed="false">Intensidad</button>
+  </div>
+  <div class="hint" id="hint">Arrastra un parlante para moverlo</div>
+</div>
+<div class="panel">
+  <div class="row">
+    <div class="seg" role="group" aria-label="Forma de la sala">
+      <button type="button" data-shape="rect" aria-pressed="true">Rectangular</button>
+      <button type="button" data-shape="circle" aria-pressed="false">Circular</button>
+      <button type="button" data-shape="tri" aria-pressed="false">Triangular</button>
+      <button type="button" data-shape="ellipse" aria-pressed="false">Elíptica</button>
+      <button type="button" data-shape="para" aria-pressed="false">Romboide</button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="seg" role="group" aria-label="Fuente seleccionada" id="srcSeg" style="flex:0 1 auto"></div>
+    <button class="btn" id="addSrc" type="button">Agregar fuente</button>
+    <button class="btn" id="delSrc" type="button">Quitar</button>
+    <label class="rng" id="phaseWrap" hidden>Fase<input id="phaseIn" type="range" min="0" max="345" step="15" value="0"><output id="phaseOut">0°</output></label>
+  </div>
+  <div class="row">
+    <div class="seg" role="group" aria-label="Patrón del parlante">
+      <button type="button" data-pat="omni" aria-pressed="true">Omnidireccional</button>
+      <button type="button" data-pat="cardioid" aria-pressed="false">Unidireccional</button>
+      <button type="button" data-pat="dipole" aria-pressed="false">Bidireccional</button>
+    </div>
+    <label class="rng" id="orientWrap" hidden>Orientación<input id="orient" type="range" min="0" max="355" step="5" value="0"><output id="orientOut">0°</output></label>
+  </div>
+  <div class="ptitle"><span id="ptl">Respuesta de la sala: toca o arrastra para elegir frecuencia</span><span id="dims"></span></div>
+  <canvas id="plot" aria-label="Respuesta en frecuencia de la sala"></canvas>
+  <div class="chips" id="chips" role="group" aria-label="Modos normales"></div>
+  <div class="row">
+    <label class="rng">Absorción<input id="damp" type="range" min="2" max="40" step="1" value="8"><output id="t60"></output></label>
+    <button class="btn" id="listen" type="button" aria-pressed="false">Escuchar</button>
+    <button class="btn" id="pause" type="button">Pausar</button>
+    <button class="btn" id="reset" type="button">Silencio</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+// ---------- Sala y discretización ----------
+const C_SOUND = 343;            // m/s
+const LONG = 5, SHORT = 3.5;    // sala rectangular (m)
+const DIAM = 4.5;               // sala circular (m)
+const SIDE = 5;                 // sala triangular equilátera (m)
+const TRI_H = SIDE*Math.sqrt(3)/2;
+const ELL_W = 5.5, ELL_H = 3.5;  // sala elíptica: ejes (m)
+const PARA_B = 4.5, PARA_S = 3.5, PARA_ANG = 60*Math.PI/180;   // romboide: lados y ángulo
+const PARA_H = PARA_S*Math.sin(PARA_ANG), PARA_OFF = PARA_S*Math.cos(PARA_ANG);
+const CELLS = 30000;            // nodos del rectángulo que contiene la sala
+const COUR = 0.5;               // número de Courant (estable si < 1/√2)
+const FMIN = 20, FMAX = 400;
+
+let shape = "rect", rot = false, pendingFirst = false, NX, NY, dx, dt, Wb, Hb, area, mask, fl, nl, nr, nu, nd, K;
+let p0, p1, p2, en, img, px;
+let freq = 0, phase = 0, stepN = 0, beta = 8, paused = false, view = "p";
+// Fuentes (hasta 3), todas a la misma frecuencia: patrón, orientación (rad, 0 = derecha) y fase (rad)
+const MAX_SRC = 3;
+let srcs = [{x:0, y:0, pattern:"omni", orient:0, ph:0}], sel = 0;
+let lis = {x:0, y:0}, dragLis = false, levelDb = 0;   // oyente: donde se "escucha" el campo
+let modes = [], pk = 1e-6, ek = 1e-9, dirty = true;
+const room = document.getElementById("room"), rctx = room.getContext("2d");
+const plot = document.getElementById("plot"), pctx = plot.getContext("2d");
+const off = document.createElement("canvas"), octx = off.getContext("2d");
+const $ = id => document.getElementById(id);
+const fmt = (v, d) => v.toFixed(d).replace(".", ",");
+let rect = {x:0, y:0, w:1, h:1}, dpr = 1;
+
+// ---------- Funciones de Bessel (para la sala circular) ----------
+function J(m, x){                                    // J_m(x) = (1/π)∫₀^π cos(mτ − x sen τ) dτ
+  const N = 64; let s = 0;
+  for (let k = 0; k < N; k++){ const t = (k+0.5)*Math.PI/N; s += Math.cos(m*t - x*Math.sin(t)); }
+  return s/N;
+}
+const dJ = (m, x) => m === 0 ? -J(1, x) : 0.5*(J(m-1, x) - J(m+1, x));
+let besselZeros = null;                              // ceros de J'_m: condición de pared rígida
+function computeBesselZeros(){
+  besselZeros = [];
+  for (let m = 0; m <= 16; m++){
+    const x0 = m ? m : 0.2;                          // los ceros de J'_m están siempre en x > m
+    let f0 = dJ(m, x0);
+    for (let x = x0+0.05; x < 34; x += 0.05){
+      const f1 = dJ(m, x);
+      if (f0*f1 < 0){
+        let a = x-0.05, b = x, fa = f0;
+        for (let it = 0; it < 40; it++){ const c = (a+b)/2, fc = dJ(m, c); if (fa*fc <= 0) b = c; else { a = c; fa = fc; } }
+        besselZeros.push({m, x:(a+b)/2});
+      }
+      f0 = f1;
+    }
+  }
+}
+
+// ---------- Geometría ----------
+// Coordenadas en metros dentro del rectángulo contenedor, en orientación apaisada.
+// En pantallas verticales, la sala rectangular, la elíptica y el romboide se trasponen.
+function insideL(X, Y){
+  switch (shape){
+    case "rect": return true;
+    case "circle": { const r = DIAM/2; return (X-r)**2 + (Y-r)**2 <= r*r; }
+    case "tri": { const yb = TRI_H - Y; return yb >= 0 && yb <= Math.sqrt(3)*X && yb <= Math.sqrt(3)*(SIDE-X); }
+    case "ellipse": { const a = ELL_W/2, b = ELL_H/2; return ((X-a)/a)**2 + ((Y-b)/b)**2 <= 1; }
+    case "para": { if (Y < 0 || Y > PARA_H) return false; const s = PARA_OFF*(PARA_H-Y)/PARA_H; return X >= s && X <= PARA_B + s; }
+  }
+}
+const inside = (X, Y) => rot ? insideL(Y, X) : insideL(X, Y);
+const DIMS = {rect:[LONG, SHORT], circle:[DIAM, DIAM], tri:[SIDE, TRI_H], ellipse:[ELL_W, ELL_H], para:[PARA_B+PARA_OFF, PARA_H]};
+function setup(keepFreq){
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  const cw = room.clientWidth, ch = room.clientHeight;
+  room.width = Math.round(cw*dpr); room.height = Math.round(ch*dpr);
+  rot = ch > cw && (shape === "rect" || shape === "ellipse" || shape === "para");
+  [Wb, Hb] = rot ? [DIMS[shape][1], DIMS[shape][0]] : DIMS[shape];
+  const d0 = Math.sqrt(Wb*Hb/CELLS);
+  NX = Math.round(Wb/d0); NY = Math.round(Hb/d0); dx = Wb/NX;
+  if (shape === "rect") Hb = NY*dx;
+  dt = COUR*dx/C_SOUND;
+  const N = NX*NY;
+  mask = new Uint8Array(N);
+  for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) mask[y*NX+x] = inside((x+0.5)*dx, (y+0.5)*dx) ? 1 : 0;
+  // vecinos: si el vecino es pared se usa la misma celda (pared rígida, gradiente nulo)
+  K = 0; for (let i = 0; i < N; i++) K += mask[i];
+  fl = new Int32Array(K); nl = new Int32Array(K); nr = new Int32Array(K); nu = new Int32Array(K); nd = new Int32Array(K);
+  let k = 0;
+  for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++){
+    const i = y*NX+x; if (!mask[i]) continue;
+    fl[k] = i;
+    nl[k] = x > 0 && mask[i-1] ? i-1 : i;      nr[k] = x < NX-1 && mask[i+1] ? i+1 : i;
+    nu[k] = y > 0 && mask[i-NX] ? i-NX : i;    nd[k] = y < NY-1 && mask[i+NX] ? i+NX : i;
+    k++;
+  }
+  area = K*dx*dx;
+  p0 = new Float32Array(N); p1 = new Float32Array(N); p2 = new Float32Array(N); en = new Float32Array(N);
+  off.width = NX; off.height = NY; img = octx.createImageData(NX, NY); px = img.data;
+  const pad = 14, s = Math.min((cw-2*pad)/Wb, (ch-2*pad-46)/Hb);
+  rect = {w:Wb*s, h:Hb*s, x:(cw-Wb*s)/2, y:46+(ch-46-Hb*s)/2};
+  const start = {rect:[0.22, 0.3], circle:[0.33, 0.4], tri:[0.4, 0.62], ellipse:[0.3, 0.4], para:[0.35, 0.5]}[shape];
+  const spots = [start, [1-start[0], 1-start[1]], [0.5, 0.5]];
+  lis.x = Math.round(NX*(1-start[0]*0.9)); lis.y = Math.round(NY*0.55);
+  if (!mask[lis.y*NX+lis.x]){ const i = fl[(K*0.7)|0]; lis.x = i%NX; lis.y = (i/NX)|0; }
+  srcs.forEach((s, k) => {
+    s.x = Math.round(NX*spots[k][0]); s.y = Math.round(NY*spots[k][1]);
+    if (!mask[s.y*NX+s.x]){ const i = fl[(K*(k+1)/(srcs.length+1))|0]; s.x = i%NX; s.y = (i/NX)|0; }
+  });
+  stepN = 0; phase = 0; pk = 1e-6; ek = 1e-9;
+  computeModes();
+  if (!keepFreq || !freq){ freq = modes.length ? modes[0].f : 50; pendingFirst = !modes.length; }
+  $("dims").textContent = {rect:`${fmt(Wb, 1)} × ${fmt(Hb, 1)} m`, circle:`${fmt(DIAM, 1)} m de diámetro`, tri:`${fmt(SIDE, 1)} m de lado`,
+    ellipse:`ejes de ${fmt(ELL_W, 1)} y ${fmt(ELL_H, 1)} m`, para:`lados de ${fmt(PARA_B, 1)} y ${fmt(PARA_S, 1)} m, 60°`}[shape];
+  $("ptl").textContent = (shape === "rect" || shape === "circle") ? "Respuesta de la sala: toca o arrastra para elegir frecuencia"
+                                                                  : "Modos de la sala (curva promedio): toca para elegir frecuencia";
+  buildChips(); dirty = true; updateLabels();
+}
+
+// ---------- Modos normales ----------
+// Rectángulo: f = c/2·√((m/Lx)²+(n/Ly)²), corregida a la malla discreta
+// Círculo:    f = c·j'ₘₛ/(2πa), con j'ₘₛ el s-ésimo cero de J'ₘ
+// Triángulo equilátero (Lamé): f = (2c/3a)·√(m²+mn+n²)
+// Elipse y romboide: no tienen fórmula simple; se miden numéricamente (ver numericModes)
+const modeCache = {};
+let modeToken = 0;
+function computeModes(){
+  modes = []; modeToken++;
+  if (shape === "ellipse" || shape === "para"){
+    if (modeCache[shape]) modes = modeCache[shape].map((f, k) => ({a:null, idx:k+1, f, deg:1}));
+    else numericModes(shape, modeToken);
+    return;
+  }
+  if (shape === "rect"){
+    for (let m = 0; m < 40; m++) for (let n = 0; n < 40; n++){
+      if (!m && !n) continue;
+      const s = Math.sqrt(Math.sin(m*Math.PI/(2*NX))**2 + Math.sin(n*Math.PI/(2*NY))**2);
+      const f = Math.asin(Math.min(1, COUR*s))/(Math.PI*dt);
+      if (f < FMAX*1.4) modes.push({a:m, b:n, f});
+    }
+  } else if (shape === "circle"){
+    if (!besselZeros) computeBesselZeros();
+    const R = DIAM/2;
+    for (const z of besselZeros){
+      const f = C_SOUND*z.x/(2*Math.PI*R);
+      if (f >= FMAX*1.4) continue;
+      const s = besselZeros.filter(q => q.m === z.m && q.x <= z.x).length;
+      const Nn = (R*R/2)*(1 - z.m*z.m/(z.x*z.x))*J(z.m, z.x)**2*(z.m ? Math.PI : 2*Math.PI);
+      modes.push({a:z.m, b:s, f, kx:z.x/R, Nn});
+    }
+  } else {
+    for (let m = 0; m < 20; m++) for (let n = 0; n <= m; n++){
+      if (!m) continue;
+      const f = 2*C_SOUND/(3*SIDE)*Math.sqrt(m*m + m*n + n*n);
+      if (f < FMAX*1.4) modes.push({a:m, b:n, f, deg: m === n ? 1 : 2});
+    }
+  }
+  modes.sort((p, q) => p.f - q.f);
+}
+// ---------- Patrón del parlante ----------
+// Omnidireccional: un punto (monopolo).
+// Bidireccional (figura 8): dos puntos en contrafase separados d → p ∝ cos θ.
+// Unidireccional (cardioide): el punto trasero va invertido y retrasado d/c → p ∝ (1 + cos θ)/2,
+// con el nulo hacia atrás. Ambos se normalizan para dar el mismo nivel en el eje que el omni.
+const D_SRC = 2;                                     // separación entre los dos puntos, en celdas
+function srcPoints(s){                               // [centro, adelante, atrás] en coordenadas de celda
+  const h = D_SRC/2, ux = Math.cos(s.orient), uy = Math.sin(s.orient);
+  return [[s.x, s.y], [s.x+h*ux, s.y+h*uy], [s.x-h*ux, s.y-h*uy]];
+}
+function srcAmps(s, f){                              // amplitudes complejas [re, im] de cada punto, con la fase de la fuente
+  let A;
+  if (s.pattern === "omni") A = [[1, 0], [0, 0], [0, 0]];
+  else {
+    const kd = 2*Math.PI*f*D_SRC*dx/C_SOUND;
+    if (s.pattern === "dipole"){ const n = 1/(2*Math.sin(kd/2)); A = [[0, 0], [n, 0], [-n, 0]]; }
+    else { const n = 1/(2*Math.sin(kd)); A = [[0, 0], [n, 0], [-n*Math.cos(kd), n*Math.sin(kd)]]; }
+  }
+  const c = Math.cos(s.ph), sn = Math.sin(s.ph);
+  return A.map(([r, i]) => [r*c - i*sn, r*sn + i*c]);
+}
+// Forma del modo en un punto (celdas): [parte coseno, parte seno]; y su norma
+function modePsi(md, cx, cy){
+  if (shape === "rect") return [Math.cos(md.a*Math.PI*(cx+0.5)/NX)*Math.cos(md.b*Math.PI*(cy+0.5)/NY), 0];
+  const R = DIAM/2, X = (cx+0.5)*dx-R, Y = (cy+0.5)*dx-R, j = J(md.a, md.kx*Math.hypot(X, Y)), th = Math.atan2(Y, X);
+  return [j*Math.cos(md.a*th), j*Math.sin(md.a*th)];   // par degenerado cos/sen del círculo
+}
+const modeNorm = md => shape === "rect" ? (md.a ? 2 : 1)*(md.b ? 2 : 1)/area : 1/md.Nn;
+function inject(cx, cy, v){                          // reparte una fuente puntual entre 4 celdas (bilineal)
+  const x0 = Math.floor(cx), y0 = Math.floor(cy), tx = cx-x0, ty = cy-y0;
+  for (const [x, y, w] of [[x0, y0, (1-tx)*(1-ty)], [x0+1, y0, tx*(1-ty)], [x0, y0+1, (1-tx)*ty], [x0+1, y0+1, tx*ty]]){
+    if (w && x >= 0 && y >= 0 && x < NX && y < NY && mask[y*NX+x]) p2[y*NX+x] += v*w;
+  }
+}
+
+// Medición numérica de los modos: se deja vibrar la sala (malla 2× más gruesa, sin pérdidas)
+// desde un campo inicial aleatorio y suave, se registra la presión en 64 puntos y se buscan
+// los picos del espectro. Se corrige la dispersión para que coincidan con la malla fina.
+function fft(re, im){
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++){
+    let bit = n >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit;
+    if (i < j){ [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; }
+  }
+  for (let len = 2; len <= n; len <<= 1){
+    const ang = -2*Math.PI/len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len){
+      let cr = 1, ci = 0;
+      for (let k = 0; k < len/2; k++){
+        const a = i+k, b = a+len/2, tr = re[b]*cr - im[b]*ci, ti = re[b]*ci + im[b]*cr;
+        re[b] = re[a]-tr; im[b] = im[a]-ti; re[a] += tr; im[a] += ti;
+        const t = cr*wr - ci*wi; ci = cr*wi + ci*wr; cr = t;
+      }
+    }
+  }
+}
+function numericModes(forShape, token){
+  const F = 2, dxc = dx*F, NXc = Math.ceil(NX/F), NYc = Math.ceil(NY/F), Nc = NXc*NYc;
+  const m = new Uint8Array(Nc);
+  for (let y = 0; y < NYc; y++) for (let x = 0; x < NXc; x++) m[y*NXc+x] = inside((x+0.5)*dxc, (y+0.5)*dxc) ? 1 : 0;
+  let Kc = 0; for (let i = 0; i < Nc; i++) Kc += m[i];
+  const cf = new Int32Array(Kc), cl = new Int32Array(Kc), cr = new Int32Array(Kc), cu = new Int32Array(Kc), cd = new Int32Array(Kc);
+  for (let y = 0, k = 0; y < NYc; y++) for (let x = 0; x < NXc; x++){
+    const i = y*NXc+x; if (!m[i]) continue;
+    cf[k] = i;
+    cl[k] = x > 0 && m[i-1] ? i-1 : i;        cr[k] = x < NXc-1 && m[i+1] ? i+1 : i;
+    cu[k] = y > 0 && m[i-NXc] ? i-NXc : i;    cd[k] = y < NYc-1 && m[i+NXc] ? i+NXc : i;
+    k++;
+  }
+  const Cc = 0.68, dtc = Cc*dxc/C_SOUND, DEC = 4, T = 4;
+  const steps = Math.ceil(T/dtc), M = Math.floor(steps/DEC);
+  let q0 = new Float32Array(Nc), q1 = new Float32Array(Nc), q2 = new Float32Array(Nc);
+  const sig2 = 2*(0.2/dxc)**2;
+  for (let b = 0; b < 60; b++){                      // 60 manchas gaussianas de signo aleatorio
+    const c = cf[(Math.random()*Kc)|0], bx = c%NXc, by = (c/NXc)|0, amp = Math.random() < 0.5 ? -1 : 1;
+    for (let k = 0; k < Kc; k++){ const i = cf[k], ddx = i%NXc-bx, ddy = ((i/NXc)|0)-by; q1[i] += amp*Math.exp(-(ddx*ddx+ddy*ddy)/sig2); }
+  }
+  q0.set(q1);
+  const NR = 64, rIdx = new Int32Array(NR), rec = new Float32Array(NR*M);
+  for (let r = 0; r < NR; r++) rIdx[r] = cf[(Math.random()*Kc)|0];
+  let n = 0, j = 0;
+  function chunk(){
+    if (token !== modeToken) return;
+    const C2 = Cc*Cc, end = Math.min(steps, n+1200);
+    for (; n < end; n++){
+      for (let k = 0; k < Kc; k++){
+        const i = cf[k], c = q1[i];
+        q2[i] = 2*c - q0[i] + C2*(q1[cl[k]]+q1[cr[k]]+q1[cu[k]]+q1[cd[k]]-4*c);
+      }
+      const t = q0; q0 = q1; q1 = q2; q2 = t;
+      if (n % DEC === 0 && j < M){ for (let r = 0; r < NR; r++) rec[r*M+j] = q1[rIdx[r]]; j++; }
+    }
+    if (n < steps){ setTimeout(chunk, 0); return; }
+    finish();
+  }
+  function finish(){
+    const NF = 1 << Math.ceil(Math.log2(M*4)), P = new Float64Array(NF/2);
+    const re = new Float64Array(NF), im = new Float64Array(NF);
+    for (let r = 0; r < NR; r++){
+      re.fill(0); im.fill(0);
+      let mean = 0; for (let t = 0; t < M; t++) mean += rec[r*M+t]/M;      // quita el modo (0,0), que no oscila
+      for (let t = 0; t < M; t++){ const u = 2*Math.PI*t/(M-1); re[t] = (rec[r*M+t]-mean)*(0.42 - 0.5*Math.cos(u) + 0.08*Math.cos(2*u)); }   // ventana de Blackman
+      fft(re, im);
+      for (let k = 0; k < NF/2; k++) P[k] += re[k]*re[k] + im[k]*im[k];
+    }
+    const df = 1/(dtc*DEC)/NF, kmin = Math.ceil(15/df), kmax = Math.min(NF/2-2, Math.floor(FMAX*1.45/df));
+    let mx = 0; for (let k = kmin; k <= kmax; k++) mx = Math.max(mx, P[k]);
+    const w = Math.max(2, Math.round(0.8/df)), out = [];
+    for (let k = kmin; k <= kmax; k++){
+      if (P[k] < 1e-5*mx) continue;
+      let isMax = true;
+      for (let q = Math.max(1, k-w); q <= k+w; q++) if (q !== k && (P[q] > P[k] || (P[q] === P[k] && q < k))){ isMax = false; break; }
+      if (!isMax) continue;
+      const a = Math.log(P[k-1]), b = Math.log(P[k]), c = Math.log(P[k+1]), den = a-2*b+c;
+      const fc = (k + (den ? 0.5*(a-c)/den : 0))*df;
+      const kk = (2/dxc)*Math.asin(Math.min(1, Math.sin(Math.PI*fc*dtc)/Cc));
+      out.push(Math.asin(Math.min(1, COUR*Math.sin(kk*dx/2)))/(Math.PI*dt));
+    }
+    modeCache[forShape] = out;
+    if (token !== modeToken || shape !== forShape) return;
+    modes = out.map((f, k) => ({a:null, idx:k+1, f, deg:1}));
+    if (pendingFirst && modes.length){ freq = modes[0].f; pendingFirst = false; }
+    buildChips(); dirty = true; updateLabels();
+  }
+  setTimeout(chunk, 0);
+}
+
+// ---------- Ecuación de onda (diferencias finitas, paredes rígidas) ----------
+function step(){
+  const C2 = COUR*COUR, g = beta*dt, A = 1/(1+g), B = 1-g;
+  const per = 1/(freq*dt), a = Math.min(0.05, Math.max(2e-4, 1/(2*per)));
+  for (let k = 0; k < K; k++){
+    const i = fl[k], c = p1[i];
+    const v = (2*c - B*p0[i] + C2*(p1[nl[k]]+p1[nr[k]]+p1[nu[k]]+p1[nd[k]]-4*c))*A;
+    p2[i] = v; en[i] += a*(v*v - en[i]);
+  }
+  // parlante omnidireccional: fuente puntual con encendido suave de 3 periodos
+  const ramp = Math.min(1, stepN/(3*per)), env = ramp*ramp*(3-2*ramp);
+  phase += 2*Math.PI*freq*dt; if (phase > 2*Math.PI) phase -= 2*Math.PI;
+  const amp = C2*env;
+  for (const s of srcs){
+    const ph = phase + s.ph;
+    if (s.pattern === "omni"){ p2[s.y*NX + s.x] += amp*Math.sin(ph); continue; }
+    const [, F, Bk] = srcPoints(s), kd = 2*Math.PI*freq*D_SRC*dx/C_SOUND;
+    if (s.pattern === "dipole"){
+      const n = amp/(2*Math.sin(kd/2));
+      inject(F[0], F[1], n*Math.sin(ph)); inject(Bk[0], Bk[1], -n*Math.sin(ph));
+    } else {
+      const n = amp/(2*Math.sin(kd));
+      inject(F[0], F[1], n*Math.sin(ph)); inject(Bk[0], Bk[1], -n*Math.sin(ph-kd));
+    }
+  }
+  const t = p0; p0 = p1; p1 = p2; p2 = t; stepN++;
+}
+
+// ---------- Respuesta en frecuencia (suma modal) ----------
+function response(f, psis, norms){
+  const w = 2*Math.PI*f, A = srcs.flatMap(s => srcAmps(s, f)), den = q => (q*q - w*w)**2 + (2*beta*w)**2;
+  let s0r = 0, s0i = 0; for (const [r, i] of A){ s0r += r; s0i += i; }
+  let R = (s0r*s0r + s0i*s0i)/area/den(0);           // modo (0,0): compresión uniforme de la sala cerrada
+  for (let k = 0; k < modes.length; k++){
+    const fk = modes[k].f;
+    let g;
+    if (psis){                                       // rectángulo y círculo: acoplamiento exacto
+      let cr = 0, ci = 0, sr = 0, si = 0;
+      for (let j = 0; j < A.length; j++){ const [pc, ps] = psis[k][j]; cr += A[j][0]*pc; ci += A[j][1]*pc; sr += A[j][0]*ps; si += A[j][1]*ps; }
+      g = norms[k]*(cr*cr + ci*ci + sr*sr + si*si);
+    } else {                                         // promedio sobre posiciones (fuente pequeña frente a λ)
+      // cada fuente por separado + interferencia entre fuentes (correlación J0(k·d) de los modos)
+      const q = (fk/f)**2, km = 2*Math.PI*fk/C_SOUND;
+      let acc = 0;
+      for (let a = 0; a < srcs.length; a++){
+        const pa = srcs[a].pattern;
+        acc += pa === "omni" ? 1 : pa === "dipole" ? 0.5*q : 0.25*(1 + 0.5*q);
+        for (let b = a+1; b < srcs.length; b++){
+          let ar = 0, ai = 0, br = 0, bi = 0;               // contenido monopolar de cada fuente
+          for (let j = 0; j < 3; j++){ ar += A[3*a+j][0]; ai += A[3*a+j][1]; br += A[3*b+j][0]; bi += A[3*b+j][1]; }
+          const d = Math.hypot(srcs[a].x-srcs[b].x, srcs[a].y-srcs[b].y)*dx;
+          acc += 2*(ar*br + ai*bi)*J(0, km*d);
+        }
+      }
+      g = norms[k]*Math.max(0, acc);
+    }
+    R += g/den(2*Math.PI*fk);
+  }
+  return R;
+}
+const fx = f => Math.log(f/FMIN)/Math.log(FMAX/FMIN);
+const xf = t => FMIN*Math.pow(FMAX/FMIN, t);
+let curve = [];
+function drawPlot(){
+  const w = plot.clientWidth, h = plot.clientHeight;
+  if (plot.width !== Math.round(w*dpr) || plot.height !== Math.round(h*dpr)){ plot.width = Math.round(w*dpr); plot.height = Math.round(h*dpr); }
+  pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const css = getComputedStyle(document.documentElement);
+  const muted = css.getPropertyValue("--muted").trim(), acc = css.getPropertyValue("--accent").trim(), line = css.getPropertyValue("--line").trim();
+  if (dirty){
+    const exact = shape === "rect" || shape === "circle", pts = srcs.flatMap(srcPoints);
+    const psis = exact ? modes.map(md => pts.map(([x, y]) => modePsi(md, x, y))) : null;
+    const norms = exact ? modes.map(modeNorm) : modes.map(md => md.deg/area);
+    curve = []; let mx = -1e9;
+    for (let k = 0; k <= 400; k++){ const d = 10*Math.log10(response(xf(k/400), psis, norms)*1e12 + 1e-30); curve.push(d); mx = Math.max(mx, d); }
+    curve = curve.map(d => Math.max(0, 1-(mx-d)/40));
+    dirty = false;
+  }
+  pctx.clearRect(0, 0, w, h);
+  pctx.font = "11px Barlow, sans-serif"; pctx.fillStyle = muted; pctx.strokeStyle = line; pctx.lineWidth = 1;
+  for (const f of [20, 50, 100, 200, 400]){
+    const X = fx(f)*w; pctx.beginPath(); pctx.moveTo(X, 0); pctx.lineTo(X, h); pctx.stroke();
+    pctx.fillText(f + " Hz", Math.min(X+3, w-38), h-4);
+  }
+  pctx.strokeStyle = muted; pctx.globalAlpha = 0.5;
+  for (const md of modes){ if (md.f > FMAX) break; const X = fx(md.f)*w; pctx.beginPath(); pctx.moveTo(X, 0); pctx.lineTo(X, 5); pctx.stroke(); }
+  pctx.globalAlpha = 1;
+  pctx.strokeStyle = acc; pctx.lineWidth = 1.6; pctx.beginPath();
+  curve.forEach((v, k) => { const X = k/400*w, Y = 8 + (1-v)*(h-24); k ? pctx.lineTo(X, Y) : pctx.moveTo(X, Y); });
+  pctx.stroke();
+  const X = fx(freq)*w;
+  pctx.fillStyle = acc; pctx.fillRect(X-1, 0, 2, h);
+}
+
+// ---------- Dibujo de la sala ----------
+function lut(stops){
+  const t = new Uint8Array(768);
+  for (let k = 0; k < 256; k++){
+    const v = k/255; let j = 0;
+    while (j < stops.length-2 && v > stops[j+1][0]) j++;
+    const [a, ca] = stops[j], [b, cb] = stops[j+1], u = (v-a)/(b-a);
+    for (let c = 0; c < 3; c++) t[k*3+c] = Math.round(ca[c] + (cb[c]-ca[c])*u);
+  }
+  return t;
+}
+const LUT_P = lut([[0,[90,180,255]],[0.25,[25,80,160]],[0.5,[10,17,28]],[0.75,[200,95,35]],[1,[255,205,140]]]);
+const LUT_I = lut([[0,[10,17,28]],[0.3,[25,70,120]],[0.6,[40,160,150]],[0.85,[235,200,110]],[1,[255,246,220]]]);
+function wallPath(){
+  rctx.beginPath();
+  if (shape === "rect") rctx.rect(rect.x, rect.y, rect.w, rect.h);
+  else if (shape === "circle") rctx.arc(rect.x+rect.w/2, rect.y+rect.h/2, rect.w/2, 0, Math.PI*2);
+  else if (shape === "ellipse") rctx.ellipse(rect.x+rect.w/2, rect.y+rect.h/2, rect.w/2, rect.h/2, 0, 0, Math.PI*2);
+  else {
+    const pts = shape === "tri" ? [[SIDE/2, 0], [SIDE, TRI_H], [0, TRI_H]]
+                                : [[PARA_OFF, 0], [PARA_B+PARA_OFF, 0], [PARA_B, PARA_H], [0, PARA_H]];
+    pts.forEach(([X, Y], k) => {
+      const [a, b] = rot ? [Y, X] : [X, Y], sx = rect.x + a/Wb*rect.w, sy = rect.y + b/Hb*rect.h;
+      k ? rctx.lineTo(sx, sy) : rctx.moveTo(sx, sy);
+    });
+    rctx.closePath();
+  }
+}
+function drawRoom(){
+  let mp = 0, me = 0;
+  for (let k = 0; k < K; k++){ const i = fl[k], a = Math.abs(p1[i]); if (a > mp) mp = a; if (en[i] > me) me = en[i]; }
+  pk = Math.max(mp, pk*0.985, 1e-6); ek = Math.max(me, ek*0.985, 1e-12);
+  const L = view === "p" ? LUT_P : LUT_I;
+  for (let i = 0, N = NX*NY; i < N; i++){
+    const o = i*4;
+    if (!mask[i]){ px[o] = 10; px[o+1] = 17; px[o+2] = 28; px[o+3] = 255; continue; }
+    const v = view === "p" ? 0.5 + 0.5*p1[i]/pk : Math.sqrt(en[i]/ek);
+    const k = (v <= 0 ? 0 : v >= 1 ? 255 : (v*255)|0)*3;
+    px[o] = L[k]; px[o+1] = L[k+1]; px[o+2] = L[k+2]; px[o+3] = 255;
+  }
+  octx.putImageData(img, 0, 0);
+  rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  rctx.fillStyle = "#0a111c"; rctx.fillRect(0, 0, room.clientWidth, room.clientHeight);
+  rctx.save(); wallPath(); rctx.clip();
+  rctx.imageSmoothingEnabled = true; rctx.imageSmoothingQuality = "high";
+  rctx.drawImage(off, rect.x, rect.y, rect.w, rect.h);
+  rctx.restore();
+  rctx.strokeStyle = "#9fb1c6"; rctx.lineWidth = 3; rctx.lineJoin = "round"; wallPath(); rctx.stroke();
+  // parlantes
+  srcs.forEach((sr, k) => {
+    const pattern = sr.pattern, orient = sr.orient;
+    const X = rect.x + (sr.x+0.5)/NX*rect.w, Y = rect.y + (sr.y+0.5)/NY*rect.h;
+    rctx.strokeStyle = "rgba(255,255,255,0.8)"; rctx.lineWidth = 1.5;
+    if (pattern === "omni"){
+      for (const r of [11, 16]){ rctx.beginPath(); rctx.arc(X, Y, r, 0, Math.PI*2); rctx.stroke(); }
+    } else {                                           // diagrama polar del parlante, orientado
+      rctx.beginPath();
+      for (let t = 0; t <= 96; t++){
+        const th = t/96*Math.PI*2, r = 26*(pattern === "cardioid" ? (1+Math.cos(th))/2 : Math.abs(Math.cos(th))), a = th + orient;
+        const qx = X + r*Math.cos(a), qy = Y + r*Math.sin(a);
+        t ? rctx.lineTo(qx, qy) : rctx.moveTo(qx, qy);
+      }
+      rctx.stroke();
+      rctx.setLineDash([3, 3]); rctx.beginPath();
+      rctx.moveTo(X - 30*Math.cos(orient), Y - 30*Math.sin(orient)); rctx.lineTo(X + 30*Math.cos(orient), Y + 30*Math.sin(orient));
+      rctx.stroke(); rctx.setLineDash([]);
+    }
+    rctx.fillStyle = "#ffffff"; rctx.beginPath(); rctx.arc(X, Y, 5, 0, Math.PI*2); rctx.fill();
+    if (srcs.length > 1){
+      rctx.strokeStyle = k === sel ? "#f0a742" : "rgba(255,255,255,0.35)"; rctx.lineWidth = 2;
+      rctx.beginPath(); rctx.arc(X, Y, 8, 0, Math.PI*2); rctx.stroke();
+      rctx.fillStyle = k === sel ? "#f0a742" : "#dde6ef"; rctx.font = "600 12px Barlow, sans-serif";
+      rctx.fillText(String(k+1), X + 9, Y - 9);
+    }
+  });
+  // oyente (audífonos) con referencias: origen en la esquina inferior izquierda,
+  // líneas guía a los ejes con sus coordenadas y distancia a cada parlante
+  {
+    const X = rect.x + (lis.x+0.5)/NX*rect.w, Y = rect.y + (lis.y+0.5)/NY*rect.h;
+    const ox = rect.x, oy = rect.y + rect.h, xm = (lis.x+0.5)*dx, ym = Hb - (lis.y+0.5)*dx;
+    rctx.save();
+    rctx.font = "600 11px Barlow, sans-serif"; rctx.lineWidth = 1;
+    // origen y ejes
+    rctx.strokeStyle = "rgba(221,230,239,0.75)"; rctx.fillStyle = "rgba(221,230,239,0.85)";
+    rctx.beginPath(); rctx.moveTo(ox, oy); rctx.lineTo(ox + 26, oy); rctx.moveTo(ox, oy); rctx.lineTo(ox, oy - 26); rctx.stroke();
+    rctx.beginPath(); rctx.arc(ox, oy, 3, 0, Math.PI*2); rctx.fill();
+    rctx.fillText("0", ox - 10, oy + 12); rctx.fillText("x", ox + 29, oy + 4); rctx.fillText("y", ox - 3, oy - 30);
+    // guías hasta los ejes
+    rctx.strokeStyle = "rgba(127,211,255,0.55)"; rctx.setLineDash([4, 4]);
+    rctx.beginPath(); rctx.moveTo(X, Y); rctx.lineTo(X, oy); rctx.moveTo(X, Y); rctx.lineTo(ox, Y); rctx.stroke();
+    rctx.setLineDash([]); rctx.fillStyle = "#7fd3ff";
+    rctx.fillText(fmt(xm, 1) + " m", X - 14, oy + 13);
+    rctx.save(); rctx.translate(ox - 5, Y + 14); rctx.rotate(-Math.PI/2); rctx.fillText(fmt(ym, 1) + " m", 0, 0); rctx.restore();
+    // distancia a cada parlante
+    rctx.strokeStyle = "rgba(255,255,255,0.3)"; rctx.setLineDash([2, 5]);
+    srcs.forEach((s, k) => {
+      const sx = rect.x + (s.x+0.5)/NX*rect.w, sy = rect.y + (s.y+0.5)/NY*rect.h;
+      rctx.beginPath(); rctx.moveTo(X, Y); rctx.lineTo(sx, sy); rctx.stroke();
+      const d = Math.hypot(s.x - lis.x, s.y - lis.y)*dx;
+      rctx.fillStyle = "rgba(221,230,239,0.85)";
+      rctx.fillText((srcs.length > 1 ? (k+1) + ": " : "") + fmt(d, 1) + " m", (X+sx)/2 + 4, (Y+sy)/2 - 4);
+    });
+    rctx.restore();
+    rctx.strokeStyle = "#7fd3ff"; rctx.fillStyle = "#7fd3ff"; rctx.lineWidth = 2.2;
+    rctx.beginPath(); rctx.arc(X, Y+2, 9, Math.PI, 0); rctx.stroke();
+    rctx.fillRect(X-11, Y, 5, 8); rctx.fillRect(X+6, Y, 5, 8);
+    rctx.font = "600 11px Barlow, sans-serif"; rctx.fillText("Oyente", X-17, Y+21);
+  }
+  // escala de 1 m
+  const m1 = rect.w/Wb, bx = rect.x+rect.w, by = rect.y+rect.h+12;
+  rctx.strokeStyle = "#dde6ef"; rctx.lineWidth = 2;
+  rctx.beginPath(); rctx.moveTo(bx-m1, by); rctx.lineTo(bx, by); rctx.stroke();
+  rctx.fillStyle = "#dde6ef"; rctx.font = "12px Barlow, sans-serif"; rctx.fillText("1 m", bx-m1-30, by+4);
+}
+
+// ---------- Interfaz ----------
+function nearMode(){
+  for (const md of modes) if (Math.abs(md.f-freq)/md.f < 0.004) return md;
+  return null;
+}
+function updateLabels(){
+  $("freq").textContent = fmt(freq, freq < 100 ? 1 : 0) + " Hz";
+  $("lam").textContent = "λ = " + fmt(C_SOUND/freq, 2) + " m";
+  const md = nearMode();
+  $("modeLbl").textContent = !modes.length ? "Calculando modos…" : md ? `${modeName(md)}: resonancia` : "Entre modos";
+  $("t60").textContent = "T60 ≈ " + fmt(6.91/beta, 2) + " s";
+  document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", !!md && +c.dataset.k === modes.indexOf(md)));
+}
+const modeName = md => md.a === null ? `Modo ${md.idx}` : `Modo (${md.a},${md.b})`;
+function buildChips(){
+  const box = $("chips"); box.innerHTML = "";
+  if (!modes.length){ box.innerHTML = '<span class="wait">Calculando los modos de esta sala…</span>'; return; }
+  modes.slice(0, 14).forEach((md, k) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.type = "button"; b.dataset.k = k;
+    b.textContent = (md.a === null ? `${md.idx}.º` : `(${md.a},${md.b})`) + ` ${fmt(md.f, 1)} Hz`;
+    b.addEventListener("click", () => setFreq(md.f));
+    box.appendChild(b);
+  });
+}
+function setFreq(f){ freq = Math.min(FMAX, Math.max(FMIN, f)); updateLabels(); }
+
+function plotPick(e){
+  const r = plot.getBoundingClientRect(), t = Math.min(1, Math.max(0, (e.clientX-r.left)/r.width));
+  let f = xf(t);
+  for (const md of modes){ if (Math.abs(fx(md.f)-t)*r.width < 6){ f = md.f; break; } }   // imán a los modos
+  setFreq(f);
+}
+let plotDrag = false;
+plot.addEventListener("pointerdown", e => { plotDrag = true; plot.setPointerCapture(e.pointerId); plotPick(e); });
+plot.addEventListener("pointermove", e => { if (plotDrag) plotPick(e); });
+plot.addEventListener("pointerup", () => plotDrag = false);
+plot.addEventListener("pointercancel", () => plotDrag = false);
+
+let roomDrag = false;
+function moveSrc(e){
+  const r = room.getBoundingClientRect(), X = e.clientX-r.left, Y = e.clientY-r.top;
+  const x = Math.floor((X-rect.x)/rect.w*NX), y = Math.floor((Y-rect.y)/rect.h*NY);
+  if (x < 1 || y < 1 || x > NX-2 || y > NY-2 || !mask[y*NX+x]) return;   // solo dentro de la sala
+  if (dragLis){ lis.x = x; lis.y = y; return; }
+  srcs[sel].x = x; srcs[sel].y = y; dirty = true; $("hint").classList.add("off");
+}
+function pickSrc(e){                                 // tocar cerca de un parlante lo selecciona
+  const r = room.getBoundingClientRect(), X = e.clientX-r.left, Y = e.clientY-r.top;
+  let best = -1, bd = 30;
+  srcs.forEach((s, k) => {
+    const d = Math.hypot(rect.x + (s.x+0.5)/NX*rect.w - X, rect.y + (s.y+0.5)/NY*rect.h - Y);
+    if (d < bd){ bd = d; best = k; }
+  });
+  if (best >= 0 && best !== sel){ sel = best; syncSrcUI(); }
+}
+room.addEventListener("pointerdown", e => {
+  roomDrag = true; room.setPointerCapture(e.pointerId);
+  const r = room.getBoundingClientRect();
+  const lx = rect.x + (lis.x+0.5)/NX*rect.w, ly = rect.y + (lis.y+0.5)/NY*rect.h;
+  const ds = Math.min(...srcs.map(s => Math.hypot(rect.x + (s.x+0.5)/NX*rect.w - (e.clientX-r.left), rect.y + (s.y+0.5)/NY*rect.h - (e.clientY-r.top))));
+  dragLis = Math.hypot(lx-(e.clientX-r.left), ly-(e.clientY-r.top)) < Math.min(30, ds);
+  if (!dragLis) pickSrc(e);
+  moveSrc(e);
+});
+room.addEventListener("pointermove", e => { if (roomDrag) moveSrc(e); });
+room.addEventListener("pointerup", () => roomDrag = false);
+room.addEventListener("pointercancel", () => roomDrag = false);
+
+document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => {
+  view = b.dataset.view;
+  document.querySelectorAll("[data-view]").forEach(x => x.setAttribute("aria-pressed", x === b));
+}));
+document.querySelectorAll("[data-shape]").forEach(b => b.addEventListener("click", () => {
+  if (shape === b.dataset.shape) return;
+  shape = b.dataset.shape;
+  document.querySelectorAll("[data-shape]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  setup(false);
+}));
+document.querySelectorAll("[data-pat]").forEach(b => b.addEventListener("click", () => {
+  srcs[sel].pattern = b.dataset.pat; dirty = true; syncSrcUI();
+}));
+$("orient").addEventListener("input", e => {
+  srcs[sel].orient = +e.target.value*Math.PI/180; $("orientOut").textContent = e.target.value + "°"; dirty = true;
+});
+$("phaseIn").addEventListener("input", e => {
+  srcs[sel].ph = +e.target.value*Math.PI/180; $("phaseOut").textContent = e.target.value + "°"; dirty = true;
+});
+function syncSrcUI(){
+  const s = srcs[sel], seg = $("srcSeg");
+  seg.innerHTML = "";
+  srcs.forEach((_, k) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = "Fuente " + (k+1); b.setAttribute("aria-pressed", k === sel);
+    b.addEventListener("click", () => { sel = k; syncSrcUI(); });
+    seg.appendChild(b);
+  });
+  seg.hidden = srcs.length < 2;
+  $("addSrc").disabled = srcs.length >= MAX_SRC;
+  $("delSrc").hidden = srcs.length < 2;
+  $("phaseWrap").hidden = srcs.length < 2;
+  document.querySelectorAll("[data-pat]").forEach(x => x.setAttribute("aria-pressed", x.dataset.pat === s.pattern));
+  $("orientWrap").hidden = s.pattern === "omni";
+  const deg = Math.round(s.orient*180/Math.PI), pd = Math.round(s.ph*180/Math.PI);
+  $("orient").value = deg; $("orientOut").textContent = deg + "°";
+  $("phaseIn").value = pd; $("phaseOut").textContent = pd + "°";
+}
+$("addSrc").addEventListener("click", () => {
+  if (srcs.length >= MAX_SRC) return;
+  const s0 = srcs[sel], cand = [[NX-1-s0.x, s0.y], [s0.x, NY-1-s0.y], [NX-1-s0.x, NY-1-s0.y]];
+  let p = cand.find(([x, y]) => mask[y*NX+x] && !srcs.some(q => Math.hypot(q.x-x, q.y-y) < 8));
+  if (!p){ const i = fl[(K*0.5)|0]; p = [i%NX, (i/NX)|0]; }
+  srcs.push({x:p[0], y:p[1], pattern:"omni", orient:0, ph:0});
+  sel = srcs.length-1; dirty = true; syncSrcUI();
+});
+$("delSrc").addEventListener("click", () => {
+  if (srcs.length < 2) return;
+  srcs.splice(sel, 1); sel = Math.max(0, sel-1); dirty = true; syncSrcUI();
+});
+$("damp").addEventListener("input", e => { beta = +e.target.value; dirty = true; updateLabels(); });
+$("pause").addEventListener("click", e => { paused = !paused; e.target.textContent = paused ? "Reanudar" : "Pausar"; });
+$("reset").addEventListener("click", () => { p0.fill(0); p1.fill(0); p2.fill(0); en.fill(0); stepN = 0; pk = 1e-6; ek = 1e-9; });
+
+// ---------- Bucle ----------
+// ---------- Sonido real ----------
+// Se reproduce un tono a la frecuencia elegida. Su volumen sigue el nivel que la simulación
+// calcula en el oyente, comparado con el de una sola fuente en campo libre a 1 m (en 2D ese
+// nivel cae como 1/f; calibrado numéricamente: p²·f ≈ 1,1). Resonancias y cancelaciones se oyen.
+const FF = 1.1;
+let actx = null, osc = null, gainN = null, listening = false;
+function roomLevel(){
+  let e = 0, n = 0;
+  for (let dy = -1; dy <= 1; dy++) for (let dxx = -1; dxx <= 1; dxx++){
+    const i = (lis.y+dy)*NX + lis.x+dxx; if (mask[i]){ e += en[i]; n++; }
+  }
+  return 10*Math.log10(Math.max(1e-12, e/Math.max(1, n))/(FF/freq));
+}
+function toggleListen(){
+  listening = !listening;
+  $("listen").setAttribute("aria-pressed", listening);
+  $("listen").textContent = listening ? "Silenciar" : "Escuchar";
+  if (listening){
+    if (!actx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC){ listening = false; $("listen").disabled = true; return; }
+      actx = new AC(); gainN = actx.createGain(); gainN.gain.value = 0; gainN.connect(actx.destination);
+    }
+    actx.resume();
+    osc = actx.createOscillator(); osc.type = "sine"; osc.frequency.value = freq; osc.connect(gainN); osc.start();
+    const h = $("hint"); h.textContent = "Usa audífonos: bajo 100 Hz el parlante del celular casi no suena"; h.classList.remove("off");
+    setTimeout(() => h.classList.add("off"), 5000);
+  } else if (osc){
+    const t = actx.currentTime; gainN.gain.cancelScheduledValues(t); gainN.gain.setTargetAtTime(0, t, 0.03);
+    const o = osc; setTimeout(() => o.stop(), 200); osc = null;
+  }
+}
+$("listen").addEventListener("click", toggleListen);
+function updateAudio(){
+  levelDb = roomLevel();
+  const near = srcs.map(s => Math.hypot(s.x - lis.x, s.y - lis.y)*dx);
+  $("lisPos").textContent = `Posición: x = ${fmt((lis.x+0.5)*dx, 1)} m, y = ${fmt(Hb - (lis.y+0.5)*dx, 1)} m; a ${fmt(Math.min(...near), 1)} m del parlante más cercano`;
+  $("lvl").textContent = `Oyente: ${levelDb >= 0 ? "+" : "−"}${fmt(Math.abs(levelDb), 0)} dB respecto de campo libre a 1 m`;
+  if (!listening || !osc) return;
+  const t = actx.currentTime, g = Math.min(0.8, 0.08*Math.pow(10, levelDb/20));
+  osc.frequency.setTargetAtTime(freq, t, 0.02);
+  gainN.gain.setTargetAtTime(g, t, 0.08);
+}
+
+function frame(){
+  if (!paused){
+    // cámara lenta: unos 10 cuadros por periodo, entre 6 y 24 pasos por cuadro
+    const per = 1/(freq*dt), spf = Math.max(6, Math.min(24, Math.round(per/10)));
+    for (let k = 0; k < spf; k++) step();
+  }
+  drawRoom(); drawPlot(); updateAudio();
+  requestAnimationFrame(frame);
+}
+let rt = 0, lastW = 0, lastH = 0;
+new ResizeObserver(() => {
+  clearTimeout(rt);
+  rt = setTimeout(() => { if (room.clientWidth !== lastW || room.clientHeight !== lastH){ lastW = room.clientWidth; lastH = room.clientHeight; setup(true); } }, 150);
+}).observe(room);
+setup(false); syncSrcUI(); lastW = room.clientWidth; lastH = room.clientHeight;
+setTimeout(() => $("hint").classList.add("off"), 6000);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

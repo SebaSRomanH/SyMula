@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a1320">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Flujo táctil</title>
+<style>
+/* Protector de pantalla: oscuro por diseño en ambos temas */
+:root{
+  --bg:#0a1320;--hint-bg:rgba(10,19,32,.72);--hint-text:#dde6ef;--hint-line:rgba(221,230,239,.18);
+  color-scheme:dark;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0a1320;--hint-bg:rgba(10,19,32,.72);--hint-text:#dde6ef;--hint-line:rgba(221,230,239,.18)}
+}
+:root[data-theme="dark"]{--bg:#0a1320;--hint-bg:rgba(10,19,32,.72);--hint-text:#dde6ef;--hint-line:rgba(221,230,239,.18)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%;background:var(--bg)}
+body{margin:0;height:100%;background:var(--bg);overflow:hidden;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  font:500 15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.hint{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  background:var(--hint-bg);color:var(--hint-text);border:1px solid var(--hint-line);
+  padding:9px 16px;border-radius:999px;pointer-events:none;white-space:nowrap;
+  transition:opacity .8s ease;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.hint.off{opacity:0}
+.fs{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:44px;height:44px;
+  display:grid;place-items:center;padding:0;border-radius:10px;cursor:pointer;opacity:.75;
+  background:var(--hint-bg);color:var(--hint-text);border:1px solid var(--hint-line);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.fs:hover{opacity:1}
+.fs:focus-visible{outline:2px solid var(--hint-text);outline-offset:2px}
+.fs .exit{display:none}
+.fs.on .exit{display:block}
+.fs.on .enter{display:none}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="Piscina interactiva: toca el agua para moverla"></canvas>
+<div class="hint" id="hint">Toca el agua para moverla</div>
+<button class="fs" id="fs" type="button" aria-label="Pantalla completa">
+  <svg class="enter" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 7V2h5M13 2h5v5M18 13v5h-5M7 18H2v-5"/></svg>
+  <svg class="exit" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2v5H2M18 7h-5V2M13 18v-5h5M2 13h5v5"/></svg>
+</button>
+<script>
+(function(){
+"use strict";
+// ---------- Configuración ----------
+const LEVELS = [64000, 46000, 32000, 22000]; // celdas; baja sola si el equipo no alcanza ~45 fps
+const STEPS = 5;              // pasos de simulación por cuadro
+const NU = 0.005;             // viscosidad baja: vórtices más finos (Smagorinsky estabiliza)
+const CS2 = 0.0144;           // constante de Smagorinsky al cuadrado
+const VMAX = 0.2;             // velocidad máxima impuesta por el dedo
+const VREF = 0.06;            // escala de colores
+const TAP = 0.14;             // impulso radial inicial al tocar (onda del toque)
+const WAKE = 0.35;            // impulso radial proporcional a la velocidad del dedo
+const NPART = 700;
+const EX=[0,1,0,-1,0,1,-1,-1,1], EY=[0,0,1,0,-1,1,1,-1,-1], OPP=[0,3,4,1,2,7,8,5,6];
+const W=[4/9,1/9,1/9,1/9,1/9,1/36,1/36,1/36,1/36];
+
+// ---------- Estado ----------
+let NX, NY, N, cellPx, touchR, level = 0;
+let f, g, rho, ux, uy, curl, bar, img, px, pxs, pys;
+const off = document.createElement("canvas"), octx = off.getContext("2d");
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+const hint = document.getElementById("hint");
+const touches = new Map();
+let mode = "agua", lastTap = 0, tapStart = null, perfN = 0, perfT = 0, lastNow = 0, hintTimer = 0;
+
+// ---------- Malla ajustada a la pantalla ----------
+function setup(){
+  const w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.max(1, Math.round(w*dpr)); cv.height = Math.max(1, Math.round(h*dpr));
+  cellPx = Math.sqrt(w*h/LEVELS[level]);
+  NX = Math.max(20, Math.round(w/cellPx)); NY = Math.max(20, Math.round(h/cellPx)); N = NX*NY;
+  touchR = Math.max(3, 24/cellPx);
+  f = new Float32Array(9*N); g = new Float32Array(9*N);
+  rho = new Float32Array(N); ux = new Float32Array(N); uy = new Float32Array(N); curl = new Float32Array(N);
+  bar = new Uint8Array(N);
+  // piscina cerrada: paredes rígidas en los cuatro bordes
+  for (let x = 0; x < NX; x++){ bar[x] = 1; bar[x+(NY-1)*NX] = 1; }
+  for (let y = 0; y < NY; y++){ bar[y*NX] = 1; bar[NX-1+y*NX] = 1; }
+  off.width = NX; off.height = NY; img = octx.createImageData(NX, NY); px = img.data;
+  pxs = new Float32Array(NPART); pys = new Float32Array(NPART);
+  initFlow();
+  for (let k = 0; k < NPART; k++) spawn(k);
+  touches.clear(); perfN = 0; perfT = 0; lastNow = 0;
+}
+
+// ---------- Física (Lattice Boltzmann D2Q9) ----------
+function setEq(i, r, vx, vy){
+  const u2 = 1.5*(vx*vx+vy*vy);
+  for (let q = 0; q < 9; q++){ const eu = EX[q]*vx+EY[q]*vy; f[q*N+i] = W[q]*r*(1+3*eu+4.5*eu*eu-u2); }
+  rho[i] = r; ux[i] = vx; uy[i] = vy;
+}
+function initFlow(){ for (let i = 0; i < N; i++) setEq(i, 1, 0, 0); }   // agua quieta en t0
+
+function collide(){
+  const tau0 = 3*NU+0.5, C = 18*Math.SQRT2*CS2;
+  for (let i = 0; i < N; i++){
+    if (bar[i]) continue;
+    const f0=f[i],f1=f[N+i],f2=f[2*N+i],f3=f[3*N+i],f4=f[4*N+i],f5=f[5*N+i],f6=f[6*N+i],f7=f[7*N+i],f8=f[8*N+i];
+    const r=f0+f1+f2+f3+f4+f5+f6+f7+f8;
+    const vx=(f1-f3+f5-f6-f7+f8)/r, vy=(f2-f4+f5+f6-f7-f8)/r;
+    const u2=1.5*(vx*vx+vy*vy), a=r/9, b=r/36, xp=vx+vy, xm=vx-vy;
+    const d0=f0-4*a*(1-u2);
+    const d1=f1-a*(1+3*vx+4.5*vx*vx-u2), d3=f3-a*(1-3*vx+4.5*vx*vx-u2);
+    const d2=f2-a*(1+3*vy+4.5*vy*vy-u2), d4=f4-a*(1-3*vy+4.5*vy*vy-u2);
+    const d5=f5-b*(1+3*xp+4.5*xp*xp-u2), d7=f7-b*(1-3*xp+4.5*xp*xp-u2);
+    const d8=f8-b*(1+3*xm+4.5*xm*xm-u2), d6=f6-b*(1-3*xm+4.5*xm*xm-u2);
+    const pxx=d1+d3+d5+d6+d7+d8, pyy=d2+d4+d5+d6+d7+d8, pxy=d5-d6+d7-d8;
+    const Q=Math.sqrt(pxx*pxx+pyy*pyy+2*pxy*pxy);
+    const om=2/(tau0+Math.sqrt(tau0*tau0+C*Q/r));
+    f[i]=f0-om*d0; f[N+i]=f1-om*d1; f[2*N+i]=f2-om*d2; f[3*N+i]=f3-om*d3; f[4*N+i]=f4-om*d4;
+    f[5*N+i]=f5-om*d5; f[6*N+i]=f6-om*d6; f[7*N+i]=f7-om*d7; f[8*N+i]=f8-om*d8;
+    rho[i]=r; ux[i]=vx; uy[i]=vy;
+  }
+}
+// Transporte con rebote en paredes. Todas las celdas de fluido están en el interior.
+function stream(){
+  for (let q = 0; q < 9; q++){
+    const o = q*N, oo = OPP[q]*N, sh = EX[q]+EY[q]*NX;
+    for (let y = 1; y < NY-1; y++){
+      for (let i = y*NX+1, e = y*NX+NX-1; i < e; i++){
+        if (bar[i]) continue;
+        const j = i-sh;
+        g[o+i] = bar[j] ? f[oo+i] : f[o+j];
+      }
+    }
+  }
+  const t = f; f = g; g = t;
+}
+
+// El dedo impone su velocidad en un disco y empuja radialmente: eso genera ondas
+// de presión que se expanden a la velocidad del sonido de la red, más fuertes cuanto
+// más rápido es el movimiento (o justo al tocar).
+function stir(t){
+  const R = touchR, R2 = R*R, sp = Math.hypot(t.vx, t.vy), push = WAKE*sp + t.boost;
+  const y0 = Math.max(1, Math.floor(t.gy-R)), y1 = Math.min(NY-2, Math.ceil(t.gy+R));
+  const x0 = Math.max(1, Math.floor(t.gx-R)), x1 = Math.min(NX-2, Math.ceil(t.gx+R));
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++){
+    const dx = x-t.gx, dy = y-t.gy, d2 = dx*dx+dy*dy;
+    if (d2 > R2) continue;
+    const i = x+y*NX, d = Math.sqrt(d2) || 1, fall = 1-d2/R2, w = 0.6*fall;
+    let tx = t.vx + dx/d*push*(d/R), ty = t.vy + dy/d*push*(d/R);
+    const m = Math.hypot(tx, ty); if (m > 0.28){ tx *= 0.28/m; ty *= 0.28/m; }
+    setEq(i, rho[i], ux[i]+(tx-ux[i])*w, uy[i]+(ty-uy[i])*w);
+  }
+}
+
+// ---------- Toques ----------
+function toGrid(e){
+  const r = cv.getBoundingClientRect();
+  return [(e.clientX-r.left)/r.width*NX, (e.clientY-r.top)/r.height*NY];
+}
+function upd(id, e, down){
+  const [gx, gy] = toGrid(e);
+  const t = touches.get(id);
+  if (t){ t.gx = gx; t.gy = gy; if (down) t.boost = TAP; }
+  else touches.set(id, {gx, gy, lx:gx, ly:gy, vx:0, vy:0, boost: down ? TAP : 0});
+  hint.classList.add("off");
+}
+cv.addEventListener("pointerdown", e => {
+  cv.setPointerCapture(e.pointerId); upd(e.pointerId, e, true);
+  tapStart = {x:e.clientX, y:e.clientY, t:performance.now()};
+});
+cv.addEventListener("pointermove", e => {
+  if (e.pointerType === "mouse" && e.buttons === 0) upd("mouse", e, false);   // en computador basta mover el mouse
+  else if (touches.has(e.pointerId)) upd(e.pointerId, e, false);
+});
+function showHint(text){
+  hint.textContent = text; hint.classList.remove("off");
+  clearTimeout(hintTimer); hintTimer = setTimeout(() => hint.classList.add("off"), 1400);
+}
+function end(e){
+  touches.delete(e.pointerId);
+  if (tapStart && e.type === "pointerup"){
+    const now = performance.now(), moved = Math.hypot(e.clientX-tapStart.x, e.clientY-tapStart.y);
+    if (moved < 12 && now-tapStart.t < 250){
+      if (now-lastTap < 320){
+        mode = mode === "agua" ? "vorticidad" : "agua"; lastTap = 0;
+        showHint(mode === "agua" ? "Vista: agua" : "Vista: vorticidad");
+      } else lastTap = now;
+    }
+  }
+  tapStart = null;
+}
+cv.addEventListener("pointerup", end);
+cv.addEventListener("pointercancel", end);
+cv.addEventListener("pointerleave", () => touches.delete("mouse"));
+
+function updateVelocity(t){
+  let vx = (t.gx-t.lx)/STEPS, vy = (t.gy-t.ly)/STEPS;
+  const m = Math.hypot(vx, vy); if (m > VMAX){ vx *= VMAX/m; vy *= VMAX/m; }
+  t.vx = 0.5*t.vx+0.5*vx; t.vy = 0.5*t.vy+0.5*vy; t.lx = t.gx; t.ly = t.gy;
+}
+
+// ---------- Partículas ----------
+function spawn(k){ pxs[k] = 1.5+Math.random()*(NX-3); pys[k] = 1.5+Math.random()*(NY-3); }
+function advect(){
+  for (let k = 0; k < NPART; k++){
+    const i = (pxs[k]|0)+(pys[k]|0)*NX;
+    pxs[k] += ux[i]*STEPS; pys[k] += uy[i]*STEPS;
+    if (pxs[k] < 1 || pxs[k] >= NX-1 || pys[k] < 1 || pys[k] >= NY-1) spawn(k);
+  }
+}
+
+// ---------- Render ----------
+function makeLut(stops){
+  const t = new Uint8Array(768);
+  for (let k = 0; k < 256; k++){
+    const v = k/255; let j = 0;
+    while (j < stops.length-2 && v > stops[j+1][0]) j++;
+    const [a,ca] = stops[j], [b,cb] = stops[j+1], u = (v-a)/(b-a);
+    for (let c = 0; c < 3; c++) t[k*3+c] = Math.round(ca[c]+(cb[c]-ca[c])*u);
+  }
+  return t;
+}
+const LUT_CURL = makeLut([[0,[120,200,255]],[0.25,[30,100,190]],[0.5,[10,19,32]],[0.75,[220,110,40]],[1,[255,210,150]]]);
+// Agua: color base según rapidez + sombreado por la pendiente de la presión (las ondas)
+const LX = -0.6, LY = -0.8, GAIN = 260;
+function render(){
+  for (let y = 1; y < NY-1; y++) for (let x = 1; x < NX-1; x++){
+    const i = x+y*NX; curl[i] = uy[i+1]-uy[i-1]-ux[i+NX]+ux[i-NX];
+  }
+  let bad = false;
+  const water = mode === "agua";
+  for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++){
+    const i = x+y*NX, p = i*4;
+    if (bar[i]){ px[p]=150; px[p+1]=190; px[p+2]=205; px[p+3]=255; continue; }
+    const r = rho[i];
+    if (!(r > 0.3 && r < 3)) bad = true;
+    if (water){
+      const sp = Math.min(1, Math.hypot(ux[i], uy[i])/VREF);
+      const c = Math.min(1, Math.abs(curl[i])/(0.5*VREF));
+      const gx = rho[i+1]-rho[i-1], gy = rho[i+NX]-rho[i-NX];
+      let L = (gx*LX + gy*LY)*GAIN; L = L > 1 ? 1 : L < -1 ? -1 : L;
+      const spec = L > 0.55 ? (L-0.55)*400 : 0;               // brillos de las crestas
+      px[p]   = 10 + 30*sp + 20*c + 70*L + spec;
+      px[p+1] = 72 + 70*sp + 40*c + 95*L + spec;
+      px[p+2] = 98 + 70*sp + 45*c + 105*L + spec;
+    } else {
+      const v = 0.5+0.5*curl[i]/(0.35*VREF);
+      const k = (v <= 0 ? 0 : v >= 1 ? 255 : (v*255)|0)*3;
+      px[p]=LUT_CURL[k]; px[p+1]=LUT_CURL[k+1]; px[p+2]=LUT_CURL[k+2];
+    }
+    px[p+3] = 255;
+  }
+  octx.putImageData(img, 0, 0);
+  const dw = cv.width, dh = cv.height;
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(off, 0, 0, dw, dh);
+  const sx = dw/NX, sy = dh/NY, s = Math.max(1.5, sx*0.4);
+  ctx.fillStyle = water ? "rgba(235,250,255,0.35)" : "rgba(235,242,250,0.55)";
+  for (let k = 0; k < NPART; k++) ctx.fillRect(pxs[k]*sx-s/2, pys[k]*sy-s/2, s, s);
+  return bad;
+}
+
+// ---------- Bucle ----------
+function frame(now){
+  for (const t of touches.values()) updateVelocity(t);
+  for (let s = 0; s < STEPS; s++){
+    for (const t of touches.values()){ stir(t); t.boost *= 0.7; }
+    collide(); stream();
+  }
+  advect();
+  if (render()) initFlow();
+  // Calidad automática: si en los primeros segundos va lento, baja la resolución
+  if (lastNow){
+    perfN++;
+    if (perfN > 20 && perfN <= 80) perfT += now-lastNow;
+    if (perfN === 80 && perfT/60 > 22 && level < LEVELS.length-1){ level++; setup(); }
+  }
+  lastNow = now;
+  requestAnimationFrame(frame);
+}
+
+// ---------- Pantalla completa ----------
+const fsBtn = document.getElementById("fs"), root = document.documentElement;
+const reqFs = root.requestFullscreen || root.webkitRequestFullscreen;
+const isFs = () => document.fullscreenElement || document.webkitFullscreenElement;
+if (!reqFs) fsBtn.hidden = true;   // p. ej. Safari en iPhone: usar Agregar a pantalla de inicio
+fsBtn.addEventListener("click", () => {
+  try {
+    const p = isFs() ? (document.exitFullscreen || document.webkitExitFullscreen).call(document) : reqFs.call(root);
+    if (p && p.catch) p.catch(() => { fsBtn.hidden = true; });
+  } catch (err) { fsBtn.hidden = true; }
+});
+const syncFs = () => { const on = !!isFs(); fsBtn.classList.toggle("on", on); fsBtn.setAttribute("aria-label", on ? "Salir de pantalla completa" : "Pantalla completa"); };
+document.addEventListener("fullscreenchange", syncFs);
+document.addEventListener("webkitfullscreenchange", syncFs);
+
+let rt = 0;
+new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(setup, 150); }).observe(cv);
+setup();
+setTimeout(() => hint.classList.add("off"), 5000);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
