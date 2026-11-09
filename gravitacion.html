@@ -143,7 +143,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 "use strict";
 // Física: unidades con r = 1 (1 UA) de referencia y G·M☉ = 1, así una órbita circular en r = 1
 // tarda 2π unidades = 1 año. Sol fijo: a(r) = 1/r^n.  Masas que se atraen: cada masa j acelera a i con m_j / r^n.
-const DT = 0.0025, SUB = 6, SUN_R = 0.07, ESCAPE = 28, TRAIL = 1500, MAXP = 10, MAXN = 6, RMIN = 0.02;
+const DT = 0.0025, SUB = 6, SUN_R = 0.07, ESCAPE = 56, TRAIL = 1500, MAXP = 10, MAXN = 6, RMIN = 0.02;
 const ETA = 0.015, MAXSUB = 4000, TRAIL_STEP = 0.006, YEAR = 2*Math.PI;
 const COLORS = ["#5ec8f2","#f27b9b","#9be37c","#c7a2ff","#ffd166","#4fd1c5","#ff8a5c","#f0a742"];
 const INFO_C = {}, INFO_N = "", FML = {}, KEP = {};   // (textos de la versión técnica: no se usan aquí)
@@ -434,7 +434,7 @@ const sPop = () => tone(420, 760, 0.1), sEat = () => tone(260, 80, 0.5, "triangl
 // (ETA_C) porque pasan muy cerca de la estrella. Dos colas que apuntan en contra de la estrella que más
 // lo atrae: la de gas (azul, recta) y la de polvo (curvada hacia atrás). Cerca de la estrella sueltan
 // polvo que sigue su órbita, como el que produce las lluvias de estrellas.
-const MAXC = 4, ETA_C = 0.008, KMAX_C = 400;
+const MAXC = 4, ETA_C = 0.008, KMAX_C = 400, COMET_ON = 4;   // a menos de 4 UA se forma la cola
 let comets = [], cometTool = false;
 function addComet(x, y, vx, vy){
   if (comets.length >= MAXC) comets.shift();
@@ -464,7 +464,7 @@ function stepComets(T){
     const l = c.trail[c.trail.length-1];
     if (Math.hypot(c.x-l[0], c.y-l[1]) > TRAIL_STEP){ c.trail.push([c.x, c.y]); if (c.trail.length > TRAIL) c.trail.shift(); }
     const [sx, sy] = cometSource(c), r = Math.max(Math.hypot(c.x-sx, c.y-sy), 0.05);
-    let want = Math.min(6, 0.5/(r*r))*T/0.015;       // más polvo cuanto más cerca de la estrella
+    let want = r < COMET_ON ? Math.min(6, 0.5/(r*r))*T/0.015 : 0;       // más polvo cuanto más cerca de la estrella
     while (want > 0){
       if (Math.random() < want){
         const ux = (c.x-sx)/r, uy = (c.y-sy)/r, sp = Math.hypot(c.vx, c.vy)*0.04;
@@ -488,18 +488,28 @@ function drawComets(){
     }
     const [X, Y] = toScreen(c.x, c.y), [sx, sy] = cometSource(c), r = Math.max(Math.hypot(c.x-sx, c.y-sy), 0.05);
     const ux = (c.x-sx)/r, uy = (c.y-sy)/r, v = Math.hypot(c.vx, c.vy) || 1;
-    const L = Math.min(1.8, Math.max(0.06, 0.32/(r*r)))*scale;            // largo de la cola en px
-    const tail = (dx, dy, len, w, c0, c1) => {
-      const ex = X + dx*len, ey = Y + dy*len, nx = -dy, ny = dx;
-      const g = ctx.createLinearGradient(X, Y, ex, ey); g.addColorStop(0, c0); g.addColorStop(1, c1);
-      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(X + nx*2, Y + ny*2);
-      ctx.lineTo(ex + nx*w, ey + ny*w); ctx.lineTo(ex - nx*w, ey - ny*w); ctx.lineTo(X - nx*2, Y - ny*2); ctx.fill();
-    };
+    // Lejos de la estrella el cometa es solo un núcleo de hielo. Al acercarse (menos de COMET_ON UA) el hielo
+    // se evapora: aparece la coma y la cola, que crece y brilla más cuanto más cerca pasa.
+    const q = Math.min(1, Math.max(0, (COMET_ON - r)/(COMET_ON - 0.4))), act = q*q*(3 - 2*q);
     ctx.globalCompositeOperation = "lighter";
-    let dx = ux - 0.45*c.vx/v, dy = uy - 0.45*c.vy/v; const dl = Math.hypot(dx, dy) || 1; dx /= dl; dy /= dl;
-    tail(dx, dy, L*0.8, Math.min(16, 4 + L*0.12), "rgba(255,236,200,0.55)", "rgba(255,236,200,0)");   // polvo
-    tail(ux, uy, L, Math.min(9, 2 + L*0.05), "rgba(140,200,255,0.75)", "rgba(140,200,255,0)");        // gas
-    glow(X, Y, 9, "rgba(210,235,255,0.85)", "rgba(210,235,255,0)");
+    if (act > 0.01){
+      const L = Math.max(act*90, act*Math.min(3, 0.35 + 0.9/r)*scale);    // largo de la cola en px
+      const tail = (dx, dy, len, w, c0, c1) => {
+        const ex = X + dx*len, ey = Y + dy*len, nx = -dy, ny = dx;
+        const g = ctx.createLinearGradient(X, Y, ex, ey); g.addColorStop(0, c0); g.addColorStop(1, c1);
+        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(X + nx*2, Y + ny*2);
+        ctx.lineTo(ex + nx*w, ey + ny*w); ctx.lineTo(ex - nx*w, ey - ny*w); ctx.lineTo(X - nx*2, Y - ny*2); ctx.fill();
+      };
+      // cola de polvo: ancha, amarillenta y curvada hacia atrás de la órbita
+      const bx = -c.vx/v, by = -c.vy/v, Ld = L*0.85;
+      for (let k = 1; k <= 14; k++){
+        const t = k/14, px = X + (ux*t + bx*0.55*t*t)*Ld, py = Y + (uy*t + by*0.55*t*t)*Ld;
+        const rr = 3 + t*Math.min(22, 5 + Ld*0.12);
+        glow(px, py, rr, `rgba(255,232,190,${(0.32*act*(1 - t)).toFixed(3)})`, "rgba(255,232,190,0)");
+      }
+      tail(ux, uy, L, Math.min(10, 2 + L*0.04), `rgba(140,200,255,${(0.8*act).toFixed(3)})`, "rgba(140,200,255,0)");   // gas: recta, azul
+      glow(X, Y, 6 + 12*act, `rgba(200,230,255,${(0.35 + 0.5*act).toFixed(3)})`, "rgba(200,230,255,0)");             // coma
+    } else glow(X, Y, 5, "rgba(210,225,240,0.4)", "rgba(210,225,240,0)");
     ctx.globalCompositeOperation = "source-over";
     ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(X, Y, 2.6, 0, Math.PI*2); ctx.fill();
   }
@@ -737,7 +747,7 @@ $("info").addEventListener("click", () => {
   $("info").setAttribute("aria-expanded", open); $("info").setAttribute("aria-label", open ? "Ocultar la explicación" : "Mostrar la explicación");
 });
 // ---------- Zoom del usuario (se suma al automático) ----------
-function setUZ(v){ uz = Math.min(4, Math.max(0.1, v)); $("zin").disabled = uz >= 4; $("zout").disabled = uz <= 0.1; }
+function setUZ(v){ uz = Math.min(4, Math.max(0.05, v)); $("zin").disabled = uz >= 4; $("zout").disabled = uz <= 0.05; }
 $("zin").addEventListener("click", () => setUZ(uz*1.4));
 $("zout").addEventListener("click", () => setUZ(uz/1.4));
 // ---------- Moverse por la vista ----------
