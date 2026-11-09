@@ -241,7 +241,11 @@ function zeroMomentum(bs){                           // el centro de masa queda 
 const MAXD = 6000, ETA_D = 0.03, KMAX_D = 60;
 const dX = new Float32Array(MAXD), dY = new Float32Array(MAXD), dVX = new Float32Array(MAXD), dVY = new Float32Array(MAXD);
 const dC = new Uint8Array(MAXD), dB = new Uint8Array(MAXD);   // color y brillo de cada grano
-let dN = 0, dustTool = false, gax = 0, gay = 0;
+// Cada grano tiene masa 0,01 unidades. En "Masas que se atraen" atrae a las masas (no a los otros granos,
+// para que miles de granos sigan siendo baratos) y la masa que lo atrapa al chocar se queda con su masa y
+// su impulso. Con el Sol fijo la estrella no se mueve ni crece, así que ahí el polvo sigue sin efecto.
+const DUST_M = 0.01/100;
+let dN = 0, dustTool = false, gax = 0, gay = 0, gHit = null;
 // Colores de estrellas reales: blanco, amarillo, blanco azulado (jóvenes), anaranjado y rojizo (viejas)
 const PAL = [[255,246,232], [255,222,170], [200,220,255], [255,184,135], [255,140,120]];
 const PAL_CUM = [0.32, 0.58, 0.82, 0.95, 1];
@@ -289,21 +293,32 @@ function accDust(x, y){                              // deja la aceleración en 
   }
   for (const b of bodies){
     const dx = b.x-x, dy = b.y-y, r = Math.sqrt(dx*dx + dy*dy);
-    if (mergeOn && r < radius(b.m)) return false;
+    if (mergeOn && r < radius(b.m)){ gHit = b; return false; }
     const a = b.m*invPow(Math.max(r, mergeOn ? RMIN : radius(b.m)))/r; gax += a*dx; gay += a*dy;
   }
   return true;
 }
 function stepDust(T){
   let Mt = 1; if (mode === "nbody"){ Mt = 0; for (const b of bodies) Mt += b.m; if (!Mt){ dN = 0; return; } }
+  const nb = mode === "nbody";
   for (let i = 0; i < dN; i++){
     let x = dX[i], y = dY[i], vx = dVX[i], vy = dVY[i], alive = true;
+    gHit = null;
     let rmin = Math.hypot(x, y);
     if (mode === "nbody"){ rmin = Infinity; for (const b of bodies) rmin = Math.min(rmin, Math.hypot(b.x-x, b.y-y)); }
     const k = Math.min(KMAX_D, Math.max(3, Math.ceil(T/(ETA_D*Math.sqrt(Math.pow(Math.max(rmin, RMIN), n+1)/Mt))))), h = T/k;
     for (let s = 0; s < k; s++){
       if (!accDust(x, y)){ alive = false; break; }
       vx += gax*h; vy += gay*h; x += vx*h; y += vy*h;
+    }
+    if (nb && !alive && gHit){                       // la masa que lo atrapa crece y recibe su impulso
+      const b = gHit, M = b.m + DUST_M;
+      b.vx = (b.vx*b.m + vx*DUST_M)/M; b.vy = (b.vy*b.m + vy*DUST_M)/M; b.m = M; collapse(b);
+    } else if (nb && alive){                          // el grano tira de cada masa (acción y reacción)
+      for (const b of bodies){
+        const dx = x-b.x, dy = y-b.y, r = Math.sqrt(dx*dx + dy*dy);
+        const a = DUST_M*invPow(Math.max(r, mergeOn ? RMIN : radius(b.m)))/r*T; b.vx += a*dx; b.vy += a*dy;
+      }
     }
     if (!alive || x*x + y*y > ESCAPE*ESCAPE){ dN--; dX[i] = dX[dN]; dY[i] = dY[dN]; dVX[i] = dVX[dN]; dVY[i] = dVY[dN]; dC[i] = dC[dN]; dB[i] = dB[dN]; i--; continue; }
     dX[i] = x; dY[i] = y; dVX[i] = vx; dVY[i] = vy;
