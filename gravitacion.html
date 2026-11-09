@@ -143,7 +143,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 "use strict";
 // Física: unidades con r = 1 (1 UA) de referencia y G·M☉ = 1, así una órbita circular en r = 1
 // tarda 2π unidades = 1 año. Sol fijo: a(r) = 1/r^n.  Masas que se atraen: cada masa j acelera a i con m_j / r^n.
-const DT = 0.0025, SUB = 6, SUN_R = 0.07, ESCAPE = 14, TRAIL = 1500, MAXP = 10, MAXN = 6, RMIN = 0.02;
+const DT = 0.0025, SUB = 6, SUN_R = 0.07, ESCAPE = 28, TRAIL = 1500, MAXP = 10, MAXN = 6, RMIN = 0.02;
 const ETA = 0.015, MAXSUB = 4000, TRAIL_STEP = 0.006, YEAR = 2*Math.PI;
 const COLORS = ["#5ec8f2","#f27b9b","#9be37c","#c7a2ff","#ffd166","#4fd1c5","#ff8a5c","#f0a742"];
 const INFO_C = {}, INFO_N = "", FML = {}, KEP = {};   // (textos de la versión técnica: no se usan aquí)
@@ -737,7 +737,7 @@ $("info").addEventListener("click", () => {
   $("info").setAttribute("aria-expanded", open); $("info").setAttribute("aria-label", open ? "Ocultar la explicación" : "Mostrar la explicación");
 });
 // ---------- Zoom del usuario (se suma al automático) ----------
-function setUZ(v){ uz = Math.min(4, Math.max(0.2, v)); $("zin").disabled = uz >= 4; $("zout").disabled = uz <= 0.2; }
+function setUZ(v){ uz = Math.min(4, Math.max(0.1, v)); $("zin").disabled = uz >= 4; $("zout").disabled = uz <= 0.1; }
 $("zin").addEventListener("click", () => setUZ(uz*1.4));
 $("zout").addEventListener("click", () => setUZ(uz/1.4));
 // ---------- Moverse por la vista ----------
