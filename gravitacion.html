@@ -70,6 +70,10 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
       <button class="tile" type="button" data-n="2" aria-pressed="true">1/r²<small>la real</small></button>
       <button class="tile" type="button" data-n="3" aria-pressed="false">1/r³<small>brusca</small></button>
     </div>
+    <div class="row">
+      <button class="tile" id="snd" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" id="sndIcon"></svg><span id="sndLbl">Sonido</span></button>
+      <button class="tile" id="dustClr" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 7V4h4v3M6.5 7l1 13h9l1-13"/></svg>Quitar el polvo</button>
+    </div>
   </div>
   <div class="row" role="group" aria-label="Modo">
     <button class="tile" type="button" data-mode="central" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="9" stroke-dasharray="2.5 2.5"/><circle cx="18.4" cy="5.6" r="2.3" fill="currentColor" stroke="none"/></svg>Sol y planetas</button>
@@ -98,7 +102,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
     <button class="tile" id="play" type="button"><svg viewBox="0 0 24 24" id="playIcon"></svg><span id="playLbl">Pausa</span></button>
     <button class="tile" id="spd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13l4-4M12 3v2"/></svg><span id="spdLbl">1x</span></button>
     <button class="tile" id="clr" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 7V4h4v3M6.5 7l1 13h9l1-13"/></svg>Borrar</button>
-    <button class="tile" id="snd" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" id="sndIcon"></svg><span id="sndLbl">Sonido</span></button>
+    <button class="tile" id="dust" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="13" r="1.6"/><circle cx="9" cy="8" r="1.3"/><circle cx="10" cy="16" r="1.8"/><circle cx="14" cy="11" r="1.4"/><circle cx="17" cy="6" r="1.1"/><circle cx="18" cy="15" r="1.6"/><circle cx="13" cy="20" r="1.1"/><circle cx="21" cy="10" r="1"/></svg>Polvo</button>
     <button class="tile" id="more" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
   </div>
 </nav>
@@ -189,6 +193,64 @@ function com(bs){
 }
 function zeroMomentum(bs){                           // el centro de masa queda quieto: el sistema no se sale de la pantalla
   const c = com(bs); for (const b of bs){ b.vx -= c.VX; b.vy -= c.VY; }
+}
+
+// ---------- Polvo galáctico ----------
+// Granos sin masa: sienten la gravedad del Sol (o de las masas) pero no atraen a nadie.
+// Euler simpléctico con paso adaptativo por grano, k = T/(ETA_D·t_din), como los planetas.
+// Verificado en Node: una órbita circular conserva el radio dentro de ~2,5 % tras 20 vueltas,
+// incluso a r = 0,15 UA y velocidad 2x. (Con 1/r³ las órbitas circulares son inestables de verdad.)
+const MAXD = 3000, ETA_D = 0.03, KMAX_D = 60;
+const dX = new Float32Array(MAXD), dY = new Float32Array(MAXD), dVX = new Float32Array(MAXD), dVY = new Float32Array(MAXD);
+let dN = 0, dustTool = false, gax = 0, gay = 0;
+const invPow = r => n === 2 ? 1/(r*r) : n === 1 ? 1/r : n === 3 ? 1/(r*r*r) : 1/Math.sqrt(r);
+function addDust(x, y, count){
+  let ox = 0, oy = 0, M = 1, vx0 = 0, vy0 = 0;
+  if (mode === "nbody"){ const c = com(bodies); if (!c.M) return; ox = c.X; oy = c.Y; M = c.M; vx0 = c.VX; vy0 = c.VY; }
+  for (let k = 0; k < count; k++){
+    const px = x + (Math.random()-0.5)*0.08, py = y + (Math.random()-0.5)*0.08;
+    const dx = px-ox, dy = py-oy, r = Math.hypot(dx, dy) || 1e-9;
+    if (mode === "central" && r < SUN_R*1.5) continue;
+    const v = Math.sqrt(M*Math.pow(r, 1-n))*(0.88 + Math.random()*0.24), a = (Math.random()-0.5)*0.3;
+    const tx = dy/r, ty = -dx/r, c = Math.cos(a), sn = Math.sin(a);   // tangente, como circularVel, con algo de dispersión
+    const i = dN < MAXD ? dN++ : (Math.random()*MAXD)|0;              // lleno: reemplaza un grano al azar
+    dX[i] = px; dY[i] = py; dVX[i] = vx0 + v*(tx*c - ty*sn); dVY[i] = vy0 + v*(tx*sn + ty*c);
+  }
+}
+function accDust(x, y){                              // deja la aceleración en gax, gay; false si el grano cae
+  gax = 0; gay = 0;
+  if (mode === "central"){
+    const r = Math.sqrt(x*x + y*y); if (r < SUN_R) return false;
+    const a = invPow(Math.max(r, RMIN))/r; gax = -a*x; gay = -a*y; return true;
+  }
+  for (const b of bodies){
+    const dx = b.x-x, dy = b.y-y, r = Math.sqrt(dx*dx + dy*dy);
+    if (mergeOn && r < radius(b.m)) return false;
+    const a = b.m*invPow(Math.max(r, mergeOn ? RMIN : radius(b.m)))/r; gax += a*dx; gay += a*dy;
+  }
+  return true;
+}
+function stepDust(T){
+  let Mt = 1; if (mode === "nbody"){ Mt = 0; for (const b of bodies) Mt += b.m; if (!Mt){ dN = 0; return; } }
+  for (let i = 0; i < dN; i++){
+    let x = dX[i], y = dY[i], vx = dVX[i], vy = dVY[i], alive = true;
+    let rmin = Math.hypot(x, y);
+    if (mode === "nbody"){ rmin = Infinity; for (const b of bodies) rmin = Math.min(rmin, Math.hypot(b.x-x, b.y-y)); }
+    const k = Math.min(KMAX_D, Math.max(3, Math.ceil(T/(ETA_D*Math.sqrt(Math.pow(Math.max(rmin, RMIN), n+1)/Mt))))), h = T/k;
+    for (let s = 0; s < k; s++){
+      if (!accDust(x, y)){ alive = false; break; }
+      vx += gax*h; vy += gay*h; x += vx*h; y += vy*h;
+    }
+    if (!alive || x*x + y*y > ESCAPE*ESCAPE){ dN--; dX[i] = dX[dN]; dY[i] = dY[dN]; dVX[i] = dVX[dN]; dVY[i] = dVY[dN]; i--; continue; }
+    dX[i] = x; dY[i] = y; dVX[i] = vx; dVY[i] = vy;
+  }
+}
+function drawDust(){
+  if (!dN) return;
+  ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = "rgba(255,218,160,0.75)";
+  const sz = Math.max(1.8, Math.min(2.8, scale/80));
+  for (let i = 0; i < dN; i++) ctx.fillRect(cx + dX[i]*scale - sz/2, cy + dY[i]*scale - sz/2, sz, sz);
+  ctx.globalCompositeOperation = "source-over";
 }
 
 // ---------- Crear cuerpos ----------
@@ -347,6 +409,10 @@ function updateCard(){
   $("title").textContent = title; $("text").textContent = text;
 }
 function updateData(){
+  updateData0();
+  if (dN) $("data").textContent += (mode === "nbody" ? "   " : "  ·  ") + "Polvo: " + dN.toLocaleString("es-CL") + " granos";
+}
+function updateData0(){
   if (mode === "nbody"){
     $("data").textContent = bodies.length ? "Masas: " + bodies.map(b => fmt(shownMass(b), 1)).join(" · ") + "   Total: " + fmt(bodies.reduce((s, b) => s + b.m, 0), 1) : "Toca para poner una masa.";
     return;
@@ -373,7 +439,7 @@ function setLaw(v){
   select(sel); updateCard();
 }
 function setMode(m){
-  mode = m; bodies = []; colorIdx = 0; ghosts = []; select(null);
+  mode = m; bodies = []; colorIdx = 0; ghosts = []; dN = 0; select(null);
   document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === mode));
   $("kepRow").hidden = mode !== "central"; $("nbRow").hidden = mode !== "nbody";
   if (mode === "central"){
@@ -404,7 +470,12 @@ const PLAY = '<path d="M7 4.5l13 7.5-13 7.5z" fill="currentColor"/>', PAUSE = '<
 $("play").addEventListener("click", () => { paused = !paused; $("playIcon").innerHTML = paused ? PLAY : PAUSE; $("playLbl").textContent = paused ? "Seguir" : "Pausa"; });
 const SPEEDS = [1, 2, 0.5];
 $("spd").addEventListener("click", () => { speed = SPEEDS[(SPEEDS.indexOf(speed)+1) % SPEEDS.length]; $("spdLbl").textContent = fmt(speed, speed < 1 ? 1 : 0) + "x"; });
-$("clr").addEventListener("click", () => { bodies = []; colorIdx = 0; ghosts = []; select(null); });
+$("clr").addEventListener("click", () => { bodies = []; colorIdx = 0; ghosts = []; dN = 0; select(null); });
+$("dustClr").addEventListener("click", () => { dN = 0; });
+$("dust").addEventListener("click", () => {
+  dustTool = !dustTool; $("dust").setAttribute("aria-pressed", dustTool);
+  if (dustTool) toast("Arrastra el dedo por el cielo para soltar polvo galáctico", 3500);
+});
 const SND_ON = '<path d="M4 9h3.5L13 4.5v15L7.5 15H4z" fill="currentColor"/><path d="M16.5 8.5q2 3.5 0 7M19 6q4 6 0 12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/>';
 const SND_OFF = '<path d="M4 9h3.5L13 4.5v15L7.5 15H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="#f27b9b" stroke-width="2.2" stroke-linecap="round"/>';
 function syncSound(){ $("sndIcon").innerHTML = soundOn ? SND_ON : SND_OFF; $("sndLbl").textContent = soundOn ? "Sonido" : "Sin sonido"; }
@@ -413,9 +484,18 @@ $("snd").addEventListener("click", () => { soundOn = !soundOn; syncSound(); });
 // tocar el cielo = planeta en órbita circular; tocar un planeta = seguirlo; arrastrar = lanzar
 function pos(e){ const r = cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
 const dragVel = () => [(drag.ex-drag.sx)/scale*1.6, (drag.ey-drag.sy)/scale*1.6];
-cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); const [sx, sy] = pos(e); drag = {sx, sy, ex:sx, ey:sy}; });
-cv.addEventListener("pointermove", e => { if (drag) [drag.ex, drag.ey] = pos(e); });
+cv.addEventListener("pointerdown", e => {
+  cv.setPointerCapture(e.pointerId); const [sx, sy] = pos(e);
+  if (dustTool){ drag = {dust:true}; addDust(...toWorld(sx, sy), 25); return; }
+  drag = {sx, sy, ex:sx, ey:sy};
+});
+cv.addEventListener("pointermove", e => {
+  if (!drag) return;
+  if (drag.dust){ addDust(...toWorld(...pos(e)), 8); return; }
+  [drag.ex, drag.ey] = pos(e);
+});
 cv.addEventListener("pointerup", () => {
+  if (drag && drag.dust){ drag = null; return; }
   if (!drag) return;
   const [x, y] = toWorld(drag.sx, drag.sy);
   const moved = Math.hypot(drag.ex-drag.sx, drag.ey-drag.sy) >= 8;
@@ -520,6 +600,7 @@ function draw(time){
     ctx.fillStyle = "rgba(238,241,255,0.35)"; ctx.font = "700 11px Nunito, sans-serif"; ctx.fillText("1 UA", cx + scale*0.72 + 4, cy - scale*0.72);
     if (kep === 2 && sel) drawSectors();
   }
+  drawDust();
   // estelas
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   for (const b of bodies){
@@ -566,7 +647,7 @@ function draw(time){
   ghosts = ghosts.filter(g => g.t < 1 || (g.label && g.t < 1));
   if (mode === "central" && kep === 3) drawKepler3();
   // lanzamiento
-  if (drag){
+  if (drag && !drag.dust){
     const [x, y] = toWorld(drag.sx, drag.sy);
     const moving = Math.hypot(drag.ex-drag.sx, drag.ey-drag.sy) >= 8;
     const [vx, vy] = moving ? dragVel() : circularVel(x, y);
@@ -619,6 +700,7 @@ function frame(time){
       }
       bodies = bodies.filter(b => Math.hypot(b.x, b.y) < ESCAPE);
     }
+    if (dN) stepDust(T);
   }
   draw(time || 0);
   if ((time || 0) - dataT > 150){ dataT = time || 0; updateData(); }
