@@ -31,7 +31,9 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   arrastrando con dos dedos, con el botón "Mover" o con el botón derecho del mouse; zoom con +/−, pellizco
   o rueda. Polvo galáctico sin masa ("en órbita" alrededor de la estrella dominante o "quieto"),
   dibujado con resplandor tipo Vía Láctea. Cada grano pesa 0,01 unidades: en N cuerpos atrae
-  a las masas (no a otros granos) y la masa que lo atrapa se queda con su masa e impulso. Cometas sin masa con cola de gas y de polvo que sueltan polvo
+  a las masas (no a otros granos) y la masa que lo atrapa se queda con su masa e impulso.
+  Nubes de gas (en "Más" se elige qué suelta el botón): 0,002 unidades por trozo, misma gravedad,
+  dibujadas como nebulosa. Cometas sin masa con cola de gas y de polvo que sueltan polvo
   cerca de la estrella. Una estrella que llega a 1500 unidades hace supernova (expulsa el 70 % como
   polvo) y deja una estrella de neutrones, que colapsa en agujero negro al llegar a 2500 unidades.
   Los cuerpos no llevan textos encima; las masas se leen en la línea de datos detrás de "?".

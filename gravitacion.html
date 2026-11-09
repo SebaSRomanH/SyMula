@@ -94,14 +94,19 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
       <button class="tile" type="button" data-n="2" aria-pressed="true">1/r²<small>la real</small></button>
       <button class="tile" type="button" data-n="3" aria-pressed="false">1/r³<small>brusca</small></button>
     </div>
-    <div class="lbl">Cómo se suelta el polvo</div>
+    <div class="lbl">Qué se suelta con el botón de abajo</div>
+    <div class="row" role="group" aria-label="Qué se suelta">
+      <button class="tile" type="button" data-mat="dust" aria-pressed="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="13" r="1.6"/><circle cx="9" cy="8" r="1.3"/><circle cx="10" cy="16" r="1.8"/><circle cx="14" cy="11" r="1.4"/><circle cx="17" cy="6" r="1.1"/><circle cx="18" cy="15" r="1.6"/><circle cx="13" cy="20" r="1.1"/><circle cx="21" cy="10" r="1"/></svg>Polvo<small>0,01 por grano</small></button>
+      <button class="tile" type="button" data-mat="gas" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.6-8 5.5 5.5 0 0 1 10.6-1.5A4.5 4.5 0 0 1 17.5 18z" fill="currentColor" opacity="0.35"/><path d="M7 18a4 4 0 0 1-.6-8 5.5 5.5 0 0 1 10.6-1.5A4.5 4.5 0 0 1 17.5 18z"/></svg>Gas<small>0,002 por nube</small></button>
+    </div>
+    <div class="lbl">Cómo se suelta el polvo o el gas</div>
     <div class="row" role="group" aria-label="Cómo se suelta el polvo">
       <button class="tile" type="button" data-dust="orbit" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M20 12a8 8 0 0 1-8 8M4 12a8 8 0 0 1 8-8"/><path d="M17 17.5l3-5.5 2.5 4" stroke-linejoin="round"/></svg>En órbita</button>
       <button class="tile" type="button" data-dust="rest" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="19" r="3" fill="currentColor"/><path d="M12 3v10M8.5 9.5L12 13l3.5-3.5"/></svg>Quieto, cae</button>
     </div>
     <div class="row">
       <button class="tile" id="snd" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" id="sndIcon"></svg><span id="sndLbl">Sonido</span></button>
-      <button class="tile" id="dustClr" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 7V4h4v3M6.5 7l1 13h9l1-13"/></svg>Quitar el polvo</button>
+      <button class="tile" id="dustClr" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 7V4h4v3M6.5 7l1 13h9l1-13"/></svg>Quitar polvo y gas</button>
     </div>
   </div>
   <div class="row" role="group" aria-label="Modo">
@@ -133,7 +138,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
     <button class="tile" id="play" type="button"><svg viewBox="0 0 24 24" id="playIcon"></svg><span id="playLbl">Pausa</span></button>
     <button class="tile" id="spd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13l4-4M12 3v2"/></svg><span id="spdLbl">1x</span></button>
     <button class="tile" id="clr" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 7V4h4v3M6.5 7l1 13h9l1-13"/></svg>Borrar</button>
-    <button class="tile" id="dust" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="13" r="1.6"/><circle cx="9" cy="8" r="1.3"/><circle cx="10" cy="16" r="1.8"/><circle cx="14" cy="11" r="1.4"/><circle cx="17" cy="6" r="1.1"/><circle cx="18" cy="15" r="1.6"/><circle cx="13" cy="20" r="1.1"/><circle cx="21" cy="10" r="1"/></svg>Polvo</button>
+    <button class="tile" id="dust" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" id="dustIco" fill="currentColor"><circle cx="5" cy="13" r="1.6"/><circle cx="9" cy="8" r="1.3"/><circle cx="10" cy="16" r="1.8"/><circle cx="14" cy="11" r="1.4"/><circle cx="17" cy="6" r="1.1"/><circle cx="18" cy="15" r="1.6"/><circle cx="13" cy="20" r="1.1"/><circle cx="21" cy="10" r="1"/></svg><span id="dustLbl">Polvo</span></button>
     <button class="tile" id="comet" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="17.5" cy="6.5" r="3" fill="currentColor" stroke="none"/><path d="M15 9L4 20M13 7.5L5 15.5M16.5 11L9 18.5"/></svg>Cometa</button>
     <button class="tile" id="more" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
   </div>
@@ -245,9 +250,14 @@ const dC = new Uint8Array(MAXD), dB = new Uint8Array(MAXD);   // color y brillo 
 // para que miles de granos sigan siendo baratos) y la masa que lo atrapa al chocar se queda con su masa y
 // su impulso. Con el Sol fijo la estrella no se mueve ni crece, así que ahí el polvo sigue sin efecto.
 const DUST_M = 0.01/100;
+// Gas: nubes difusas y livianas (0,002 unidades por trozo, la quinta parte de un grano de polvo). Se
+// guardan junto al polvo marcadas con brillo dB = GAS: sienten la misma gravedad, pero se dibujan como
+// nebulosa, sin puntos.
+const GAS_M = 0.002/100, GAS = 3;
+let gasMat = false;
 let dN = 0, dustTool = false, gax = 0, gay = 0, gHit = null;
 // Colores de estrellas reales: blanco, amarillo, blanco azulado (jóvenes), anaranjado y rojizo (viejas)
-const PAL = [[255,246,232], [255,222,170], [200,220,255], [255,184,135], [255,140,120]];
+const PAL = [[255,246,232], [255,222,170], [200,220,255], [255,184,135], [255,140,120], [255,105,160], [110,165,255], [185,135,255]];   // 5-7: gas
 const PAL_CUM = [0.32, 0.58, 0.82, 0.95, 1];
 const invPow = r => n === 2 ? 1/(r*r) : n === 1 ? 1/r : n === 3 ? 1/(r*r*r) : 1/Math.sqrt(r);
 // "En órbita": cada grano parte con la velocidad de una órbita circular alrededor de la estrella que
@@ -266,10 +276,11 @@ function dustCenter(px, py){                         // [x, y, vx, vy, masa] del
 }
 function addDust(x, y, count){
   if (mode === "nbody" && !bodies.length) return;
+  const gas = gasMat, spread = gas ? 0.3 : 0.12;
   const c0 = mode === "nbody" ? com(bodies) : {VX:0, VY:0};
   for (let k = 0; k < count; k++){
     const g1 = Math.random()+Math.random()-1, g2 = Math.random()+Math.random()-1;   // nube más densa al centro
-    const px = x + g1*0.12, py = y + g2*0.12;
+    const px = x + g1*spread, py = y + g2*spread;
     if (mode === "central" && Math.hypot(px, py) < SUN_R*1.5) continue;
     let vx, vy;
     if (dustRest){ vx = c0.VX; vy = c0.VY; }
@@ -283,6 +294,7 @@ function addDust(x, y, count){
     dX[i] = px; dY[i] = py; dVX[i] = vx; dVY[i] = vy;
     const u = Math.random(); let ci = 0; while (u > PAL_CUM[ci]) ci++;
     const b = Math.random(); dC[i] = ci; dB[i] = b < 0.55 ? 0 : b < 0.97 ? 1 : 2;   // tenue, normal, estrella brillante
+    if (gas){ dC[i] = 5 + ((Math.random()*3)|0); dB[i] = GAS; }
   }
 }
 function accDust(x, y){                              // deja la aceleración en gax, gay; false si el grano cae
@@ -312,12 +324,13 @@ function stepDust(T){
       vx += gax*h; vy += gay*h; x += vx*h; y += vy*h;
     }
     if (nb && !alive && gHit){                       // la masa que lo atrapa crece y recibe su impulso
-      const b = gHit, M = b.m + DUST_M;
-      b.vx = (b.vx*b.m + vx*DUST_M)/M; b.vy = (b.vy*b.m + vy*DUST_M)/M; b.m = M; collapse(b);
+      const b = gHit, mg = dB[i] === GAS ? GAS_M : DUST_M, M = b.m + mg;
+      b.vx = (b.vx*b.m + vx*mg)/M; b.vy = (b.vy*b.m + vy*mg)/M; b.m = M; collapse(b);
     } else if (nb && alive){                          // el grano tira de cada masa (acción y reacción)
+      const mg = dB[i] === GAS ? GAS_M : DUST_M;
       for (const b of bodies){
         const dx = x-b.x, dy = y-b.y, r = Math.sqrt(dx*dx + dy*dy);
-        const a = DUST_M*invPow(Math.max(r, mergeOn ? RMIN : radius(b.m)))/r*T; b.vx += a*dx; b.vy += a*dy;
+        const a = mg*invPow(Math.max(r, mergeOn ? RMIN : radius(b.m)))/r*T; b.vx += a*dx; b.vy += a*dy;
       }
     }
     if (!alive || x*x + y*y > ESCAPE*ESCAPE){ dN--; dX[i] = dX[dN]; dY[i] = dY[dN]; dVX[i] = dVX[dN]; dVY[i] = dVY[dN]; dC[i] = dC[dN]; dB[i] = dB[dN]; i--; continue; }
@@ -335,7 +348,9 @@ function drawDust(){
   if (w !== hw || h !== hh){ hw = w; hh = h; hz.width = w; hz.height = h; hImg = hctx.createImageData(w, h); hAcc = new Float32Array(w*h*3); }
   hAcc.fill(0);
   const ox = cx - camX*scale, oy = cy - camY*scale, WT = [0.5, 1, 2.5];
+  let nGas = 0;
   for (let i = 0; i < dN; i++){
+    if (dB[i] === GAS){ nGas++; continue; }
     const gx = ((ox + dX[i]*scale)/HS)|0, gy = ((oy + dY[i]*scale)/HS)|0;
     if (gx < 0 || gy < 0 || gx >= w || gy >= h) continue;
     const k = (gy*w + gx)*3, c = PAL[dC[i]], wt = WT[dB[i]];
@@ -352,6 +367,7 @@ function drawDust(){
   ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = 0.6; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
   ctx.drawImage(hz, 0, 0, w*HS, h*HS);
+  if (nGas) drawGas(ox, oy);
   ctx.globalAlpha = 1;
   const s0 = Math.max(1, Math.min(1.6, scale/120)), s1 = s0*1.5;
   for (let c = 0; c < PAL.length; c++) for (let b = 0; b < 2; b++){
@@ -365,6 +381,29 @@ function drawDust(){
     ctx.fillStyle = `rgb(${c})`; ctx.beginPath(); ctx.arc(X, Y, 1.4, 0, Math.PI*2); ctx.fill();
   }
   ctx.globalCompositeOperation = "source-over";
+}
+
+const GS = 22, gz = document.createElement("canvas"), gctx = gz.getContext("2d");
+let gw = 0, gh2 = 0, gImg = null, gAcc = null;
+function drawGas(ox, oy){                            // nebulosa: densidad del gas en celdas de 22 px, muy suavizada
+  const w = Math.ceil(Wd/GS) + 2, h = Math.ceil(Hd/GS) + 2;
+  if (w !== gw || h !== gh2){ gw = w; gh2 = h; gz.width = w; gz.height = h; gImg = gctx.createImageData(w, h); gAcc = new Float32Array(w*h*3); }
+  gAcc.fill(0);
+  for (let i = 0; i < dN; i++){
+    if (dB[i] !== GAS) continue;
+    const fx = (ox + dX[i]*scale)/GS + 0.5, fy = (oy + dY[i]*scale)/GS + 0.5, gx = fx|0, gy = fy|0;
+    if (gx < 0 || gy < 0 || gx >= w-1 || gy >= h-1) continue;
+    const c = PAL[dC[i]], tx = fx-gx, ty = fy-gy;    // reparte entre 4 celdas para que no se vean cuadros
+    const k0 = (gy*w + gx)*3, k1 = k0 + 3, k2 = k0 + w*3, k3 = k2 + 3;
+    const w0 = (1-tx)*(1-ty), w1 = tx*(1-ty), w2 = (1-tx)*ty, w3 = tx*ty;
+    for (let q = 0; q < 3; q++){ gAcc[k0+q] += c[q]*w0; gAcc[k1+q] += c[q]*w1; gAcc[k2+q] += c[q]*w2; gAcc[k3+q] += c[q]*w3; }
+  }
+  const d = gImg.data;
+  for (let j = 0, k = 0; j < w*h; j++, k += 3){
+    d[j*4] = 255*(1 - Math.exp(-gAcc[k]/2600)); d[j*4+1] = 255*(1 - Math.exp(-gAcc[k+1]/2600)); d[j*4+2] = 255*(1 - Math.exp(-gAcc[k+2]/2600)); d[j*4+3] = 255;
+  }
+  gctx.putImageData(gImg, 0, 0);
+  ctx.globalAlpha = 0.85; ctx.drawImage(gz, -GS/2, -GS/2, w*GS, h*GS);
 }
 
 // ---------- Crear cuerpos ----------
@@ -694,7 +733,11 @@ function energyText(){
 function updateData(){
   $("energy").textContent = energyText();
   updateData0();
-  if (dN) $("data").textContent += (mode === "nbody" ? "   " : "  ·  ") + "Polvo: " + dN.toLocaleString("es-CL") + " granos";
+  if (!dN) return;
+  let g = 0; for (let i = 0; i < dN; i++) if (dB[i] === GAS) g++;
+  const sep = mode === "nbody" ? "   " : "  ·  ";
+  if (dN - g) $("data").textContent += sep + "Polvo: " + (dN-g).toLocaleString("es-CL") + " granos";
+  if (g) $("data").textContent += sep + "Gas: " + g.toLocaleString("es-CL") + " nubes";
 }
 function updateData0(){
   if (mode === "nbody"){
@@ -811,6 +854,16 @@ $("panBtn").addEventListener("click", () => {
   if (panMode) toast("Arrastra para mover la vista. Con dos dedos también puedes acercar o alejar.", 3500);
 });
 $("center").addEventListener("click", () => { camX = 0; camY = 0; setUZ(1); });
+const DUST_ICO = $("dustIco").innerHTML, GAS_ICO = '<path d="M7 18a4 4 0 0 1-.6-8 5.5 5.5 0 0 1 10.6-1.5A4.5 4.5 0 0 1 17.5 18z" fill="currentColor" opacity="0.35"/><path d="M7 18a4 4 0 0 1-.6-8 5.5 5.5 0 0 1 10.6-1.5A4.5 4.5 0 0 1 17.5 18z"/>';
+document.querySelectorAll("[data-mat]").forEach(b => b.addEventListener("click", () => {
+  gasMat = b.dataset.mat === "gas";
+  document.querySelectorAll("[data-mat]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("dustLbl").textContent = gasMat ? "Gas" : "Polvo";
+  const ico = $("dustIco");
+  if (gasMat){ ico.setAttribute("fill", "none"); ico.setAttribute("stroke", "currentColor"); ico.setAttribute("stroke-width", "1.8"); ico.setAttribute("stroke-linejoin", "round"); ico.innerHTML = GAS_ICO; }
+  else { ico.setAttribute("fill", "currentColor"); ico.removeAttribute("stroke"); ico.innerHTML = DUST_ICO; }
+  toast(gasMat ? "El botón de abajo ahora suelta gas: nubes livianas que también sienten la gravedad" : "El botón de abajo vuelve a soltar polvo", 3500);
+}));
 document.querySelectorAll("[data-dust]").forEach(b => b.addEventListener("click", () => {
   dustRest = b.dataset.dust === "rest";
   document.querySelectorAll("[data-dust]").forEach(x => x.setAttribute("aria-pressed", x === b));
@@ -827,7 +880,8 @@ $("comet").addEventListener("click", () => {
 $("dust").addEventListener("click", () => {
   dustTool = !dustTool; $("dust").setAttribute("aria-pressed", dustTool);
   if (dustTool){ cometTool = false; $("comet").setAttribute("aria-pressed", false); }
-  if (dustTool) toast(dustRest ? "Arrastra por el cielo: el polvo parte quieto y cae" : "Arrastra por el cielo para soltar polvo en órbita", 3500);
+  const what = gasMat ? "gas" : "polvo";
+  if (dustTool) toast(dustRest ? `Arrastra por el cielo: el ${what} parte quieto y cae` : `Arrastra por el cielo para soltar ${what} en órbita`, 3500);
 });
 const SND_ON = '<path d="M4 9h3.5L13 4.5v15L7.5 15H4z" fill="currentColor"/><path d="M16.5 8.5q2 3.5 0 7M19 6q4 6 0 12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/>';
 const SND_OFF = '<path d="M4 9h3.5L13 4.5v15L7.5 15H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="#f27b9b" stroke-width="2.2" stroke-linecap="round"/>';
@@ -851,14 +905,14 @@ cv.addEventListener("pointerdown", e => {
   try { cv.setPointerCapture(e.pointerId); } catch (err) {}
   if (gestureDown(e)) return;
   const [sx, sy] = pos(e);
-  if (dustTool){ drag = {dust:true}; addDust(...toWorld(sx, sy), 60); return; }
+  if (dustTool){ drag = {dust:true}; addDust(...toWorld(sx, sy), gasMat ? 120 : 60); return; }
   if (cometTool){ drag = {sx, sy, ex:sx, ey:sy, comet:true}; return; }
   drag = {sx, sy, ex:sx, ey:sy};
 });
 cv.addEventListener("pointermove", e => {
   if (gestureMove(e)) return;
   if (!drag) return;
-  if (drag.dust){ addDust(...toWorld(...pos(e)), 14); return; }
+  if (drag.dust){ addDust(...toWorld(...pos(e)), gasMat ? 25 : 14); return; }
   [drag.ex, drag.ey] = pos(e);
 });
 cv.addEventListener("pointerup", e => {
