@@ -401,9 +401,9 @@ function preset(name){
   } else if (name === "cuadrado"){                   // 4 masas iguales, órbita circular para la ley activa
     const ac = Math.SQRT2*Math.pow(2, -n/2) + Math.pow(2, -n), v = Math.sqrt(ac);
     for (let k = 0; k < 4; k++){ const a = k*Math.PI/2, x = Math.cos(a), y = Math.sin(a); add(x, y, y*v, -x*v, 1); }
-  } else if (name === "nova"){                       // estrella de 750 unidades; cae otra de 300 → 1050: supernova
-    add(0, 0, 0, 0, 7.5); add(0, -2.8, 0.2, 0, 3);
-    for (const r of [2.3, 3.1]){ const v = Math.sqrt(10.5*Math.pow(r, 1-n)); add(-r, 0, 0, v, 0.1); }
+  } else if (name === "nova"){                       // estrella de 1100 unidades; cae otra de 450 → 1550: supernova
+    add(0, 0, 0, 0, 11); add(0, -2.8, 0.2, 0, 4.5);
+    for (const r of [2.3, 3.1]){ const v = Math.sqrt(15.5*Math.pow(r, 1-n)); add(-r, 0, 0, v, 0.1); }
   } else if (name === "sistema"){                    // estrella masiva y 3 planetas livianos que se perturban
     add(0, 0, 0, 0, 3);
     for (const [r, m] of [[0.7, 0.05], [1.2, 0.08], [1.85, 0.12]]){
@@ -516,14 +516,14 @@ function drawComets(){
 }
 
 // ---------- Supernova, estrella de neutrones y agujero negro ----------
-// Umbral pedido: 1000 unidades (10 Soles, cerca del umbral real de ~8 Soles). Una estrella que llega ahí
-// hace supernova y deja una estrella de neutrones; si ese resto llega a 1000 unidades es un agujero negro.
+// Umbrales (difíciles a propósito): una estrella que llega a 1500 unidades hace supernova y deja una
+// estrella de neutrones (el 30 %); esa estrella colapsa en agujero negro si junta 2500 unidades.
 // (Antes: una estrella de unas 8 masas o más termina en supernova; expulsa
 // la mayor parte de su gas (aquí el 70 %, como polvo que sale disparado) y deja un resto compacto.
 // Si el resto supera unas 3 masas es un agujero negro; si no, una estrella de neutrones, que también
 // colapsa en agujero negro cuando acumula más de 3 masas. La gravedad del resto, a distancia, es la de
 // cualquier masa igual: lo distinto es que nada que lo toque vuelve a salir.
-const M_NOVA = 10, M_BH = 10, NOVA_KEEP = 0.3;   // en masa interna: 10 = 1000 unidades
+const M_NOVA = 15, M_BH = 25, NOVA_KEEP = 0.3;   // en masa interna: 15 = 1500 unidades
 const KIND_TXT = {neutron:"estrella de neutrones", bh:"agujero negro"};
 let novas = [];
 function addDustRaw(x, y, vx, vy, ci, bi){
@@ -639,7 +639,7 @@ function updateCard(){
   let title, text;
   if (mode === "nbody"){
     title = "Masas";
-    text = (mergeOn ? "Todas se atraen. Al chocar se juntan; una estrella que llega a 1000 unidades explota como supernova."
+    text = (mergeOn ? "Todas se atraen. Al chocar se juntan; una estrella que llega a 1500 unidades explota como supernova."
                     : "Todas se atraen entre sí. Al chocar se atraviesan.");
   } else if (kep === 1){
     title = "Elipses";
@@ -907,7 +907,6 @@ function drawEllipse(p){
     ctx.strokeStyle = "#ffc94a"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(Fx-6, Fy-6); ctx.lineTo(Fx+6, Fy+6); ctx.moveTo(Fx+6, Fy-6); ctx.lineTo(Fx-6, Fy+6); ctx.stroke();
     pill("foco vacío", Fx, Fy+20, "#ffc94a");
-    const [S0x, S0y] = toScreen(0, 0); pill("Sol en un foco", S0x, S0y + Math.max(SUN_R*scale, 16) + 18, "#ffc94a");
     const q = a*(1-e), Q = a*(1+e);
     const [Px, Py] = toScreen(q*Math.cos(ang), q*Math.sin(ang)), [Ax, Ay] = toScreen(-Q*Math.cos(ang), -Q*Math.sin(ang));
     ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.arc(Px, Py, 4, 0, Math.PI*2); ctx.arc(Ax, Ay, 4, 0, Math.PI*2); ctx.fill();
@@ -1001,14 +1000,6 @@ function draw(time){
     const pr = mode === "nbody" ? Math.max(7, radius(shownMass(b))*scale*1.5) : (b === sel ? 8 : 6);
     drawBody(b, X, Y, pr, time);
     if (b === sel && mode === "central"){ ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, pr+5, 0, Math.PI*2); ctx.stroke(); }
-    if (mode === "nbody") pill(fmtM(shownMass(b)) + (KIND_TXT[b.kind] ? " · " + KIND_TXT[b.kind] : ""), X, Y - pr - (b.kind === "bh" ? 22 : 12));
-  }
-  for (const gh of ghosts){
-    if (!gh.label || !gh.to) continue;
-    const [X, Y] = toScreen(gh.to.x, gh.to.y);
-    ctx.globalAlpha = gh.t < 0.8 ? 1 : (1-gh.t)/0.2;
-    pill(gh.label, X, Y + Math.max(7, radius(gh.to.m)*scale*1.5) + 20 + gh.t*8, "#ffd97a");
-    ctx.globalAlpha = 1;
   }
   ghosts = ghosts.filter(g => g.t < 1 || (g.label && g.t < 1));
   drawNovas();

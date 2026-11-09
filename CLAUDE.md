@@ -31,8 +31,9 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   arrastrando con dos dedos, con el botón "Mover" o con el botón derecho del mouse; zoom con +/−, pellizco
   o rueda. Polvo galáctico sin masa ("en órbita" alrededor de la estrella dominante o "quieto"),
   dibujado con resplandor tipo Vía Láctea. Cometas sin masa con cola de gas y de polvo que sueltan polvo
-  cerca de la estrella. Una estrella que llega a 1000 unidades hace supernova (expulsa el 70 % como
-  polvo) y deja una estrella de neutrones, que colapsa en agujero negro al llegar a 1000 unidades.
+  cerca de la estrella. Una estrella que llega a 1500 unidades hace supernova (expulsa el 70 % como
+  polvo) y deja una estrella de neutrones, que colapsa en agujero negro al llegar a 2500 unidades.
+  Los cuerpos no llevan textos encima; las masas se leen en la línea de datos detrás de "?".
 - `ondas-sonoras.html`: ondas de presión 2D por diferencias finitas en salas rectangular, circular,
   triangular, elíptica y romboide (paredes rígidas). Modos analíticos (rectángulo, Bessel en círculo,
   Lamé en triángulo) y medidos por FFT en elipse/romboide. Hasta 3 fuentes omni/cardioide/dipolo con
