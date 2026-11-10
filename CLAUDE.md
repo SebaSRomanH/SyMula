@@ -70,10 +70,13 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   malla 200 × 100, modos de Kelvin forzados hacia η_l = h_l·s·(R/d)^(l+1)·P_l con l = 2…12 (Love h_l =
   (2l+1)/(2(l−1))). "Soltar": órbita circular y gravedad de dos cuerpos (leapfrog); al entrar al agua salpica y se
   frena, contra el núcleo choca. Render en la tarjeta gráfica (WebGL2: η como textura R16F, rayos por píxel a
-  resolución completa; color en escala tipo fuego por distancia a la masa —rojo cerca, azul lejos— en 7 franjas,
+  resolución completa; color en escala tipo fuego por distancia a la masa —rojo cerca, azul lejos— en 18 franjas,
   con la luz en tres niveles y una leyenda "cerca de la masa / lejos"; fondo y roca visibles); si no hay WebGL2, el
   mismo dibujo en el procesador con resolución adaptativa. Contorno vectorial. Mouse: moverlo lleva la masa y
   arrastrar gira la vista; dedo: arrastrar lleva la masa ("Girar vista" para girar). Zoom con +/− y rueda.
+  Sin el cuadro de información de arriba (oculto a pedido de Sebas).
+  La masa queda fija en el espacio donde se deja (gira sola solo al comienzo) y se mueve paralela a la pantalla
+  a su propia profundidad: girando la vista se la puede llevar a cualquier punto. Contorno = silueta real.
   Física entre `// @fisica` y `// @fin-fisica`; prueba en `pruebas/mareas.js` (10 comprobaciones).
 - `nave.html` (Beta, oculto: no aparece en `index.html` por decisión de Sebas; solo se abre por su URL): nave que planea viajes por órbitas en 5 sistemas (Sol, Dos soles, Tres soles,
   Cinco cuerpos y Agujero negro con potencial de Paczyński–Wiita, r_g = 0,08, c reducida). Las estrellas

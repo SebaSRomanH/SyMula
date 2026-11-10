@@ -91,7 +91,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-of
 <div class="stage">
   <canvas id="cv" aria-label="Bola de agua: mueve el dedo o el mouse alrededor; su gravedad levanta el agua y hace olas"></canvas>
   <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
-  <div class="card" id="card" aria-live="polite"><h1>Bola de agua</h1><p id="say">Mueve el mouse (o arrastra el dedo) alrededor del agua: su gravedad la levanta y hace olas. Con el mouse, arrastra para girar la vista.</p><p class="data" id="data"></p></div>
+  <div class="card" id="card" aria-live="polite" hidden><h1>Bola de agua</h1><p id="say">Mueve el mouse (o arrastra el dedo) alrededor del agua: su gravedad la levanta y hace olas. Con el mouse, arrastra para girar la vista.</p><p class="data" id="data"></p></div>
   <div class="toast off" id="toast"></div>
   <div class="zoom">
     <button type="button" id="zin" aria-label="Acercar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -182,6 +182,7 @@ const amp = new Float64Array(NK), vel = new Float64Array(NK), aEq = new Float64A
 let px = 2.4, py = 0, tx = 2.4, ty = 0, pointerOn = false, idleT = 99, autoA = 0, sPull = 0;
 // la masa en el espacio: posición P y velocidad V (mundo). "free": suelta, se mueve sola con la gravedad.
 const trail = [];                                       // camino recorrido por la masa suelta
+let touched = false;                                    // ¿ya la movió alguien? (deja de girar sola)
 let P = [2.4, 0, 0], V = [0, 0, 0], free = false, stuck = false, inWater = false, vpx = 0, vpy = 0, mx = 2.4, my = 0, mz = 0;
 
 // ---------- Superficie: 200 puntos alrededor × 100 de polo a polo ----------
@@ -260,7 +261,13 @@ const PAL = {deep:[22, 78, 150], mid:[38, 132, 205], light:[92, 190, 240], foam:
 function drawOutline(){
   ctx.beginPath();
   for (let k = 0; k <= 180; k++){
-    const a = k/180*2*Math.PI, ca = Math.cos(a), sa = Math.sin(a), d = fromCam(ca, sa, 0), r = 1 + surf(d[0], d[1], d[2], false);
+    // la silueta real: en cada dirección de la pantalla, el punto de agua que más sobresale (también los
+    // que están algo adelante o atrás del plano de la pantalla, cuando la masa no está en ese plano)
+    const a = k/180*2*Math.PI, ca = Math.cos(a), sa = Math.sin(a); let r = 0;
+    for (let b = -1.2; b <= 1.21; b += 0.15){
+      const cb = Math.cos(b), d = fromCam(ca*cb, sa*cb, Math.sin(b));
+      r = Math.max(r, (1 + surf(d[0], d[1], d[2], false))*cb);
+    }
     const X = cx + ca*r*R, Y = cy - sa*r*R; k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
   }
   ctx.closePath(); ctx.strokeStyle = "#0c203c"; ctx.lineWidth = Math.max(3, R*0.035); ctx.lineJoin = "round"; ctx.stroke();
@@ -329,9 +336,9 @@ uniform float ext, emax, emin, foamAt, rc, time, halfTexel;
 uniform vec3 Lw, Vw, Pm;       // Pm: posición de la masa que tira
 uniform float dNear, dFar;    // distancias de la superficie a la masa: la más cercana y la más lejana
 const float PI = 3.14159265;
-// Escala tipo fuego en 7 franjas: rojo (cerca de la masa) → naranjo → amarillo → celeste → azul (lejos)
+// Escala tipo fuego en 18 franjas: rojo (cerca de la masa) → naranjo → amarillo → celeste → azul (lejos)
 vec3 fire(float x){
-  x = floor(clamp(x, 0.0, 0.999)*7.0)/6.0;
+  x = floor(clamp(x, 0.0, 0.999)*18.0)/17.0;
   vec3 c0 = vec3(214, 48, 39)/255.0, c1 = vec3(244, 128, 36)/255.0, c2 = vec3(250, 208, 72)/255.0, c3 = vec3(96, 200, 228)/255.0, c4 = vec3(30, 84, 170)/255.0;
   return x < 0.25 ? mix(c0, c1, x/0.25) : x < 0.5 ? mix(c1, c2, (x - 0.25)/0.25) : x < 0.75 ? mix(c2, c3, (x - 0.5)/0.25) : mix(c3, c4, (x - 0.75)/0.25);
 }
@@ -402,7 +409,7 @@ function nearFar(){ const r = Math.hypot(...P); return [Math.max(0, r - 1 - Math
 // La misma escala en el procesador (para equipos sin WebGL2).
 const FIRE = [[214, 48, 39], [244, 128, 36], [250, 208, 72], [96, 200, 228], [30, 84, 170]];
 function fireRGB(x){
-  x = Math.floor(Math.max(0, Math.min(0.999, x))*7)/6;
+  x = Math.floor(Math.max(0, Math.min(0.999, x))*18)/17;
   const k = Math.min(3, Math.floor(x/0.25)), f = (x - 0.25*k)/0.25, a = FIRE[k], b = FIRE[k+1];
   return [a[0] + (b[0] - a[0])*f, a[1] + (b[1] - a[1])*f, a[2] + (b[2] - a[2])*f];
 }
@@ -485,7 +492,7 @@ function drawMass(time){
 // Leyenda de la escala: el color dice qué tan cerca está esa parte del agua de la masa que tira.
 function drawLegend(){
   const w = Math.min(170, W*0.42), h = 10, x = 14, y = H - 40;
-  for (let k = 0; k < 7; k++){ const c = fireRGB(k/6 + 0.001); ctx.fillStyle = `rgb(${c.map(Math.round).join(",")})`; ctx.fillRect(x + k*w/7, y, w/7 + 0.5, h); }
+  for (let k = 0; k < 18; k++){ const c = fireRGB(k/17 + 0.001); ctx.fillStyle = `rgb(${c.map(Math.round).join(",")})`; ctx.fillRect(x + k*w/18, y, w/18 + 0.5, h); }
   ctx.strokeStyle = "#0c203c"; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h);
   ctx.fillStyle = "#e8f0fb"; ctx.font = "600 12px Inter, sans-serif";
   ctx.fillText("cerca de la masa", x, y - 6); ctx.textAlign = "right"; ctx.fillText("lejos", x + w, y - 6); ctx.textAlign = "start";
@@ -507,11 +514,14 @@ function frame(now){
   idleT += dt;
   const rMass = 0.16 + 0.1*mass;
   if (!free){
-    if (!pointerOn && idleT > 6){ autoA += dt*0.7; tx = 2.3*Math.cos(autoA); ty = 2.3*Math.sin(autoA)*0.85; }
-    const k = Math.min(1, dt*14), ox0 = px, oy0 = py; px += (tx - px)*k; py += (ty - py)*k;
-    let d0 = Math.hypot(px, py); if (d0 < D_MIN){ px *= D_MIN/d0; py *= D_MIN/d0; }
-    vpx = 0.8*vpx + 0.2*(px - ox0)/dt; vpy = 0.8*vpy + 0.2*(py - oy0)/dt;   // velocidad del puntero, para lanzarla
-    P = fromCam(px, py, 0); V = fromCam(vpx, vpy, 0);
+    // Al comienzo gira sola para mostrar el efecto; después de tocarla, queda donde la dejes.
+    const auto = !touched && !pointerOn;
+    if (auto){ autoA += dt*0.7; tx = 2.3*Math.cos(autoA); ty = 2.3*Math.sin(autoA)*0.85; }
+    const c = toCam(...P), k = Math.min(1, dt*14);
+    if (auto || pointerOn){ c[0] += (tx - c[0])*k; c[1] += (ty - c[1])*k; }   // se mueve paralela a la pantalla, a su propia profundidad
+    const d0 = Math.hypot(...c); if (d0 < D_MIN) for (let i = 0; i < 3; i++) c[i] *= D_MIN/d0;
+    const Pn = fromCam(...c);
+    for (let i = 0; i < 3; i++){ V[i] = 0.8*V[i] + 0.2*(Pn[i] - P[i])/dt; } P = Pn;
   } else if (T > 0 && !stuck){
     const n = Math.max(2, Math.ceil(T/0.003)), h = T/n;
     for (let s = 0; s < n && !stuck; s++){                      // leapfrog de dos cuerpos
@@ -597,8 +607,10 @@ $("free").addEventListener("click", () => {
   if (!free){
     free = true; stuck = false; inWater = false;
     // sale en órbita circular, en el plano de la pantalla: v = √(G(M + m)/r)
-    const r = Math.hypot(...P), vc = Math.sqrt(M_BALL*(1 + mass)/r), t = fromCam(-my/r, mx/r, 0);
-    V = t.map(v => v*vc); trail.length = 0;
+    const r = Math.hypot(...P), vc = Math.sqrt(M_BALL*(1 + mass)/r), ax = fromCam(0, 0, 1);
+    let t = [ax[1]*P[2] - ax[2]*P[1], ax[2]*P[0] - ax[0]*P[2], ax[0]*P[1] - ax[1]*P[0]];     // perpendicular a la masa y a la vista
+    if (Math.hypot(...t) < 1e-3*r) t = [P[2], 0, -P[0]];                                       // si la masa está justo delante o detrás
+    const tl = Math.hypot(...t); V = t.map(v => v/tl*vc); trail.length = 0;
     toast("¡Suelta! Ahora orbita sola con la gravedad. Cambia su masa o la vista y mira qué pasa.", 4000);
   } else { free = false; stuck = false; toast("Atrapada: vuelve a seguir tu dedo o tu mouse"); }
   syncFree();
@@ -611,7 +623,7 @@ document.querySelectorAll("[data-mass]").forEach(b => b.addEventListener("click"
   toast(mass < 0.5 ? "Una luna liviana: mareas suaves" : mass < 1 ? "Un planeta: mareas y olas grandes" : "¡Una estrella! Tira tan fuerte que el agua salpica");
 }));
 // el puntero es la masa: con mouse basta moverlo; con el dedo, tocar y arrastrar
-function setPointer(e){ const rc = cv.getBoundingClientRect(); tx = (e.clientX - rc.left - cx)/R; ty = -(e.clientY - rc.top - cy)/R; idleT = 0; }
+function setPointer(e){ const rc = cv.getBoundingClientRect(); tx = (e.clientX - rc.left - cx)/R; ty = -(e.clientY - rc.top - cy)/R; idleT = 0; touched = true; }
 // girar la vista: con "Girar vista" activo, o con el botón derecho del mouse
 let turn = null;
 cv.addEventListener("pointermove", e => {
