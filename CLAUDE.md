@@ -46,16 +46,18 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   de la malla para que Reynolds no dependa de la resolución.
 - `flujo-tactil.html`: piscina a pantalla completa, LBM, el dedo agita el agua y genera ondas.
 - `lanzamiento.html`: lanzamiento vertical a escala real con cámara que se aleja y marcas cada 0,1 s.
-- `nave.html` (Beta): nave que planea viajes por órbitas con el Sol fijo (G·M☉ = 1, UA, 1 año = 2π).
-  Venus, Tierra y Marte en círculos exactos; la nave (leapfrog) solo siente al Sol. Plan del motor =
-  instante y Δv a lo largo de la velocidad (Antes/Después ±0,025 años, Frenar/Acelerar ±0,3 km/s),
-  predicción blanca/amarilla con el punto de máximo acercamiento. "Ruta auto" = Hohmann con ventana
-  de lanzamiento. Llegar iguala la velocidad del destino (< 0,045 UA). Combustible 12 km/s, se recarga
-  en los planetas. Cápsula en órbita circular al azar. La física está entre `// @fisica` y
-  `// @fin-fisica` para probarla en Node.
+- `nave.html` (Beta, oculto: no aparece en `index.html` por decisión de Sebas; solo se abre por su URL): nave que planea viajes por órbitas en 5 sistemas (Sol, Dos soles, Tres soles,
+  Cinco cuerpos y Agujero negro con potencial de Paczyński–Wiita, r_g = 0,08, c reducida). Las estrellas
+  y gigantes se mueven en N cuerpos y se calculan una vez (efemérides: leapfrog h = 0,0005, tabla cada
+  0,01, Hermite cúbico); planetas, cápsula y nave no tienen masa. La nave sigue una trayectoria guardada
+  (leapfrog adaptativo) para que recorra exactamente lo que se predijo. Plan = instante + Δv (adelante
+  p, izquierda q). "Ruta auto" = planificador: 24 × 12 × 6 rutas con integrador rápido y afinado por
+  patrones de las 6 mejores (semilla de Hohmann en el sistema solar). Llegar iguala la velocidad (< 0,05
+  UA) y recarga combustible en planetas. Sistemas revisados en Node 20 años; física entre `// @fisica`
+  y `// @fin-fisica`.
 
 ## Fichas de fórmulas (PDF)
-- `docs/<simulador>.pdf`: máximo dos hojas por simulador con las fórmulas que usa; se enlazan desde `index.html`.
+- `docs/<simulador>.pdf`: máximo dos hojas por simulador con las fórmulas que usa; se enlazan desde `index.html` (salvo la nave, oculta).
 - La fuente es `docs/fuentes/<simulador>.html` (KaTeX desde cdnjs). Para regenerar, servir el repo en local
   y imprimir con Edge sin ventana: `msedge --headless=new --no-pdf-header-footer --virtual-time-budget=15000
   --print-to-pdf=docs\<simulador>.pdf http://127.0.0.1:8765/docs/fuentes/<simulador>.html`.

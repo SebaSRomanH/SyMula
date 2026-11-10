@@ -52,23 +52,39 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 [hidden]{display:none!important}
 /* ===== fin del estilo común ===== */
 .beta{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--cyan);color:#06243a;font-size:11px;vertical-align:3px}
+.zoom{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:8px;z-index:3}
+.zoom button{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:rgba(18,26,54,.88);border:1px solid var(--line);color:var(--ink);cursor:pointer}
+.zoom button:disabled{opacity:.4}
+#toast{max-width:calc(100% - 140px)}
 </style>
 </head>
 <body>
 <div class="stage">
-  <canvas id="cv" aria-label="Nave espacial: planea el viaje entre planetas usando las órbitas"></canvas>
+  <canvas id="cv" aria-label="Nave espacial: planea el viaje usando las órbitas"></canvas>
   <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
-  <div class="card" id="card" aria-live="polite"><h1>Nave espacial<span class="beta">Beta</span></h1><p id="say">Elige un destino y planea el viaje.</p><p class="data" id="data">Combustible 12,0 km/s</p></div>
+  <div class="card" id="card" aria-live="polite"><h1>Nave espacial<span class="beta">Beta</span></h1><p id="say">Elige un destino y planea el viaje.</p><p class="data" id="data"></p></div>
+  <div class="zoom">
+    <button type="button" id="zin" aria-label="Acercar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button type="button" id="zout" aria-label="Alejar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+  </div>
   <div class="toast off" id="toast"></div>
 </div>
 <nav class="dock" aria-label="Controles">
-  <div class="lbl">Destino</div>
-  <div class="row" role="group" aria-label="Destino">
-    <button class="tile" type="button" data-target="venus" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#e8c27a"/></svg>Venus</button>
-    <button class="tile" type="button" data-target="tierra" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#4ea3ff"/><path d="M8 9c2 0 2.5 2 4.5 1s2-2.5 3.5-2M7.5 15c2.5-1 3.5 1.5 6 .5" stroke="#7fd07a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Tierra</button>
-    <button class="tile" type="button" data-target="marte" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#e0613a"/><path d="M7 10c3 1 6-1 10 1" stroke="#a8432a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Marte</button>
-    <button class="tile" type="button" data-target="capsula" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="7" y="5" width="10" height="14" rx="5" fill="currentColor" fill-opacity=".25"/><circle cx="12" cy="10" r="2" fill="#5ec8f2" stroke="none"/><path d="M4 12h3M17 12h3"/></svg>Cápsula</button>
+  <div id="sheet" hidden style="display:flex;flex-direction:column;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line)">
+    <div class="lbl">Sistema</div>
+    <div class="row" role="group" aria-label="Sistema">
+      <button class="tile" type="button" data-sys="sol" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#ffd27a"/><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 2.5"/></svg>Sol</button>
+      <button class="tile" type="button" data-sys="dos" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4.5" fill="#ffd27a"/><circle cx="17" cy="12" r="3.5" fill="#ff9f6a"/></svg>Dos soles</button>
+      <button class="tile" type="button" data-sys="tres" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="5.5" cy="9" r="3.2" fill="#ffd27a"/><circle cx="10.5" cy="9" r="3.2" fill="#ffe7a8"/><circle cx="18" cy="16" r="3.6" fill="#ff9f6a"/></svg>Tres soles</button>
+      <button class="tile" type="button" data-sys="cinco" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.6" fill="#ffd27a"/><circle cx="4" cy="8" r="2" fill="#d9a066"/><circle cx="20" cy="9" r="2.2" fill="#c98a5a"/><circle cx="7" cy="20" r="2" fill="#9fb6d9"/><circle cx="18" cy="19.5" r="2.2" fill="#7f9fd0"/></svg>Cinco cuerpos</button>
+      <button class="tile" type="button" data-sys="negro" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="#ff9a3c" stroke-width="2.4"/><circle cx="12" cy="12" r="5" fill="#000" stroke="#ffd27a" stroke-width="1"/></svg>Agujero negro</button>
+    </div>
+    <div class="row">
+      <button class="tile" type="button" id="reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5"/></svg>Empezar de nuevo</button>
+    </div>
   </div>
+  <div class="lbl">Destino</div>
+  <div class="row" role="group" aria-label="Destino" id="targets"></div>
   <div class="lbl">Plan del motor</div>
   <div class="row" role="group" aria-label="Plan del motor">
     <button class="tile" type="button" id="earlier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l-3 2M3 4l3 3M6 3v4H2"/></svg>Antes</button>
@@ -82,219 +98,454 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
     <button class="tile" type="button" id="spd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13l4-4M12 3v2"/></svg><span id="spdLbl">1x</span></button>
     <button class="tile" type="button" id="dock" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>Llegar</button>
     <button class="tile" type="button" id="clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>Quitar plan</button>
-    <button class="tile" type="button" id="reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5"/></svg>Reiniciar</button>
+    <button class="tile" type="button" id="more" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
   </div>
 </nav>
 <script>
 (function(){
 "use strict";
 // @fisica ----------------------------------------------------------------------------------------
-// Unidades: r en UA y G·M☉ = 1, así una órbita circular en r = 1 tarda 2π (1 año) y va a velocidad 1
-// (29,78 km/s, la de la Tierra). Solo el Sol atrae a la nave; los planetas giran en órbitas circulares
-// exactas. (Beta: la gravedad de los planetas sobre la nave no se incluye.)
-const KMS = 29.78, YEAR = 2*Math.PI, H_MAX = 0.003, SUN_R = 0.05, LOST_R = 6;
+// Unidades: r en UA y G·M☉ = 1: una órbita circular en r = 1 alrededor de 1 Sol tarda 2π (1 año) y va a
+// velocidad 1 (29,78 km/s). Las estrellas y el agujero negro se atraen entre sí (N cuerpos); los
+// planetas y la cápsula no tienen masa: sienten a las estrellas, pero no las mueven. La nave tampoco.
+const KMS = 29.78, YEAR = 2*Math.PI;
+const DTAB = 0.01, H_EPH = 0.0005;                   // tabla de posiciones cada 0,01 y paso de los cuerpos
+const ETA_FINE = 0.015, ETA_COARSE = 0.06, H_FINE = 0.004, H_COARSE = 0.03, H_MIN = 1e-6;
+const R_CAP = 0.05;                                  // distancia para poder llegar (UA)
 const wrap2pi = x => ((x % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
-const omega = r => Math.pow(r, -1.5);                // velocidad angular de una órbita circular
-function bodyAng(b, t){ return b.th0 + omega(b.r)*t; }
-function bodyState(b, t){
-  const a = bodyAng(b, t), v = Math.sqrt(1/b.r), c = Math.cos(a), s = Math.sin(a);
-  return {x:b.r*c, y:b.r*s, vx:-v*s, vy:v*c};
+
+// Gravedad por unidad de masa a distancia r. Con un agujero negro se usa el potencial de
+// Paczyński–Wiita, g = M/(r − r_g)², con r_g = 2M/c² (aquí c es 1000 veces menor que la real para que
+// se note): no hay órbitas estables más cerca de 3·r_g y nada sale de r_g.
+const grav = (r, rg) => { const d = r - rg; return 1/(d*d); };
+
+// ---------- Estados iniciales ----------
+function circAround(c, M, r, ang, rg = 0){           // órbita circular alrededor del cuerpo c
+  const v = rg ? Math.sqrt(M*r)/(r - rg) : Math.sqrt(M/r), ca = Math.cos(ang), sa = Math.sin(ang);
+  return {x:c.x + r*ca, y:c.y + r*sa, vx:c.vx - v*sa, vy:c.vy + v*ca};
 }
-function leap(s, h){                                 // leapfrog con el Sol fijo: a = −r/r³
-  let q = Math.pow(s.x*s.x + s.y*s.y, -1.5);
-  s.vx -= s.x*q*h/2; s.vy -= s.y*q*h/2;
-  s.x += s.vx*h; s.y += s.vy*h;
-  q = Math.pow(s.x*s.x + s.y*s.y, -1.5);
-  s.vx -= s.x*q*h/2; s.vy -= s.y*q*h/2;
+function binary(m1, m2, a, ang, c = {x:0, y:0, vx:0, vy:0}, rg = 0){   // pareja en órbita circular
+  const M = m1 + m2, v = rg ? Math.sqrt(M*a)/(a - rg) : Math.sqrt(M/a), ca = Math.cos(ang), sa = Math.sin(ang), f1 = m2/M, f2 = m1/M;
+  return [{x:c.x - a*f1*ca, y:c.y - a*f1*sa, vx:c.vx + v*f1*sa, vy:c.vy - v*f1*ca},
+          {x:c.x + a*f2*ca, y:c.y + a*f2*sa, vx:c.vx - v*f2*sa, vy:c.vy + v*f2*ca}];
 }
-function propagate(s, T){                            // avanza s un tiempo T; false si cae al Sol
-  if (T <= 0) return true;
-  const r = Math.max(Math.hypot(s.x, s.y), SUN_R), k = Math.ceil(T/Math.min(H_MAX, 0.02*Math.pow(r, 1.5))), h = T/k;
-  for (let i = 0; i < k; i++){ leap(s, h); if (s.x*s.x + s.y*s.y < SUN_R*SUN_R) return false; }
-  return true;
+const star = (id, name, m, s, color) => Object.assign({id, name, kind:"star", m, R:0.03*Math.cbrt(m), color}, s);
+const planet = (id, name, s, color, px) => Object.assign({id, name, label:name.replace(/^(la|el) /, "").replace(/^./, c => c.toUpperCase()), kind:"planet", m:0, color, px}, s);
+const com = (...bs) => { let M = 0, x = 0, y = 0, vx = 0, vy = 0; for (const b of bs){ M += b.m; x += b.m*b.x; y += b.m*b.y; vx += b.m*b.vx; vy += b.m*b.vy; } return {m:M, x:x/M, y:y/M, vx:vx/M, vy:vy/M}; };
+
+const SYSTEMS = {
+  sol: {name:"Sol", view:1.75, fuel:12, win:2.2, hor:1.6, dvMax:0.3, home:"tierra", make(){
+    const S = star("sol", "el Sol", 1, {x:0, y:0, vx:0, vy:0}, "#ffd27a");
+    return [S, planet("venus", "Venus", circAround(S, 1, 0.723, 2.4), "#e8c27a", 6.5),
+               planet("tierra", "la Tierra", circAround(S, 1, 1, 0), "#4ea3ff", 7),
+               planet("marte", "Marte", circAround(S, 1, 1.524, 1.1), "#e0613a", 5.5)];
+  }, capsule:{around:["sol"], rmin:0.8, rmax:1.4}},
+  dos: {name:"Dos soles", view:4.1, fuel:15, win:2.5, hor:2.5, dvMax:0.35, home:"aurora", make(){
+    const [a, b] = binary(2.4, 1.6, 1.0, 0);
+    const A = star("solA", "el sol grande", 2.4, a, "#ffd27a"), B = star("solB", "el sol chico", 1.6, b, "#ff9f6a"), C = com(A, B);
+    return [A, B, planet("aurora", "Aurora", circAround(C, 4, 2.6, 0.6), "#7ad9a8", 7),
+                  planet("brisa", "Brisa", circAround(C, 4, 3.6, 3.4), "#b59cff", 6)];
+  }, capsule:{around:["solA", "solB"], rmin:2.3, rmax:3.8}},
+  tres: {name:"Tres soles", view:3.2, fuel:25, win:2.5, hor:2.5, dvMax:0.5, home:"eco", make(){
+    const [p, d] = binary(1.6, 0.8, 4.0, 0), [c1, c2] = binary(0.8, 0.8, 0.3, 0, p);
+    const C1 = star("c1", "un sol de la pareja", 0.8, c1, "#ffd27a"), C2 = star("c2", "un sol de la pareja", 0.8, c2, "#ffe7a8");
+    const D = star("d", "el sol lejano", 0.8, d, "#ff9f6a"), P = com(C1, C2);
+    return [C1, C2, D, planet("eco", "Eco", circAround(P, 1.6, 0.8, 2.0), "#5ec8f2", 6.5),
+                       planet("duna", "Duna", circAround(D, 0.8, 0.35, 1.0), "#e0b061", 6)];
+  }, capsule:{around:["c1", "c2"], rmin:0.75, rmax:0.85}},
+  // Un sol y cuatro gigantes gaseosos que se atraen entre todos (sus órbitas se deforman y giran).
+  // Rubí viaja en el punto de Lagrange L4 del segundo gigante: 60° por delante, en su misma órbita.
+  cinco: {name:"Cinco cuerpos", view:3.8, fuel:30, win:2.5, hor:2.5, dvMax:0.6, home:"musgo", make(){
+    const S = star("s", "el sol", 2, {x:0, y:0, vx:0, vy:0}, "#ffd27a"), ms = [0.005, 0.008, 0.006, 0.008];
+    const R = [0.7, 1.4, 2.4, 3.5], ang = [0.4, 2.2, 4.1, 5.6], col = ["#d9a066", "#c98a5a", "#9fb6d9", "#7f9fd0"];
+    const G = R.map((r, k) => Object.assign(star("g" + k, "un gigante", ms[k], circAround(S, 2 + ms[k], r, ang[k]), col[k]), {kind:"giant", R:0.02}));
+    return [S, ...G, planet("musgo", "Musgo", circAround(S, 2, 0.45, 1.5), "#7fd07a", 6.5),
+                     planet("rubi", "Rubí", circAround(S, 2, 1.4, ang[1] + Math.PI/3), "#ff5d7a", 6)];
+  }, capsule:{around:["s"], rmin:0.9, rmax:1.1}},
+  negro: {name:"Agujero negro", view:2.9, fuel:50, win:2.5, hor:2.5, dvMax:0.6, home:"gema", make(){
+    const RG = 0.08, [h, e] = binary(4, 1, 2.2, 0, undefined, RG);
+    const BH = Object.assign({id:"bh", name:"el agujero negro", kind:"bh", m:4, rg:RG, R:RG, color:"#000"}, h);
+    const E = star("e", "la estrella", 1, e, "#ffd27a");
+    return [BH, E, planet("gema", "Gema", circAround(BH, 4, 0.6, 2.5, RG), "#5ec8f2", 6.5),
+                   planet("faro", "Faro", circAround(E, 1, 0.28, 0.5), "#ffb36b", 6)];
+  }, capsule:{around:["bh"], rmin:0.35, rmax:0.5}}
+};
+// Lleva el centro de masa al origen y en reposo, así la cámara puede quedarse fija.
+function centerBodies(B){
+  const c = com(...B.filter(b => b.m > 0));
+  for (const b of B){ b.x -= c.x; b.y -= c.y; b.vx -= c.vx; b.vy -= c.vy; }
+  return B;
 }
-function burnProgrades(s, dv){                       // encendido a lo largo de la velocidad (dv < 0: frena)
-  const v = Math.hypot(s.vx, s.vy) || 1; s.vx += s.vx/v*dv; s.vy += s.vy/v*dv;
+
+// ---------- Efemérides: el movimiento de todos los cuerpos, calculado una vez ----------
+// Leapfrog con paso fijo H_EPH; se guarda posición y velocidad cada DTAB y se interpola con Hermite
+// cúbico. Como los cuerpos no dependen de la nave, la misma tabla sirve para cualquier ruta.
+function Ephemeris(B){
+  const n = B.length, M = B.map(b => b.m), RG = B.map(b => b.rg || 0);
+  const massive = B.map((b, i) => i).filter(i => M[i] > 0);
+  const x = Float64Array.from(B, b => b.x), y = Float64Array.from(B, b => b.y);
+  const vx = Float64Array.from(B, b => b.vx), vy = Float64Array.from(B, b => b.vy);
+  const ax = new Float64Array(n), ay = new Float64Array(n), tab = [];
+  function acc(){
+    ax.fill(0); ay.fill(0);
+    for (const i of massive) for (let j = 0; j < n; j++){
+      if (j === i || (M[j] > 0 && j < i)) continue;     // cada pareja de masas una sola vez
+      const dx = x[i]-x[j], dy = y[i]-y[j], r = Math.max(Math.hypot(dx, dy), 1e-3) , g = grav(r, Math.max(RG[i], RG[j]))/r;
+      ax[j] += M[i]*g*dx; ay[j] += M[i]*g*dy;
+      if (M[j] > 0){ ax[i] -= M[j]*g*dx; ay[i] -= M[j]*g*dy; }
+    }
+  }
+  const save = () => { const s = new Float64Array(4*n); for (let i = 0; i < n; i++){ s[4*i] = x[i]; s[4*i+1] = y[i]; s[4*i+2] = vx[i]; s[4*i+3] = vy[i]; } tab.push(s); };
+  acc(); save();
+  const per = Math.round(DTAB/H_EPH), h = H_EPH;
+  function ensure(k){
+    while (tab.length <= k) for (let s = 0; s < per; s++){
+      for (let i = 0; i < n; i++){ vx[i] += ax[i]*h/2; vy[i] += ay[i]*h/2; x[i] += vx[i]*h; y[i] += vy[i]*h; }
+      acc();
+      for (let i = 0; i < n; i++){ vx[i] += ax[i]*h/2; vy[i] += ay[i]*h/2; }
+      if (s === per-1) save();
+    }
+  }
+  function state(i, t, out = {}){                    // Hermite cúbico entre dos filas de la tabla
+    const u = Math.max(0, t)/DTAB, k = Math.floor(u), s = u - k; ensure(k+1);
+    const A = tab[k], C = tab[k+1], j = 4*i, s2 = s*s, s3 = s2*s;
+    const h00 = 2*s3 - 3*s2 + 1, h10 = s3 - 2*s2 + s, h01 = -2*s3 + 3*s2, h11 = s3 - s2;
+    const d00 = (6*s2 - 6*s)/DTAB, d10 = 3*s2 - 4*s + 1, d01 = (6*s - 6*s2)/DTAB, d11 = 3*s2 - 2*s;
+    out.x = h00*A[j] + h10*DTAB*A[j+2] + h01*C[j] + h11*DTAB*C[j+2];
+    out.y = h00*A[j+1] + h10*DTAB*A[j+3] + h01*C[j+1] + h11*DTAB*C[j+3];
+    out.vx = d00*A[j] + d10*A[j+2] + d01*C[j] + d11*C[j+2];
+    out.vy = d00*A[j+1] + d10*A[j+3] + d01*C[j+1] + d11*C[j+3];
+    return out;
+  }
+  // Aceleración sobre la nave (o la cápsula) en (px, py) en el instante t.
+  const tmp = {}, sa = {ax:0, ay:0, tdyn:0, hit:null};
+  function shipAcc(px, py, t){
+    sa.ax = 0; sa.ay = 0; sa.tdyn = Infinity; sa.hit = null;
+    for (const i of massive){
+      state(i, t, tmp);
+      const dx = tmp.x - px, dy = tmp.y - py, r = Math.hypot(dx, dy);
+      if (r < B[i].R*(B[i].kind === "bh" ? 1.02 : 1)){ sa.hit = B[i]; return sa; }
+      const g = M[i]*grav(r, RG[i])/r; sa.ax += g*dx; sa.ay += g*dy;
+      const d = r - RG[i]; sa.tdyn = Math.min(sa.tdyn, Math.sqrt(d*d*d/M[i]));
+    }
+    return sa;
+  }
+  return {B, n, massive, state, shipAcc, ensure};
 }
-// Transferencia de Hohmann entre órbitas circulares r1 → r2: una media elipse de semieje a = (r1+r2)/2
-// que dura tH = π·a^1,5. El destino debe ir adelantado lead = π − ω2·tH al salir; se espera hasta que
-// el ángulo entre ambos llegue a ese valor (cambia a razón ω2 − ω1).
-function hohmann(r1, th1, target, t){
-  const r2 = target.r, a = (r1 + r2)/2, tH = Math.PI*Math.pow(a, 1.5);
-  const lead = Math.PI - omega(r2)*tH, d0 = bodyAng(target, t) - th1, rate = omega(r2) - omega(r1);
+
+// Integra una nave (o cápsula) sin masa desde (s, t0) durante T. Leapfrog con paso según el tiempo
+// dinámico más corto: h = η·√(d³/M). cb(s, t) se llama tras cada paso; si devuelve false, se detiene.
+function shipRun(E, s, t0, T, eta, hTop, cb){
+  let t = t0; const tEnd = t0 + T;
+  let a = E.shipAcc(s.x, s.y, t);
+  if (a.hit) return {t, hit:a.hit};
+  let ax = a.ax, ay = a.ay;
+  while (t < tEnd - 1e-12){
+    const h = Math.min(hTop, Math.max(H_MIN, eta*a.tdyn), tEnd - t);
+    s.vx += ax*h/2; s.vy += ay*h/2; s.x += s.vx*h; s.y += s.vy*h; t += h;
+    a = E.shipAcc(s.x, s.y, t);
+    if (a.hit) return {t, hit:a.hit};
+    ax = a.ax; ay = a.ay;
+    s.vx += ax*h/2; s.vy += ay*h/2;
+    if (cb && cb(s, t) === false) return {t, hit:null, stopped:true};
+  }
+  return {t, hit:null};
+}
+// Trayectoria guardada paso a paso (la de la nave y la de la cápsula): se interpola con Hermite y
+// se extiende cuando hace falta. Así la nave sigue exactamente la ruta que se predijo.
+function Track(E, s0, t0, lostR){
+  const ts = [t0], st = [[s0.x, s0.y, s0.vx, s0.vy]];
+  const tr = {ts, st, end:null};
+  tr.extend = tq => {
+    while (!tr.end && ts[ts.length-1] < tq){
+      const l = st[st.length-1], s = {x:l[0], y:l[1], vx:l[2], vy:l[3]}, t0 = ts[ts.length-1];
+      const res = shipRun(E, s, t0, Math.max(0.5, tq - t0), ETA_FINE, H_FINE, (s, t) => {
+        ts.push(t); st.push([s.x, s.y, s.vx, s.vy]);
+        if (s.x*s.x + s.y*s.y > lostR*lostR){ tr.end = {t, lost:true}; return false; }
+      });
+      if (res.hit){ ts.push(res.t); st.push([s.x, s.y, s.vx, s.vy]); tr.end = {t:res.t, hit:res.hit}; }
+    }
+  };
+  let idx = 0;
+  tr.state = (t, out = {}) => {
+    tr.extend(t);
+    if (t <= ts[0]){ const a = st[0]; out.x = a[0]; out.y = a[1]; out.vx = a[2]; out.vy = a[3]; return out; }
+    if (t >= ts[ts.length-1]){ const a = st[st.length-1]; out.x = a[0]; out.y = a[1]; out.vx = a[2]; out.vy = a[3]; return out; }
+    if (idx >= ts.length-1 || ts[idx] > t) idx = 0;
+    if (ts[idx+1] < t){ let lo = idx, hi = ts.length-1; while (hi - lo > 1){ const m = (lo + hi) >> 1; if (ts[m] <= t) lo = m; else hi = m; } idx = lo; }
+    const A = st[idx], C = st[idx+1], dt = ts[idx+1] - ts[idx], s = (t - ts[idx])/dt, s2 = s*s, s3 = s2*s;
+    const h00 = 2*s3 - 3*s2 + 1, h10 = s3 - 2*s2 + s, h01 = -2*s3 + 3*s2, h11 = s3 - s2;
+    const d00 = (6*s2 - 6*s)/dt, d10 = 3*s2 - 4*s + 1, d01 = (6*s - 6*s2)/dt, d11 = 3*s2 - 2*s;
+    out.x = h00*A[0] + h10*dt*A[2] + h01*C[0] + h11*dt*C[2];
+    out.y = h00*A[1] + h10*dt*A[3] + h01*C[1] + h11*dt*C[3];
+    out.vx = d00*A[0] + d10*A[2] + d01*C[0] + d11*C[2];
+    out.vy = d00*A[1] + d10*A[3] + d01*C[1] + d11*C[3];
+    return out;
+  };
+  return tr;
+}
+// Cápsula: órbita circular al azar alrededor de las estrellas indicadas (su centro de masa), desde t.
+function makeCapsule(E, sys, t, rnd = Math.random){
+  const ids = sys.capsule.around.map(id => E.B.findIndex(b => b.id === id));
+  let M = 0, x = 0, y = 0, vx = 0, vy = 0;
+  for (const i of ids){ const s = E.state(i, t), m = E.B[i].m; M += m; x += m*s.x; y += m*s.y; vx += m*s.vx; vy += m*s.vy; }
+  const c = {x:x/M, y:y/M, vx:vx/M, vy:vy/M}, r = sys.capsule.rmin + rnd()*(sys.capsule.rmax - sys.capsule.rmin);
+  return circAround(c, M, r, rnd()*2*Math.PI, ids.length === 1 ? (E.B[ids[0]].rg || 0) : 0);
+}
+// Encendido: dv = p a lo largo de la velocidad (adelante) + q hacia la izquierda de ella.
+function applyBurn(s, p, q){
+  const v = Math.hypot(s.vx, s.vy) || 1, ux = s.vx/v, uy = s.vy/v;
+  s.vx += p*ux - q*uy; s.vy += p*uy + q*ux;
+}
+// Recorre una ruta y busca el máximo acercamiento al destino: distancia, instante y velocidad relativa.
+function evalRoute(E, src, tgt, td, p, q, hor, eta, hTop){
+  const s = src(td); applyBurn(s, p, q);
+  const best = {d:Infinity, t:td, vrel:0, x:s.x, y:s.y, tx:0, ty:0}, g = {};
+  const res = shipRun(E, s, td, hor, eta, hTop, (s, t) => {
+    tgt(t, g); const d = Math.hypot(s.x - g.x, s.y - g.y);
+    if (d < best.d){ best.d = d; best.t = t; best.vrel = Math.hypot(s.vx - g.vx, s.vy - g.vy); best.x = s.x; best.y = s.y; best.tx = g.x; best.ty = g.y; }
+  });
+  if (res.hit && res.t < best.t + 1e-9) best.d = Infinity;   // chocó antes de llegar
+  best.cost = Math.hypot(p, q) + best.vrel + 40*Math.max(0, best.d - 0.4*R_CAP);
+  return best;
+}
+// Planificador: prueba muchos encendidos (momento × dirección × fuerza) con un integrador rápido,
+// y afina los mejores con el integrador fino (búsqueda por patrones). Es un generador: entrega el
+// avance para no congelar la pantalla. Costo = Δv del encendido + Δv para igualar al destino.
+function* planner(E, src, tgt, t0, sys, seeds = []){
+  const K = 24, NA = 12, MAGS = [0.08, 0.16, 0.28, 0.45, 0.7, 1].map(f => f*sys.dvMax);
+  const win = sys.win*YEAR, hor = sys.hor*YEAR, cand = [];
+  let done = 0; const total = K*NA*MAGS.length;
+  for (let k = 0; k < K; k++){
+    const td = t0 + k*win/K;
+    for (let ia = 0; ia < NA; ia++) for (const m of MAGS){
+      const a = ia*2*Math.PI/NA, r = evalRoute(E, src, tgt, td, m*Math.cos(a), m*Math.sin(a), hor, ETA_COARSE, H_COARSE);
+      cand.push({td, p:m*Math.cos(a), q:m*Math.sin(a), cost:r.cost});
+      if (++done % 48 === 0) yield 0.6*done/total;
+    }
+  }
+  for (const s of seeds) cand.push(Object.assign({cost:-1}, s));   // semillas (Hohmann en el sistema solar)
+  cand.sort((a, b) => a.cost - b.cost);
+  const top = cand.slice(0, 6 + seeds.length); let best = null;
+  for (let c = 0; c < top.length; c++){
+    let x = {td:top[c].td, p:top[c].p, q:top[c].q};
+    let fx = evalRoute(E, src, tgt, x.td, x.p, x.q, hor, ETA_FINE, H_FINE);
+    let st = {td:win/K/2, p:sys.dvMax*0.04, q:sys.dvMax*0.04};
+    for (let it = 0; it < 60 && (st.td > 1e-3 || st.p > 1e-4); it++){
+      let improved = false;
+      for (const key of ["td", "p", "q"]) for (const sg of [1, -1]){
+        const y = Object.assign({}, x); y[key] += sg*st[key]; if (y.td < t0) continue;
+        const fy = evalRoute(E, src, tgt, y.td, y.p, y.q, hor, ETA_FINE, H_FINE);
+        if (fy.cost < fx.cost){ x = y; fx = fy; improved = true; }
+      }
+      if (!improved){ st.td /= 2; st.p /= 2; st.q /= 2; }
+    }
+    if (!best || fx.cost < best.r.cost) best = {x, r:fx};
+    yield 0.6 + 0.4*(c+1)/top.length;
+  }
+  return best;
+}
+// Transferencia de Hohmann entre órbitas circulares r1 → r2 alrededor de una masa M (semilla para
+// el sistema solar): media elipse de semieje a = (r1+r2)/2 que dura tH = π·√(a³/M).
+function hohmann(r1, th1, r2, th2, M){
+  const a = (r1 + r2)/2, tH = Math.PI*Math.sqrt(a*a*a/M), w1 = Math.sqrt(M/(r1*r1*r1)), w2 = Math.sqrt(M/(r2*r2*r2));
+  const lead = Math.PI - w2*tH, d0 = th2 - th1, rate = w2 - w1;
   const wait = rate > 0 ? wrap2pi(lead - d0)/rate : wrap2pi(d0 - lead)/(-rate);
-  const dv1 = Math.sqrt(1/r1)*(Math.sqrt(2*r2/(r1 + r2)) - 1);
-  const dv2 = Math.sqrt(1/r2)*(1 - Math.sqrt(2*r1/(r1 + r2)));
-  return {wait, dv1, dv2, tH};
+  const dv1 = Math.sqrt(M/r1)*(Math.sqrt(2*r2/(r1 + r2)) - 1);
+  return {wait, dv1, tH};
 }
 // @fin-fisica -----------------------------------------------------------------------------------
 
-const R_CAP = 0.045, FUEL_MAX = 12/KMS, DV_STEP = 0.01, T_STEP = 0.025*YEAR, SPEEDS = [1, 4, 0.25];
-const PLANETS = {
-  venus: {name:"Venus", r:0.723, th0:2.4, color:"#e8c27a", px:6.5},
-  tierra:{name:"la Tierra", r:1, th0:0, color:"#4ea3ff", px:7},
-  marte: {name:"Marte", r:1.524, th0:1.1, color:"#e0613a", px:5.5}
-};
-const BODIES = Object.values(PLANETS);
+const SPEEDS = [1, 4, 0.25], DT_STEP = 0.025*YEAR, DV_STEP = 0.01;
+const CAPSULE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="7" y="5" width="10" height="14" rx="5" fill="currentColor" fill-opacity=".25"/><circle cx="12" cy="10" r="2" fill="#5ec8f2" stroke="none"/><path d="M4 12h3M17 12h3"/></svg>';
 const $ = id => document.getElementById(id), cv = $("cv"), ctx = cv.getContext("2d");
 const fmt = (v, d) => v.toFixed(d).replace(".", ",").replace(/^-/, "−");
 
-let t = 0, running = false, speed = 1, fuel = FUEL_MAX, plan = null, target = PLANETS.marte;
-let ship = {x:0, y:0, vx:0, vy:0, docked:PLANETS.tierra}, capsule = null, trail = [];
-let pred = null, predT = 0, dirty = true, inRange = false, flame = 0, mission = {t0:0, dv:0};
+let sysId = "sol", sys, B, E, homeIdx, lostR;
+let t = 0, running = false, speed = 1, fuel = 0, plan = null, target = null, capsule = null;
+let ship = {docked:0, track:null}, pred = null, predT = 0, dirty = true, inRange = false, flame = 0, mission = {t0:0, dv:0};
+let planning = null, progress = 0, uz = 1;
 let W = 0, H = 0, dpr = 1, scale = 1, cx = 0, cy = 0, stars = [];
 
-function newCapsule(){                               // órbita circular al azar, lejos de los planetas
-  let r;
-  do r = 0.8 + Math.random()*0.6; while (BODIES.some(b => Math.abs(b.r - r) < 0.1));
-  return {name:"la cápsula", r, th0:Math.random()*2*Math.PI, color:"#5ec8f2", px:4, capsule:true, picked:false};
-}
-function shipNow(){                                  // estado actual de la nave (copia)
-  return ship.docked ? bodyState(ship.docked, t) : {x:ship.x, y:ship.y, vx:ship.vx, vy:ship.vy};
-}
-function setShip(s){ ship.x = s.x; ship.y = s.y; ship.vx = s.vx; ship.vy = s.vy; }
-
-// ---------- Encender el motor ----------
-function burn(){
-  const s = shipNow(); let dv = plan.dv;
-  if (Math.abs(dv) > fuel){ dv = Math.sign(dv)*fuel; toast("Se acabó el combustible: el motor dio lo que pudo."); }
-  else toast(`Motor encendido: ${dv >= 0 ? "acelera" : "frena"} ${fmt(Math.abs(dv)*KMS, 2)} km/s`);
-  burnProgrades(s, dv); setShip(s); ship.docked = null;
-  fuel -= Math.abs(dv); mission.dv += Math.abs(dv); plan = null; flame = 0.6; dirty = true;
-}
-// ---------- Avanzar en el tiempo ----------
-function advance(T){
-  const tEnd = t + T;
-  while (t < tEnd - 1e-12){
-    const stop = plan && plan.t <= tEnd ? Math.max(t, plan.t) : tEnd;
-    if (!ship.docked){
-      const s = shipNow();
-      if (!propagate(s, stop - t)){ t = stop; lost("La nave cayó al Sol."); return; }
-      setShip(s);
-      if (Math.hypot(s.x, s.y) > LOST_R){ t = stop; lost("La nave se perdió en el espacio."); return; }
-    }
-    t = stop;
-    if (plan && t >= plan.t - 1e-12) burn();
+// ---------- Sistema ----------
+function loadSystem(id){
+  planning = null; sysId = id; sys = SYSTEMS[id];
+  B = centerBodies(sys.make()); E = Ephemeris(B); lostR = sys.view*3;
+  homeIdx = B.findIndex(b => b.id === sys.home);
+  t = 0; running = false; plan = null; capsule = null; inRange = false; uz = 1; syncZoom();
+  ship = {docked:homeIdx, track:null}; fuel = sys.fuel/KMS; mission = {t0:0, dv:0};
+  document.querySelectorAll("[data-sys]").forEach(b => b.setAttribute("aria-pressed", b.dataset.sys === id));
+  const row = $("targets"); row.innerHTML = "";
+  const list = B.map((b, i) => i).filter(i => B[i].kind === "planet").map(i => ({i}));
+  list.push({capsule:true});
+  for (const tg of list){
+    const btn = document.createElement("button"); btn.className = "tile"; btn.type = "button";
+    if (tg.capsule){ btn.innerHTML = CAPSULE_ICON + "Cápsula"; btn.dataset.t = "cap"; }
+    else { const b = B[tg.i]; btn.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${b.color}"/></svg>${b.label}`; btn.dataset.t = tg.i; }
+    btn.addEventListener("click", () => setTarget(tg));
+    row.appendChild(btn);
   }
+  setTarget(list.find(x => !x.capsule && x.i !== homeIdx), true);
+  syncPlay(); resize(); dirty = true;
+}
+function setTarget(tg, quiet){
+  planning = null;
+  if (tg.capsule){
+    capsule = {track:Track(E, makeCapsule(E, sys, t), t, lostR), picked:false};
+    target = {capsule:true};
+  } else target = {i:tg.i};
+  document.querySelectorAll("#targets .tile").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === (tg.capsule ? "cap" : String(tg.i))));
+  plan = null; mission = {t0:t, dv:0}; inRange = false; running = false; syncPlay(); dirty = true;
+  if (quiet) return;
+  if (!tg.capsule && tg.i === ship.docked) toast(`Ya estás en ${B[tg.i].name}. Elige otro destino.`);
+  else toast(tg.capsule ? "Hay una cápsula flotando. Toca Ruta auto o arma tu plan." : `Destino: ${B[tg.i].name}. Toca Ruta auto o arma tu plan.`, 3500);
+}
+const tName = () => !target ? "" : target.capsule ? "la cápsula" : B[target.i].name;
+const tColor = () => !target ? "#fff" : target.capsule ? "#5ec8f2" : B[target.i].color;
+const tDone = () => !target || (target.capsule ? !capsule || capsule.picked : target.i === ship.docked);
+function tState(tt, out = {}){ return target.capsule ? capsule.track.state(tt, out) : E.state(target.i, tt, out); }
+function shipState(tt, out = {}){ return ship.docked !== null ? E.state(ship.docked, tt, out) : ship.track.state(tt, out); }
+
+// ---------- Motor ----------
+function burn(){
+  const s = shipState(plan.t); let p = plan.p, q = plan.q, m = Math.hypot(p, q);
+  if (m > fuel){ p *= fuel/m; q *= fuel/m; m = fuel; toast("Se acabó el combustible: el motor dio lo que pudo."); }
+  else toast(`Motor encendido: ${fmt(m*KMS, 1)} km/s`);
+  applyBurn(s, p, q);
+  ship = {docked:null, track:Track(E, s, plan.t, lostR)};
+  fuel -= m; mission.dv += m; plan = null; flame = 0.6; dirty = true;
 }
 function lost(msg){
-  toast(msg + " Vuelve a la Tierra con el combustible lleno.");
-  ship.docked = PLANETS.tierra; fuel = FUEL_MAX; plan = null; trail = []; running = false; syncPlay(); dirty = true;
+  toast(msg + " La nave vuelve al inicio con el combustible lleno.", 5000);
+  ship = {docked:homeIdx, track:null}; fuel = sys.fuel/KMS; plan = null; running = false; syncPlay(); dirty = true;
+}
+function advance(T){
+  const tEnd = t + T;
+  if (plan && plan.t <= tEnd){ t = Math.max(t, plan.t); burn(); }
+  t = tEnd;
+  if (ship.track){
+    ship.track.extend(t);
+    const e = ship.track.end;
+    if (e && t >= e.t){
+      t = e.t;
+      lost(e.hit ? (e.hit.kind === "bh" ? "La nave cruzó el horizonte del agujero negro." : `La nave chocó con ${e.hit.name}.`) : "La nave se perdió en el espacio.");
+    }
+  }
 }
 
-// ---------- Predicción: la órbita actual (blanca) y la del plan (amarilla) ----------
+// ---------- Predicción ----------
 function predict(){
-  const P = {white:[], yellow:[], node:null, best:null};
-  const tgt = target && !target.picked && target !== ship.docked ? target : null;
-  let s = shipNow(), tt = t;
-  const H_P = 0.004;
-  let drawUntil = Infinity;
-  const look = (arr, k) => {
-    if (k % 3 === 0 && tt <= drawUntil) arr.push([s.x, s.y]);
-    if (!tgt) return;
-    const a = bodyAng(tgt, tt), tx = tgt.r*Math.cos(a), ty = tgt.r*Math.sin(a), d = Math.hypot(s.x-tx, s.y-ty);
-    if (!P.best || d < P.best.d) P.best = {d, t:tt, sx:s.x, sy:s.y, tx, ty};
+  const P = {white:[], yellow:[], node:null, best:null}, o = {}, g = {};
+  const check = (x, y, vx, vy, tt) => {
+    if (tDone()) return;
+    tState(tt, g); const d = Math.hypot(x - g.x, y - g.y);
+    if (!P.best || d < P.best.d) P.best = {d, t:tt, sx:x, sy:y, tx:g.x, ty:g.y};
   };
-  const run = (arr, T) => {
-    const k = Math.max(1, Math.ceil(T/H_P)), h = T/k;
-    for (let i = 0; i < k; i++){
-      leap(s, h); tt += h; look(arr, i);
-      const r2 = s.x*s.x + s.y*s.y; if (r2 < SUN_R*SUN_R || r2 > LOST_R*LOST_R) return false;
-    }
-    if (tt <= drawUntil) arr.push([s.x, s.y]);
-    return true;
-  };
-  const horizon = () => {                            // una vuelta de la órbita (o 2 años si se escapa), hasta 3 años
-    const E = (s.vx*s.vx + s.vy*s.vy)/2 - 1/Math.hypot(s.x, s.y);
-    return E < 0 ? Math.min(3*YEAR, 2*Math.PI*Math.pow(-1/(2*E), 1.5)) : 2*YEAR;
-  };
+  const hor = sys.hor*YEAR;
+  if (ship.docked === null){                         // la órbita actual, sin el plan
+    const tEnd = plan ? plan.t : t + hor;
+    for (let tt = t; tt <= tEnd + 1e-9; tt += 0.02){ shipState(tt, o); P.white.push([o.x, o.y]); check(o.x, o.y, o.vx, o.vy, tt); if (ship.track.end && tt > ship.track.end.t) break; }
+  }
   if (plan){
-    if (ship.docked){ s = bodyState(ship.docked, plan.t); tt = plan.t; }
-    else { drawUntil = t + horizon(); if (!run(P.white, plan.t - t)) return P; drawUntil = Infinity; }   // la espera se dibuja solo una vuelta
-    P.node = [s.x, s.y];
-    burnProgrades(s, plan.dv);
-    run(P.yellow, horizon());
-  } else if (!ship.docked) run(P.white, horizon());
+    const s = shipState(plan.t); P.node = [s.x, s.y]; applyBurn(s, plan.p, plan.q);
+    let k = 0; const ty = [plan.t]; P.yellow.push([s.x, s.y]);
+    shipRun(E, s, plan.t, hor, ETA_FINE, H_FINE, (s, tt) => {
+      if (++k % 4 === 0){ P.yellow.push([s.x, s.y]); ty.push(tt); }
+      check(s.x, s.y, s.vx, s.vy, tt);
+      if (s.x*s.x + s.y*s.y > lostR*lostR) return false;
+    });
+    P.yellow.push([s.x, s.y]); ty.push(Infinity);
+    // si hay encuentro, la línea termina poco después de llegar (lo que sigue ya no importa)
+    if (P.best && P.best.d < R_CAP && P.best.t >= plan.t){ const n = ty.findIndex(x => x > P.best.t + 0.03*YEAR); if (n > 0) P.yellow.length = n; }
+  }
   return P;
 }
 
-// ---------- Ruta automática (Hohmann) ----------
+// ---------- Ruta automática ----------
 function autoRoute(){
-  if (!target || target.picked){ toast("Elige primero un destino."); return; }
-  if (target === ship.docked){ toast(`Ya estás en ${target.name}.`); return; }
-  const s = shipNow(), r1 = Math.hypot(s.x, s.y), v = Math.hypot(s.vx, s.vy);
-  const e = Math.hypot((v*v - 1/r1)*s.x - (s.x*s.vx + s.y*s.vy)*s.vx, (v*v - 1/r1)*s.y - (s.x*s.vx + s.y*s.vy)*s.vy);
-  if (e > 0.05){ toast("La ruta automática sale desde un planeta o desde una órbita casi redonda."); return; }
-  if (Math.abs(r1 - target.r) < 0.03){ toast("Ya vas por la órbita del destino: usa Antes, Después, Frenar y Acelerar."); return; }
-  const hm = hohmann(r1, Math.atan2(s.y, s.x), target, t);
-  plan = {t:t + hm.wait, dv:Math.sqrt(1/r1)*Math.sqrt(2*target.r/(r1 + target.r)) - v};
-  dirty = true;
-  toast(`Ruta lista: esperar ${fmt(hm.wait/YEAR, 2)} años y ${plan.dv >= 0 ? "acelerar" : "frenar"} ${fmt(Math.abs(plan.dv)*KMS, 2)} km/s. El viaje dura ${fmt(hm.tH/YEAR, 2)} años.`, 5500);
+  if (tDone()){ toast(target && target.capsule ? "Ya recogiste la cápsula. Elige otro destino." : "Elige un destino distinto de donde estás."); return; }
+  running = false; syncPlay();
+  const src = td => shipState(td, {}), seeds = [];
+  if (sysId === "sol"){                              // en el sistema solar, la transferencia de Hohmann como semilla
+    const a = src(t), b = tState(t), r1 = Math.hypot(a.x, a.y), r2 = Math.hypot(b.x, b.y);
+    const hm = hohmann(r1, Math.atan2(a.y, a.x), r2, Math.atan2(b.y, b.x), 1);
+    seeds.push({td:t + hm.wait, p:Math.sqrt(1/r1)*Math.sqrt(2*r2/(r1 + r2)) - Math.hypot(a.vx, a.vy), q:0});
+  }
+  const gen = planner(E, src, (tt, out) => tState(tt, out), t, sys, seeds), token = {};
+  planning = token; progress = 0;
+  const pump = () => {
+    if (planning !== token) return;
+    const t0 = performance.now();
+    while (performance.now() - t0 < 25){
+      const r = gen.next();
+      if (r.done){ planning = null; finishRoute(r.value); return; }
+      progress = r.value;
+    }
+    setTimeout(pump, 0);
+  };
+  setTimeout(pump, 0);
+}
+function finishRoute(best){
+  if (!best || best.r.d > R_CAP){ toast("No encontré una ruta en los próximos años. Prueba más tarde o arma el plan a mano.", 4500); return; }
+  plan = {t:best.x.td, p:best.x.p, q:best.x.q}; dirty = true;
+  const m = Math.hypot(plan.p, plan.q);
+  toast(`Ruta lista: esperar ${fmt((plan.t - t)/YEAR, 2)} años, encender ${fmt(m*KMS, 1)} km/s y viajar ${fmt((best.r.t - plan.t)/YEAR, 2)} años. Para quedarte: ${fmt(best.r.vrel*KMS, 1)} km/s.`, 6000);
 }
 
-// ---------- Llegar: igualar la velocidad del destino ----------
-function relSpeed(){
-  const s = shipNow(), b = bodyState(target, t);
-  return [Math.hypot(s.x-b.x, s.y-b.y), Math.hypot(s.vx-b.vx, s.vy-b.vy), b];
-}
+// ---------- Llegar ----------
+function rel(){ const s = shipState(t), g = tState(t); return {d:Math.hypot(s.x-g.x, s.y-g.y), v:Math.hypot(s.vx-g.vx, s.vy-g.vy), g}; }
 function arrive(){
   if (!inRange) return;
-  const [, dv, b] = relSpeed();
-  if (dv > fuel + 1e-9){ toast(`Falta combustible: para quedarte necesitas ${fmt(dv*KMS, 2)} km/s.`); return; }
-  fuel -= dv; mission.dv += dv; flame = 0.6; plan = null; inRange = false;
-  const yrs = (t - mission.t0)/YEAR;
+  const r = rel();
+  if (r.v > fuel + 1e-9){ toast(`Falta combustible: para quedarte necesitas ${fmt(r.v*KMS, 1)} km/s.`); return; }
+  fuel -= r.v; mission.dv += r.v; flame = 0.6; plan = null; inRange = false;
+  const yrs = fmt((t - mission.t0)/YEAR, 2), used = fmt(mission.dv*KMS, 1);
   if (target.capsule){
-    target.picked = true; setShip(b); ship.docked = null;
-    toast(`Recogiste la cápsula en ${fmt(yrs, 2)} años usando ${fmt(mission.dv*KMS, 1)} km/s.`, 5500);
+    capsule.picked = true; ship = {docked:null, track:Track(E, r.g, t, lostR)};
+    toast(`Recogiste la cápsula en ${yrs} años usando ${used} km/s.`, 5500);
   } else {
-    ship.docked = target; fuel = FUEL_MAX;
-    toast(`Llegaste a ${target.name} en ${fmt(yrs, 2)} años usando ${fmt(mission.dv*KMS, 1)} km/s. Combustible recargado.`, 5500);
+    ship = {docked:target.i, track:null}; fuel = sys.fuel/KMS;
+    toast(`Llegaste a ${B[target.i].name} en ${yrs} años usando ${used} km/s. Combustible recargado.`, 5500);
   }
   mission = {t0:t, dv:0}; running = false; syncPlay(); dirty = true;
 }
 
 // ---------- Controles ----------
-function setTarget(id){
-  target = id === "capsula" ? (capsule = newCapsule()) : PLANETS[id];
-  document.querySelectorAll("[data-target]").forEach(b => b.setAttribute("aria-pressed", b.dataset.target === id));
-  plan = null; mission = {t0:t, dv:0}; inRange = false; running = false; syncPlay(); dirty = true;
-  if (target === ship.docked) toast(`Ya estás en ${target.name}. Elige otro destino.`);
-  else toast(target.capsule ? "Hay una cápsula flotando en su órbita. Planea cómo alcanzarla." : `Destino: ${target.name}. Toca Ruta auto o arma tu plan.`, 4000);
-}
-document.querySelectorAll("[data-target]").forEach(b => b.addEventListener("click", () => setTarget(b.dataset.target)));
-const ensurePlan = () => { if (!plan) plan = {t, dv:0}; dirty = true; };
-$("earlier").addEventListener("click", () => { ensurePlan(); plan.t = Math.max(t, plan.t - T_STEP); });
-$("later").addEventListener("click", () => { ensurePlan(); plan.t += T_STEP; });
-$("brake").addEventListener("click", () => { ensurePlan(); plan.dv = Math.round((plan.dv - DV_STEP)*1e4)/1e4; });
-$("boost").addEventListener("click", () => { ensurePlan(); plan.dv = Math.round((plan.dv + DV_STEP)*1e4)/1e4; });
+const ensurePlan = () => { planning = null; if (!plan) plan = {t, p:0, q:0}; dirty = true; };
+$("earlier").addEventListener("click", () => { ensurePlan(); plan.t = Math.max(t, plan.t - DT_STEP); });
+$("later").addEventListener("click", () => { ensurePlan(); plan.t += DT_STEP; });
+$("brake").addEventListener("click", () => { ensurePlan(); plan.p = Math.round((plan.p - DV_STEP)*1e4)/1e4; });
+$("boost").addEventListener("click", () => { ensurePlan(); plan.p = Math.round((plan.p + DV_STEP)*1e4)/1e4; });
 $("auto").addEventListener("click", autoRoute);
-$("clear").addEventListener("click", () => { plan = null; dirty = true; });
+$("clear").addEventListener("click", () => { planning = null; plan = null; dirty = true; });
 $("dock").addEventListener("click", arrive);
-$("reset").addEventListener("click", () => {
-  t = 0; ship.docked = PLANETS.tierra; fuel = FUEL_MAX; plan = null; trail = []; inRange = false; running = false;
-  if (target.capsule) target = capsule = newCapsule();
-  mission = {t0:0, dv:0}; syncPlay(); dirty = true;
-});
+$("more").addEventListener("click", () => { const open = $("sheet").hidden; $("sheet").hidden = !open; $("more").setAttribute("aria-pressed", open); setTimeout(resize, 0); });
+document.querySelectorAll("[data-sys]").forEach(b => b.addEventListener("click", () => { loadSystem(b.dataset.sys); toast(`Sistema: ${sys.name}. Estás en ${B[homeIdx].name}.`); }));
+$("reset").addEventListener("click", () => loadSystem(sysId));
 const PLAY = '<path d="M8 5v14l11-7z" fill="currentColor"/>', PAUSE = '<path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/>';
 function syncPlay(){ $("playIco").innerHTML = running ? PAUSE : PLAY; $("playLbl").textContent = running ? "Pausa" : "Seguir"; }
-$("play").addEventListener("click", () => { running = !running; syncPlay(); });
+$("play").addEventListener("click", () => { running = !running; if (running) planning = null; syncPlay(); });
 $("spd").addEventListener("click", () => { speed = SPEEDS[(SPEEDS.indexOf(speed)+1) % SPEEDS.length]; $("spdLbl").textContent = String(speed).replace(".", ",") + "x"; });
+function syncZoom(){ $("zin").disabled = uz >= 6; $("zout").disabled = uz <= 0.5; }
+$("zin").addEventListener("click", () => { uz = Math.min(6, uz*1.5); syncZoom(); resize(); });
+$("zout").addEventListener("click", () => { uz = Math.max(0.5, uz/1.5); syncZoom(); resize(); });
 let toastT = 0;
 function toast(msg, ms = 3500){ const el = $("toast"); el.textContent = msg; el.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add("off"), ms); }
 
-// ---------- Textos de la tarjeta ----------
+// ---------- Textos ----------
 function updateText(){
-  const tn = target ? target.name : "";
+  const tn = tName(), here = ship.docked !== null ? B[ship.docked].name : null;
   let say;
-  if (inRange) say = `Estás junto a ${tn}: toca Llegar para quedarte.`;
-  else if (target && target.picked) say = "Cápsula recogida. Elige otro destino.";
+  if (planning) say = `Buscando la mejor ruta… ${Math.round(progress*100)} %`;
+  else if (inRange) say = `Estás junto a ${tn}: toca Llegar para quedarte (usa ${fmt(rel().v*KMS, 1)} km/s).`;
+  else if (target && target.capsule && capsule && capsule.picked) say = "Cápsula recogida. Elige otro destino.";
   else if (plan) say = `El motor se enciende en ${fmt((plan.t - t)/YEAR, 2)} años.` + (running ? "" : " Toca Seguir.");
-  else if (ship.docked && target === ship.docked) say = `Estás en ${tn}. Elige un destino.`;
-  else if (ship.docked) say = `Estás en ${ship.docked.name}. Destino: ${tn}. Toca Ruta auto o arma el plan.`;
+  else if (here && tDone()) say = `Estás en ${here}. Elige un destino.`;
+  else if (here) say = `Estás en ${here}. Destino: ${tn}. Toca Ruta auto o arma el plan.`;
   else say = `Viajando. Destino: ${tn}.`;
   $("say").textContent = say;
-  let d = `Combustible ${fmt(fuel*KMS, 1)} km/s`;
-  if (plan) d += ` · plan ${plan.dv >= 0 ? "+" : "−"}${fmt(Math.abs(plan.dv)*KMS, 2)} km/s`;
+  let d = `${sys.name} · combustible ${fmt(fuel*KMS, 1)} km/s`;
+  if (plan) d += ` · plan ${fmt(Math.hypot(plan.p, plan.q)*KMS, 1)} km/s`;
   if (pred && pred.best) d += ` · pasas a ${fmt(pred.best.d, 2)} UA`;
   d += ` · año ${fmt(t/YEAR, 2)}`;
   $("data").textContent = d;
@@ -306,68 +557,76 @@ function resize(){
   W = cv.clientWidth; H = cv.clientHeight;
   cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
   const top = $("card").offsetTop + $("card").offsetHeight + 6;
-  scale = 0.5*Math.min(W - 16, H - top - 10)/1.72; cx = W/2; cy = top + (H - top)/2;
+  scale = uz*0.5*Math.min(W - 16, H - top - 10)/sys.view; cx = W/2; cy = top + (H - top)/2;
   stars = []; for (let k = 0; k < 160; k++) stars.push([Math.random()*W, Math.random()*H, Math.random()*1.2 + 0.3, Math.random()]);
 }
 window.addEventListener("resize", resize);
 const toS = (x, y) => [cx + x*scale, cy - y*scale];
 function path(pts){ ctx.beginPath(); pts.forEach(([x, y], k) => { const [X, Y] = toS(x, y); k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); }
+function glow(X, Y, r, c0, c1){ const g = ctx.createRadialGradient(X, Y, 0, X, Y, r); g.addColorStop(0, c0); g.addColorStop(1, c1); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill(); }
 function drawShip(X, Y, ang){
   ctx.save(); ctx.translate(X, Y); ctx.rotate(ang);
   if (flame > 0){ ctx.fillStyle = `rgba(255,170,60,${Math.min(1, flame*2)})`; ctx.beginPath(); ctx.moveTo(-7, -4); ctx.lineTo(-18 - Math.random()*5, 0); ctx.lineTo(-7, 4); ctx.fill(); }
   ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-7, -6); ctx.lineTo(-4, 0); ctx.lineTo(-7, 6); ctx.closePath(); ctx.fill();
   ctx.restore();
 }
+function trailOf(f, from, to, step){ const pts = [], o = {}; for (let tt = from; tt <= to; tt += step){ f(tt, o); pts.push([o.x, o.y]); } f(to, o); pts.push([o.x, o.y]); return pts; }
 function draw(time){
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = "#0b1226"; ctx.fillRect(0, 0, W, H);
   for (const [x, y, r, p] of stars){ ctx.fillStyle = `rgba(220,228,255,${0.25 + 0.35*Math.abs(Math.sin(time/1600 + p*9))})`; ctx.fillRect(x, y, r, r); }
-  // Sol
-  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 34);
-  g.addColorStop(0, "rgba(255,236,170,1)"); g.addColorStop(0.35, "rgba(255,190,70,0.9)"); g.addColorStop(1, "rgba(255,150,40,0)");
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 34, 0, Math.PI*2); ctx.fill();
-  // órbitas de los planetas y de la cápsula
+  const o = {}, from = Math.max(0, t - 0.8*YEAR);
+  // estelas de todos los cuerpos (el último tramo recorrido)
   ctx.lineWidth = 1;
-  for (const b of [...BODIES, ...(capsule && !capsule.picked ? [capsule] : [])]){
-    ctx.strokeStyle = b === target ? "rgba(255,201,74,0.35)" : "rgba(160,175,230,0.18)";
-    ctx.setLineDash(b.capsule ? [3, 5] : []); ctx.beginPath(); ctx.arc(cx, cy, b.r*scale, 0, Math.PI*2); ctx.stroke();
-  }
-  ctx.setLineDash([]);
-  // estela de la nave
-  if (trail.length > 1){ ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 1.5; path(trail); ctx.stroke(); }
+  B.forEach((b, i) => {
+    ctx.strokeStyle = b.kind === "planet" ? "rgba(160,175,230,0.22)" : "rgba(255,210,140,0.18)";
+    path(trailOf((tt, out) => E.state(i, tt, out), from, t, 0.04)); ctx.stroke();
+  });
+  if (capsule && !capsule.picked){ ctx.strokeStyle = "rgba(94,200,242,0.25)"; ctx.setLineDash([3, 5]); path(trailOf(capsule.track.state, Math.max(from, capsule.track.ts[0]), t, 0.04)); ctx.stroke(); ctx.setLineDash([]); }
+  if (ship.track){ ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 1.5; path(trailOf(ship.track.state, Math.max(from, ship.track.ts[0]), t, 0.02)); ctx.stroke(); }
   // predicción
   if (pred){
     if (pred.white.length > 1){ ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 1.5; ctx.setLineDash([4, 6]); path(pred.white); ctx.stroke(); }
     if (pred.yellow.length > 1){ ctx.strokeStyle = "#ffc94a"; ctx.lineWidth = 2.2; ctx.setLineDash([7, 5]); path(pred.yellow); ctx.stroke(); }
     ctx.setLineDash([]);
-    if (pred.node){
-      const [X, Y] = toS(...pred.node);
-      ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.moveTo(X, Y-8); ctx.lineTo(X+8, Y); ctx.lineTo(X, Y+8); ctx.lineTo(X-8, Y); ctx.closePath(); ctx.fill();
-    }
+    if (pred.node){ const [X, Y] = toS(...pred.node); ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.moveTo(X, Y-8); ctx.lineTo(X+8, Y); ctx.lineTo(X, Y+8); ctx.lineTo(X-8, Y); ctx.closePath(); ctx.fill(); }
     const b = pred.best;
-    if (b && target){
+    if (b && !tDone()){
       const [SX, SY] = toS(b.sx, b.sy), [TX, TY] = toS(b.tx, b.ty), hit = b.d < R_CAP;
       ctx.strokeStyle = hit ? "#7be38f" : "rgba(255,255,255,0.5)"; ctx.setLineDash([2, 4]); ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(SX, SY); ctx.lineTo(TX, TY); ctx.stroke(); ctx.setLineDash([]);
-      ctx.strokeStyle = target.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(TX, TY, target.px + 4, 0, Math.PI*2); ctx.stroke();
+      ctx.strokeStyle = tColor(); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(TX, TY, 10, 0, Math.PI*2); ctx.stroke();
       ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.arc(SX, SY, 3.5, 0, Math.PI*2); ctx.fill();
-      if (hit){ ctx.strokeStyle = "#7be38f"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(TX, TY, Math.max(14, R_CAP*scale), 0, Math.PI*2); ctx.stroke(); }
+      if (hit){ ctx.strokeStyle = "#7be38f"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(TX, TY, Math.max(15, R_CAP*scale), 0, Math.PI*2); ctx.stroke(); }
     }
   }
-  // planetas y cápsula
-  for (const b of [...BODIES, ...(capsule && !capsule.picked ? [capsule] : [])]){
-    const s = bodyState(b, t), [X, Y] = toS(s.x, s.y);
-    if (b === target){ ctx.strokeStyle = `rgba(255,201,74,${0.5 + 0.4*Math.sin(time/250)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, Math.max(b.px + 7, R_CAP*scale), 0, Math.PI*2); ctx.stroke(); }
-    if (b.capsule){
-      ctx.save(); ctx.translate(X, Y); ctx.rotate(time/900);
-      ctx.fillStyle = "#cfd8ee"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-3.5, -6, 7, 12, 3.5) : ctx.rect(-3.5, -6, 7, 12); ctx.fill();
-      ctx.restore();
-      ctx.fillStyle = Math.sin(time/200) > 0 ? "#5ec8f2" : "rgba(94,200,242,0.25)"; ctx.beginPath(); ctx.arc(X, Y, 2, 0, Math.PI*2); ctx.fill();
+  // cuerpos
+  B.forEach((b, i) => {
+    E.state(i, t, o); const [X, Y] = toS(o.x, o.y);
+    if (!target.capsule && target.i === i && !tDone()){ ctx.strokeStyle = `rgba(255,201,74,${0.5 + 0.4*Math.sin(time/250)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, Math.max(14, R_CAP*scale), 0, Math.PI*2); ctx.stroke(); }
+    if (b.kind === "bh"){
+      ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.setLineDash([2, 4]); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(X, Y, 3*b.rg*scale, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+      glow(X, Y, Math.max(16, 2.6*b.rg*scale), "rgba(255,150,60,0.55)", "rgba(255,120,40,0)");
+      ctx.strokeStyle = "#ffb15a"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(X, Y, Math.max(7, 1.4*b.rg*scale), 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(X, Y, Math.max(6, b.rg*scale), 0, Math.PI*2); ctx.fill();
+    } else if (b.kind === "star"){
+      const r = 5 + 5*Math.cbrt(b.m);
+      glow(X, Y, r*2.6, "rgba(255,230,160,0.55)", "rgba(255,200,90,0)");
+      ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill();
+    } else if (b.kind === "giant"){
+      ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(X, Y, 6, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.25)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X-5, Y-2); ctx.lineTo(X+5, Y-2); ctx.moveTo(X-5.5, Y+2); ctx.lineTo(X+5.5, Y+2); ctx.stroke();
     } else { ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(X, Y, b.px, 0, Math.PI*2); ctx.fill(); }
+  });
+  if (capsule && !capsule.picked){
+    capsule.track.state(t, o); const [X, Y] = toS(o.x, o.y);
+    if (target.capsule){ ctx.strokeStyle = `rgba(255,201,74,${0.5 + 0.4*Math.sin(time/250)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, Math.max(14, R_CAP*scale), 0, Math.PI*2); ctx.stroke(); }
+    ctx.save(); ctx.translate(X, Y); ctx.rotate(time/900); ctx.fillStyle = "#cfd8ee"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-3.5, -6, 7, 12, 3.5) : ctx.rect(-3.5, -6, 7, 12); ctx.fill(); ctx.restore();
+    ctx.fillStyle = Math.sin(time/200) > 0 ? "#5ec8f2" : "rgba(94,200,242,0.25)"; ctx.beginPath(); ctx.arc(X, Y, 2, 0, Math.PI*2); ctx.fill();
   }
   // nave
-  const s = shipNow(); let [X, Y] = toS(s.x, s.y);
-  if (ship.docked){ const r = Math.hypot(s.x, s.y); X += s.x/r*14; Y -= s.y/r*14; }
+  const s = shipState(t); let [X, Y] = toS(s.x, s.y);
+  if (ship.docked !== null){ const r = Math.hypot(s.x, s.y) || 1; X += s.x/r*14; Y -= s.y/r*14; }
   drawShip(X, Y, Math.atan2(-s.vy, s.vx));
 }
 
@@ -375,21 +634,16 @@ function draw(time){
 let lastT = 0;
 function frame(time){
   const dt = lastT ? Math.min(50, time - lastT) : 16.7; lastT = time;
-  if (running){
-    advance(0.015*speed*dt/16.7);                    // 1 año ≈ 7 s a 1x
-    if (!ship.docked){ const s = shipNow(), l = trail[trail.length-1]; if (!l || Math.hypot(s.x-l[0], s.y-l[1]) > 0.01){ trail.push([s.x, s.y]); if (trail.length > 900) trail.shift(); } }
-  }
+  if (running) advance(0.015*speed*dt/16.7);           // 1 año ≈ 7 s a 1x
   flame = Math.max(0, flame - dt/1000);
-  // ¿junto al destino?
-  const can = target && !target.picked && target !== ship.docked && relSpeed()[0] < R_CAP;
-  if (can && !inRange && running){ running = false; syncPlay(); toast(`Llegaste junto a ${target.name}. Toca Llegar para igualar su velocidad y quedarte.`, 5000); }
+  const can = !tDone() && rel().d < R_CAP;
+  if (can && !inRange && running){ running = false; syncPlay(); toast(`Llegaste junto a ${tName()}. Toca Llegar para igualar su velocidad y quedarte.`, 5000); }
   inRange = can; $("dock").disabled = !can; $("dock").setAttribute("aria-pressed", can);
   if (dirty || (running && time - predT > 250)){ pred = predict(); predT = time; dirty = false; }
   draw(time); updateText();
   requestAnimationFrame(frame);
 }
-resize(); syncPlay();
-document.querySelector('[data-target="marte"]').setAttribute("aria-pressed", "true");
+loadSystem("sol");
 requestAnimationFrame(frame);
 })();
 </script>
