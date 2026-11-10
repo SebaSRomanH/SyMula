@@ -92,7 +92,7 @@ $$a^\text{eq}_{lm}=\eta_l\,\frac{4\pi}{2l+1}\,Y_{lm}(\hat u).$$
 $$\ddot{\vec r}=-\frac{G(M+m)}{r^3}\,\vec r,$$
 <p>integrado con leapfrog en pasos de 0,003. Así sigue un círculo durante 5 vueltas con error menor a 0,001 %.</p>
 <ul>
-<li><b>Al entrar al agua</b> ($r&lt;1+\eta$): la frena el roce, $\vec v\leftarrow\vec v(1-3h)$, y deja un golpe en todos los modos, $\dot a_{lm}\mathrel{-}=A\,e^{-(l/8)^2}Y_{lm}(\hat u)$, más gotas que salpican.</li>
+<li><b>Al entrar al agua</b> ($r&lt;1+\eta$): la frena el roce, $\vec v\leftarrow\vec v(1-3h)$, y deja un golpe en todos los modos, $\dot a_{lm}\mathrel{-}=A\,e^{-(l/8)^2}Y_{lm}(\hat u)$, más 25 000 gotas que salpican y vuelven a caer.</li>
 <li><b>Contra el núcleo</b> ($r&lt;R_c+r_\text{masa}$): los cuerpos chocan, con un golpe mucho mayor y gotas de agua y roca.</li>
 </ul>
 </section>
@@ -100,11 +100,12 @@ $$\ddot{\vec r}=-\frac{G(M+m)}{r^3}\,\vec r,$$
 <h2>El dibujo animado</h2>
 <ul>
 <li><b>Trazado de rayos en la tarjeta gráfica (WebGL2):</b> $\eta$ se sube como textura y cada píxel lanza un rayo que avanza según la distancia que le falta para llegar a la superficie $r=1+\eta$. La normal sale de dos puntos vecinos de la superficie.</li>
-<li><b>Colores:</b> el agua se pinta con una escala tipo fuego según la distancia a la masa que tira. Es roja en la parte más cercana y azul en la más lejana, en 7 franjas:</li>
+<li><b>Colores:</b> el agua se pinta según la <b>fuerza de marea</b> que siente cada punto. Es la atracción de la masa ahí, menos la que siente el centro de la bola:</li>
 </ul>
-$$k=rac{|ec p-ec P|-d_	ext{cerca}}{d_	ext{lejos}-d_	ext{cerca}}.$$
+$$\vec a=GM\Big(\frac{\vec P-\vec p}{|\vec P-\vec p|^3}-\frac{\vec P}{|\vec P|^3}\Big),\qquad a_r=\vec a\cdot\hat p.$$
 <ul>
-<li><b>Luz y leyenda:</b> la luz cambia el tono en tres niveles. Una leyenda en pantalla dice qué significa cada color, así no depende solo del color. El agua poco profunda deja ver el fondo, y aparece roca donde el agua se va.</li>
+<li><b>Escala:</b> 18 franjas, de rojo, «hacia afuera» ($a_r&gt;0$, el agua sube), a azul, «hacia adentro» ($a_r&lt;0$, el agua baja). Lejos de la masa, bajo ella vale $2GM/d^3$ y a 90° vale $-GM/d^3$.</li>
+<li><b>Luz y leyenda:</b> la luz cambia el tono en tres niveles. La leyenda dice qué significa cada color, así no depende solo del color. Como el agua tarda en acomodarse, a veces las jorobas todavía no están donde la fuerza es mayor: así se ven las olas.</li>
 <li><b>Contorno:</b> es vectorial y grueso, trazado por la silueta.</li>
 <li><b>Gotas:</b> son círculos con borde y brillo que vuelven a la bola con $g\propto1/r^2$.</li>
 </ul>

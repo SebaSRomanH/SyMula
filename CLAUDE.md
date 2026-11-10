@@ -68,10 +68,10 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   núcleo de roca (R = 0,62, densidad 3) y océano hasta R = 1. El dedo o el mouse es la masa (Luna/Planeta/Estrella,
   M/m = 0,35/0,8/1,6) que levanta la marea; sin puntero gira sola. Superficie η = Σ a_lm·Y_lm hasta l = 12 en
   malla 200 × 100, modos de Kelvin forzados hacia η_l = h_l·s·(R/d)^(l+1)·P_l con l = 2…12 (Love h_l =
-  (2l+1)/(2(l−1))). "Soltar": órbita circular y gravedad de dos cuerpos (leapfrog); al entrar al agua salpica y se
-  frena, contra el núcleo choca. Render en la tarjeta gráfica (WebGL2: η como textura R16F, rayos por píxel a
-  resolución completa; color en escala tipo fuego por distancia a la masa —rojo cerca, azul lejos— en 18 franjas,
-  con la luz en tres niveles y una leyenda "cerca de la masa / lejos"; fondo y roca visibles); si no hay WebGL2, el
+  (2l+1)/(2(l−1))). "Soltar": órbita circular y gravedad de dos cuerpos (leapfrog); al entrar al agua lanza 25 000
+  gotas (arreglos numéricos, un trazo por color) y se frena; contra el núcleo choca con 25 000 gotas de agua y roca. Render en la tarjeta gráfica (WebGL2: η como textura R16F, rayos por píxel a
+  resolución completa; color = fuerza de marea radial (a·p̂, con a = (P−p)/|P−p|³ − P/|P|³): rojo + (levanta el agua), amarillo 0,
+  azul − (la hunde), en 18 franjas, con la luz en tres niveles y leyenda "Fuerza de marea sobre el agua: ↑ hacia afuera (el agua sube) / hacia adentro ↓ (el agua baja)"; fondo y roca visibles); si no hay WebGL2, el
   mismo dibujo en el procesador con resolución adaptativa. Contorno vectorial. Mouse: moverlo lleva la masa y
   arrastrar gira la vista; dedo: arrastrar lleva la masa ("Girar vista" para girar). Zoom con +/− y rueda.
   Sin el cuadro de información de arriba (oculto a pedido de Sebas).

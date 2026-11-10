@@ -5,7 +5,7 @@
 const {read, build, check} = require("./util");
 const S = read("mareas.html");
 const M = build([S.slice(S.indexOf("// @fisica"), S.indexOf("// @fin-fisica"))],
-  "shAll, NK, LMAX, tideCoefs, stepModes, omega2, etaEq, loveH, relAcc, M_BALL");
+  "shAll, NK, LMAX, tideCoefs, stepModes, omega2, etaEq, loveH, relAcc, M_BALL, tidalRadial, tideScale");
 
 // P_l(x) por la recurrencia de Bonnet, para comparar la suma de armónicos con la fórmula directa.
 function legendre(l, x){ let p0 = 1, p1 = x; if (l === 0) return 1; for (let n = 2; n <= l; n++){ const p2 = ((2*n - 1)*x*p1 - (n - 1)*p0)/n; p0 = p1; p1 = p2; } return p1; }
@@ -47,6 +47,15 @@ module.exports = function(){
     while (t < 5*T){ let a = M.relAcc(s0, ...P); for (let i = 0; i < 3; i++){ V[i] += a[i]*h/2; P[i] += V[i]*h; } a = M.relAcc(s0, ...P); for (let i = 0; i < 3; i++) V[i] += a[i]*h/2; t += h; const r = Math.hypot(...P); rmin = Math.min(rmin, r); rmax = Math.max(rmax, r); }
     check("Bola de agua", "órbita circular de la masa suelta: radio mínimo en 5 vueltas", rmin, r0, 1e-3, " radios");
     check("Bola de agua", "órbita circular de la masa suelta: radio máximo en 5 vueltas", rmax, r0, 1e-3, " radios");
+  }
+  // 6) Fuerza de marea del color: lejos de la masa, bajo ella vale 2GM/d³ y a 90° −GM/d³ (razón −2).
+  {
+    const P = [300, 0, 0], up = M.tidalRadial(1, 0, 0, P), side = M.tidalRadial(0, 1, 0, P);
+    check("Bola de agua", "fuerza de marea bajo la masa (2GM/d³)", up, 2/Math.pow(300, 3), 0.01);
+    check("Bola de agua", "fuerza de marea a 90° (−GM/d³)", side, -1/Math.pow(300, 3), 0.01);
+    const [ap, an] = M.tideScale(2.5);
+    check("Bola de agua", "escala +: igual a la fuerza bajo la masa", ap, M.tidalRadial(1, 0, 0, [2.5, 0, 0]), 1e-9);
+    check("Bola de agua", "escala −: igual a la fuerza a 90°", -an, M.tidalRadial(0, 1, 0, [2.5, 0, 0]), 1e-9);
   }
 };
 if (require.main === module){ module.exports(); require("./util").summary(); }
