@@ -65,6 +65,10 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 .zoom .corner{position:static}
 .corner:disabled{opacity:.4}
 .toast{bottom:72px}
+/* "Solo ver": se oculta todo menos las órbitas; queda un botón tenue para volver */
+body.clean .home,body.clean .card,body.clean #hideDock,body.clean .lbar,body.clean .zoom,body.clean .dock,body.clean .toast{display:none!important}
+#showAll{display:none;left:auto;right:10px;opacity:.55}
+body.clean #showAll{display:grid}
 .corner{position:absolute;left:10px;bottom:10px;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;z-index:3;cursor:pointer;padding:0;
   background:rgba(18,26,54,.88);border:1px solid var(--line);color:var(--ink);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 </style>
@@ -78,8 +82,10 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
   <button class="corner" id="hideDock" type="button" aria-label="Ocultar los botones"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" id="hideIco"><path d="M6 9l6 6 6-6"/></svg></button>
   <div class="lbar">
     <button class="corner wide" id="panBtn" type="button" aria-pressed="false"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11V4a1.5 1.5 0 0 1 3 0v7M14 11V5.5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-6 7-2.5 0-4-1.5-5.5-3.5L3.6 14a1.5 1.5 0 0 1 2.3-1.9L8 14"/></svg>Mover</button>
+    <button class="corner" id="cleanBtn" type="button" aria-label="Solo ver las órbitas"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
     <button class="corner" id="center" type="button" aria-label="Centrar la vista"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
   </div>
+  <button class="corner" id="showAll" type="button" aria-label="Mostrar los botones de nuevo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 21L21 3"/></svg></button>
   <div class="zoom">
     <button class="corner" id="zin" type="button" aria-label="Acercar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="corner" id="zout" type="button" aria-label="Alejar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
@@ -148,7 +154,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 "use strict";
 // Física: unidades con r = 1 (1 UA) de referencia y G·M☉ = 1, así una órbita circular en r = 1
 // tarda 2π unidades = 1 año. Sol fijo: a(r) = 1/r^n.  Masas que se atraen: cada masa j acelera a i con m_j / r^n.
-const DT = 0.0025, SUB = 6, SUN_R = 0.07, ESCAPE = 56, TRAIL = 1500, MAXP = 10, MAXN = 6, RMIN = 0.02;
+const DT = 0.0025, SUB = 6, SUN_R = 0.07, ESCAPE = 56, FAR = 2000, TRAIL = 1500, MAXP = 10, MAXN = 6, RMIN = 0.02;
 const ETA = 0.015, MAXSUB = 4000, TRAIL_STEP = 0.006, YEAR = 2*Math.PI;
 const COLORS = ["#5ec8f2","#f27b9b","#9be37c","#c7a2ff","#ffd166","#4fd1c5","#ff8a5c","#f0a742"];
 const INFO_C = {}, INFO_N = "", FML = {}, KEP = {};   // (textos de la versión técnica: no se usan aquí)
@@ -183,7 +189,7 @@ function stepC(p, h = DT){                           // leapfrog (simpléctico)
   [p.ax, p.ay] = accC(p.x, p.y);
   p.vx += p.ax*h/2; p.vy += p.ay*h/2;
 }
-const aliveC = p => { const r = Math.hypot(p.x, p.y); return r > SUN_R && r < ESCAPE; };
+const aliveC = p => { const r = Math.hypot(p.x, p.y); return r > SUN_R && r < FAR; };
 
 // ---------- Física: N cuerpos ----------
 function accN(bs){
@@ -514,7 +520,7 @@ function stepComets(T){
       c.vx += gax*h/2; c.vy += gay*h/2;
     }
     if (c.dead) continue;
-    if (c.x*c.x + c.y*c.y > ESCAPE*ESCAPE){ c.dead = true; continue; }
+    if (c.x*c.x + c.y*c.y > FAR*FAR){ c.dead = true; continue; }
     const l = c.trail[c.trail.length-1];
     if (Math.hypot(c.x-l[0], c.y-l[1]) > TRAIL_STEP){ c.trail.push([c.x, c.y]); if (c.trail.length > TRAIL) c.trail.shift(); }
     const [sx, sy] = cometSource(c), r = Math.max(Math.hypot(c.x-sx, c.y-sy), 0.05);
@@ -868,6 +874,10 @@ document.querySelectorAll("[data-dust]").forEach(b => b.addEventListener("click"
   dustRest = b.dataset.dust === "rest";
   document.querySelectorAll("[data-dust]").forEach(x => x.setAttribute("aria-pressed", x === b));
 }));
+let clean = false;                                   // "Solo ver": sin botones ni guías de Kepler
+function setClean(on){ clean = on; document.body.classList.toggle("clean", on); }
+$("cleanBtn").addEventListener("click", () => setClean(true));
+$("showAll").addEventListener("click", () => setClean(false));
 $("hideDock").addEventListener("click", () => {
   const hide = !$("dock").hidden; $("dock").hidden = hide;
   $("hideIco").innerHTML = hide ? '<path d="M6 15l6-6 6 6"/>' : '<path d="M6 9l6 6 6-6"/>';
@@ -939,7 +949,23 @@ cv.addEventListener("pointerup", e => {
 cv.addEventListener("pointercancel", e => { gestureUp(e); drag = null; });
 
 // ---------- Dibujo ----------
-const STARS = Array.from({length:140}, () => ({x:Math.random(), y:Math.random(), r:0.3+Math.random()*1.1, p:Math.random()*6.28}));
+// Cielo infinito: tres capas de estrellas que se repiten en mosaico y se desplazan menos cuanto más
+// lejos están (paralaje). Al mover la vista o hacer zoom el cielo sigue sin bordes y se siente hondo.
+const SKY_T = 420, SKY = [[0.05, 90, 0.5], [0.15, 50, 0.85], [0.35, 24, 1.3]].map(([d, n, r0]) => ({d,
+  s:Array.from({length:n}, () => ({x:Math.random()*SKY_T, y:Math.random()*SKY_T, r:r0*(0.6 + Math.random()*0.7), p:Math.random()*6.28}))}));
+function drawSky(time){
+  ctx.fillStyle = "#fff";
+  for (const L of SKY){
+    const z = Math.pow(uz, L.d), T = SKY_T*z;          // con zoom, las capas cercanas se agrandan un poco
+    const ox = ((-camX*scale*L.d) % T + T) % T, oy = ((-camY*scale*L.d) % T + T) % T;
+    for (const st of L.s){
+      ctx.globalAlpha = 0.3 + 0.35*Math.sin(time/900 + st.p);
+      const bx = (st.x*z + ox) % T, by = (st.y*z + oy) % T, r = st.r*Math.sqrt(z);
+      for (let X = bx; X < Wd + r; X += T) for (let Y = by; Y < Hd + r; Y += T){ ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill(); }
+    }
+  }
+  ctx.globalAlpha = 1;
+}
 function path(pts){
   ctx.beginPath();
   for (let k = 0; k < pts.length; k++){ const [X, Y] = toScreen(pts[k][0], pts[k][1]); k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }
@@ -992,10 +1018,6 @@ function drawSectors(){
     ctx.beginPath(); ctx.moveTo(...toScreen(0, 0));
     for (const [x, y] of s.pts){ const [X, Y] = toScreen(x, y); ctx.lineTo(X, Y); }
     ctx.closePath(); ctx.fill(); ctx.stroke();
-    if (s.area !== undefined){
-      const m = s.pts[(s.pts.length/2)|0], [X, Y] = toScreen(m[0]*0.62, m[1]*0.62);
-      pill(fmt(s.area, 3), X, Y, odd ? "#8fd8ff" : "#ffd97a");
-    }
   });
 }
 function drawKepler3(){                               // gráfico T² contra a³ con la recta T² = a³
@@ -1018,9 +1040,8 @@ function draw(time){
   const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(Wd, Hd)*0.8);
   bg.addColorStop(0, "#17204a"); bg.addColorStop(1, "#0b1226");
   ctx.fillStyle = bg; ctx.fillRect(0, 0, Wd, Hd);
-  for (const s of STARS){ ctx.globalAlpha = 0.35 + 0.35*Math.sin(time/900 + s.p); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(s.x*Wd, s.y*Hd, s.r, 0, Math.PI*2); ctx.fill(); }
-  ctx.globalAlpha = 1;
-  if (mode === "central"){
+  drawSky(time);
+  if (mode === "central" && !clean){
     ctx.strokeStyle = "rgba(238,241,255,0.12)"; ctx.setLineDash([3, 6]); ctx.lineWidth = 1;
     const [ux0, uy0] = toScreen(0, 0);
     ctx.beginPath(); ctx.arc(ux0, uy0, scale, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
@@ -1044,7 +1065,7 @@ function draw(time){
   }
   ctx.globalAlpha = 1;
   if (mode === "central"){
-    if (kep === 1 && sel){
+    if (kep === 1 && sel && !clean){
       if (n === 2) drawEllipse(sel);
       ctx.fillStyle = "#ffc94a";
       for (const [x, y] of sel.peris){ const [X, Y] = toScreen(x, y); ctx.beginPath(); ctx.arc(X, Y, 3.5, 0, Math.PI*2); ctx.fill(); }
@@ -1068,11 +1089,11 @@ function draw(time){
     const [X, Y] = toScreen(b.x, b.y);
     const pr = mode === "nbody" ? Math.max(7, radius(shownMass(b))*scale*1.5) : (b === sel ? 8 : 6);
     drawBody(b, X, Y, pr, time);
-    if (b === sel && mode === "central"){ ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, pr+5, 0, Math.PI*2); ctx.stroke(); }
+    if (b === sel && mode === "central" && !clean){ ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, pr+5, 0, Math.PI*2); ctx.stroke(); }
   }
   ghosts = ghosts.filter(g => g.t < 1 || (g.label && g.t < 1));
   drawNovas();
-  if (mode === "central" && kep === 3) drawKepler3();
+  if (mode === "central" && kep === 3 && !clean) drawKepler3();
   // lanzamiento
   if (drag && !drag.dust){
     const [x, y] = toWorld(drag.sx, drag.sy);
@@ -1125,7 +1146,7 @@ function frame(time){
         }
         if (bodies.length < 2) break;
       }
-      bodies = bodies.filter(b => Math.hypot(b.x, b.y) < ESCAPE);
+      bodies = bodies.filter(b => Math.hypot(b.x, b.y) < FAR);
     }
     if (dN) stepDust(T);
     if (comets.length) stepComets(T);

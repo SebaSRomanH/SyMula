@@ -37,6 +37,9 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   cerca de la estrella. Una estrella que llega a 1500 unidades hace supernova (expulsa el 70 % como
   polvo) y deja una estrella de neutrones, que colapsa en agujero negro al llegar a 2500 unidades.
   Los cuerpos no llevan textos encima; las masas se leen en la línea de datos detrás de "?".
+  Botón "Solo ver" (ojo): oculta todos los botones y las guías de Kepler; un ojo tenue abajo a la derecha
+  los devuelve. Cielo infinito: 3 capas de estrellas en mosaico con paralaje. Las masas y cometas solo se
+  olvidan a 2000 UA (el polvo, a 56 UA); los lanzamientos siguen acotados a 0,6 · 56 UA.
 - `ondas-sonoras.html`: ondas de presión 2D por diferencias finitas en salas rectangular, circular,
   triangular, elíptica y romboide (paredes rígidas). Modos analíticos (rectángulo, Bessel en círculo,
   Lamé en triángulo) y medidos por FFT en elipse/romboide. Hasta 3 fuentes omni/cardioide/dipolo con
