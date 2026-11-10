@@ -161,8 +161,8 @@ function tideCoefs(s, d, u, out){
   for (let l = 2; l <= LMAX; l++){ const c = etaEq(l, s, d)*4*Math.PI/(2*l + 1); for (let k = l*l; k < (l+1)*(l+1); k++) out[k] = c*Yu[k]; }
   return out;
 }
-// La bola tiene un núcleo de roca (radio 0,62, densidad 3) bajo una capa de agua hasta el radio 1.
-const R_CORE = 0.62, RHO_CORE = 3;
+// La bola tiene un núcleo de roca (radio 0,45, densidad 3) bajo una capa de agua hasta el radio 1.
+const R_CORE = 0.45, RHO_CORE = 3;   // núcleo chico: el agua se ve como un océano de superficie
 const M_BALL = (4*Math.PI/3)*(RHO_CORE*Math.pow(R_CORE, 3) + (1 - Math.pow(R_CORE, 3)));   // G·m de la bola
 // Masa suelta: movimiento relativo de dos cuerpos, r'' = −G(M + m)·r/|r|³, con M = s·m.
 function relAcc(s, x, y, z){ const r = Math.hypot(x, y, z), k = -M_BALL*(1 + s)/(r*r*r); return [k*x, k*y, k*z]; }
@@ -185,6 +185,7 @@ const $ = id => document.getElementById(id), cv = $("cv"), ctx = cv.getContext("
 const fmt = (v, dd) => v.toFixed(dd).replace(".", ",");
 const NAMES = {"0.35":"Luna", "0.8":"Planeta", "1.6":"Estrella"};
 const GAMMA = 0.1, D_MIN = 1.22;
+const TIDE_GAIN = 0.4;   // el agua se mueve el 40 % de la marea de equilibrio: se ve como un océano, no como un globo
 let mass = 0.8, running = true, showAxes = true, W = 0, H = 0, dpr = 1, R = 100, R0 = 100, cx = 0, cy = 0, rotMode = false;
 const amp = new Float64Array(NK), vel = new Float64Array(NK), aEq = new Float64Array(NK);
 // la masa: posición en el plano de la pantalla (unidades de radio), con el puntero o girando sola
@@ -212,7 +213,8 @@ function updateSurface(){
   eta.fill(0);
   for (let k = 4; k < NK; k++){ const c = amp[k]; if (Math.abs(c) < 1e-7) continue; const o = k*NG; for (let p = 0; p < NG; p++) eta[p] += c*BASIS[o + p]; }
   etaMax = -1; etaMin = 1;
-  for (let p = 0; p < NG; p++){ let e = eta[p]; e = e > 0.55 ? 0.55 + 0.3*Math.tanh((e - 0.55)/0.3) : Math.max(R_CORE - 1, e); eta[p] = e; if (e > etaMax) etaMax = e; if (e < etaMin) etaMin = e; }
+  // Capa delgada: las alturas se suavizan desde ±0,12 (arriba hasta 0,22; abajo, como mucho hasta la roca).
+  for (let p = 0; p < NG; p++){ let e = eta[p]; e = e > 0.12 ? 0.12 + 0.1*Math.tanh((e - 0.12)/0.1) : e < -0.12 ? Math.max(R_CORE - 1, -0.12 - 0.3*Math.tanh((-0.12 - e)/0.3)) : e; eta[p] = e; if (e > etaMax) etaMax = e; if (e < etaMin) etaMin = e; }
   const dth = Math.PI/NLAT, dph = 2*Math.PI/NLON;
   for (let j = 0; j < NLAT; j++){
     const st = Math.max(sinT[j], 0.05), ct = cosT[j], jn = Math.min(NLAT - 1, j + 1), jp = Math.max(0, j - 1);
@@ -562,13 +564,13 @@ function frame(now){
       if (r < rs + rMass*0.5){
         if (!inWater){                                           // ¡al agua! gran salpicadura y olas
           inWater = true; const sp = Math.hypot(...V), uc = toCam(...u), L2 = Math.hypot(uc[0], uc[1]) || 1;
-          hitImpulse(u, Math.min(4, 0.6*sp*mass)); burst(uc[0]/L2, uc[1]/L2, rs, SPLASH_N, 1.2 + 0.3*sp, false);
+          hitImpulse(u, Math.min(2, 0.3*sp*mass)); burst(uc[0]/L2, uc[1]/L2, rs, SPLASH_N, 1.2 + 0.3*sp, false);
         }
         for (let i = 0; i < 3; i++) V[i] *= 1 - Math.min(0.5, 3*h);   // el agua la frena
       } else inWater = false;
       if (r < R_CORE + rMass){                                   // choca con el núcleo de roca
         stuck = true; const uc = toCam(...u), L2 = Math.hypot(uc[0], uc[1]) || 1;
-        hitImpulse(u, 3.5*mass); burst(uc[0]/L2, uc[1]/L2, 1, SPLASH_N, 2.6, true);
+        hitImpulse(u, 1.75*mass); burst(uc[0]/L2, uc[1]/L2, 1, SPLASH_N, 2.6, true);
         toast("¡Chocaron! La masa golpeó el núcleo de roca: el agua y la roca salpican por todos lados.", 5000);
       }
     }
@@ -580,7 +582,7 @@ function frame(now){
   sPull += ((stuck ? 0 : 1) - sPull)*Math.min(1, dt*3);   // la masa siempre tira (también cuando queda quieta)
   if (T > 0){
     const r0 = Math.hypot(...P) || 1, u = P.map(v => v/r0);
-    tideCoefs(mass*sPull, dm, u, aEq);
+    tideCoefs(mass*sPull*TIDE_GAIN, dm, u, aEq);
     const n = Math.max(4, Math.ceil(T*Math.sqrt(omega2(LMAX))/0.15)), h = T/n;
     for (let s = 0; s < n; s++) stepModes(amp, vel, aEq, h, GAMMA);
     emitSpray(T); stepSpray(T);

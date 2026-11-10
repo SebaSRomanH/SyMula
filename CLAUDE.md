@@ -65,8 +65,8 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
 - `flujo-tactil.html`: piscina a pantalla completa, LBM, el dedo agita el agua y genera ondas.
 - `lanzamiento.html`: lanzamiento vertical a escala real con cámara que se aleja y marcas cada 0,1 s.
 - `mareas.html` (Bola de agua, estilo dibujo animado; reemplazó al simulador de mareas): bola fija al centro con
-  núcleo de roca (R = 0,62, densidad 3) y océano hasta R = 1. El dedo o el mouse es la masa (Luna/Planeta/Estrella,
-  M/m = 0,35/0,8/1,6) que levanta la marea; sin puntero gira sola. Superficie η = Σ a_lm·Y_lm hasta l = 12 en
+  núcleo de roca (R = 0,45, densidad 3) y océano hasta R = 1. El dedo o el mouse es la masa (Luna/Planeta/Estrella,
+  M/m = 0,35/0,8/1,6) que levanta la marea; sin puntero gira sola. Superficie (marea al 40 %, capa delgada: alturas suavizadas desde ±0,12) η = Σ a_lm·Y_lm hasta l = 12 en
   malla 200 × 100, modos de Kelvin forzados hacia η_l = h_l·s·(R/d)^(l+1)·P_l con l = 2…12 (Love h_l =
   (2l+1)/(2(l−1))). "Soltar": órbita circular y gravedad de dos cuerpos (leapfrog); al entrar al agua lanza 25 000
   gotas (arreglos numéricos, un trazo por color) y se frena; contra el núcleo choca con 25 000 gotas de agua y roca. Render en la tarjeta gráfica (WebGL2: η como textura R16F, rayos por píxel a
