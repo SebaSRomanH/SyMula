@@ -1,31 +1,23 @@
-// Mareas: amplitudes de equilibrio de la Luna y el Sol, y los ritmos que salen de las órbitas:
-// marea semidiurna lunar (M2, 12,42 h), solar (S2, 12 h) y ciclo de mareas vivas y muertas (14,77 días).
+// Bola de agua: deformación de marea de una esfera líquida (número de Love h₂ = 5/2), límite de Roche
+// y oscilación propia (modo l = 2 de Kelvin), contra los valores de los libros.
 "use strict";
-const {read, build, check, spectrum, peaks} = require("./util");
+const {read, build, check} = require("./util");
 const S = read("mareas.html");
-const M = build([S.slice(S.indexOf("// @fisica"), S.indexOf("// @fin-fisica"))],
-  "A_MOON, A_SUN, moonDir, sunDir, axes, surfaceNormal, tideAt, W_SPIN");
+const M = build([S.slice(S.indexOf("// @fisica"), S.indexOf("// @fin-fisica"))], "qEq, roche, W2, HOURS, tidalAcc, GM");
 
 module.exports = function(){
-  check("Mareas", "amplitud de la marea lunar A = (M/M_T)(R/d)³R", M.A_MOON, 0.358, 0.01, " m");
-  check("Mareas", "amplitud de la marea solar", M.A_SUN, 0.164, 0.01, " m");
-  check("Mareas", "razón Sol / Luna (0,46 en los libros)", M.A_SUN/M.A_MOON, 0.46, 0.02);
-  // Serie de la marea en un punto del ecuador durante 60 días, cada 6 minutos.
-  const ax = M.axes(0), dt = 0.1/24, n = Math.round(60/dt), only = [], both = [];
-  for (let k = 0; k < n; k++){
-    const t = k*dt, p = M.surfaceNormal(ax, 0, 0.3, t);
-    only.push(M.tideAt(p, M.moonDir(t), M.sunDir(t), M.A_MOON, 0));
-    both.push(M.tideAt(p, M.moonDir(t), M.sunDir(t), M.A_MOON, M.A_SUN));
-  }
-  const top = sig => { const {P, N} = spectrum(sig); return peaks(P, 3, 1e-3).sort((a, b) => b.p - a.p).map(q => q.k/(N*dt)); };
-  const f = top(only)[0];
-  check("Mareas", "periodo de la marea lunar (M2)", 24/f, 12.4206, 0.003, " h");
-  const fs = top(both).sort((a, b) => a - b).filter(x => x > 1.5);   // los dos picos semidiurnos: M2 y S2
-  const fS2 = fs.reduce((b, x) => Math.abs(x - 2) < Math.abs(b - 2) ? x : b);
-  check("Mareas", "periodo de la marea solar (S2)", 24/fS2, 12.0, 0.003, " h");
-  check("Mareas", "ciclo de mareas vivas y muertas (1/(f_S2 − f_M2))", 1/(fS2 - f), 14.765, 0.01, " días");
-  // Rango máximo y mínimo en el ecuador: vivas = 1,5·(A_L + A_S), muertas = 1,5·(A_L − A_S) (eje recto, Luna sin inclinar).
-  let hi = -9, lo = 9; for (const v of both){ hi = Math.max(hi, v); lo = Math.min(lo, v); }
-  check("Mareas", "marea más alta en el ecuador (vivas: A_L + A_S)", hi, M.A_MOON + M.A_SUN, 0.02, " m");
+  check("Bola de agua", "unidad de tiempo 1/√(G·ρ_agua)", M.HOURS, 1.0753, 0.002, " h");
+  check("Bola de agua", "periodo de la oscilación propia (Kelvin l = 2)", 2*Math.PI/Math.sqrt(M.W2)*M.HOURS, 3.69, 0.01, " h");
+  // Estiramiento (a − b)/R = (3/2)·q = (15/4)·(M/m)·(R/d)³; acero a 8 radios:
+  check("Bola de agua", "estiramiento con acero a 8 radios", 1.5*M.qEq(7.85, 8), 15/4*7.85/512, 1e-9);
+  // Roche de un líquido: 2,44·R·(ρ/ρ_agua)^(1/3); con oro: 2,44·19,32^(1/3) ≈ 6,55
+  check("Bola de agua", "límite de Roche con oro", M.roche(19.32), 2.44*Math.cbrt(19.32), 1e-9, " radios");
+  check("Bola de agua", "límite de Roche con metano (menos que el contacto: nunca rompe)", M.roche(0.49), 1.92, 0.01, " radios");
+  // En el límite de Roche, q no depende del material: (5/2)/2,44³ ≈ 0,172
+  check("Bola de agua", "q en el límite de Roche (igual para todo material)", M.qEq(13.53, M.roche(13.53)), 2.5/Math.pow(2.44, 3), 1e-9);
+  // Marea sobre una gota: a_x = 2GM·x/d³ (estira) y a_y = −GM·y/d³ (aprieta)
+  const [ax, ay] = M.tidalAcc(7.85, 5, 1, 1, 0), k = M.GM(7.85)/125;
+  check("Bola de agua", "marea a lo largo del eje x (2GM·x/d³)", ax, 2*k, 1e-12);
+  check("Bola de agua", "marea a lo largo del eje y (−GM·y/d³)", ay, -k, 1e-12);
 };
 if (require.main === module){ module.exports(); require("./util").summary(); }

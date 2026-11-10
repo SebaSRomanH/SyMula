@@ -6,22 +6,33 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
 ## Convenciones
 - Cada simulador es un único archivo HTML autocontenido (CSS y JS dentro), sin build ni dependencias.
 - Solo fuentes de Google Fonts y scripts de cdnjs si hacen falta; nada más externo.
-- Tema oscuro, textos en español, sin emojis, pensado primero para celular en vertical.
+- Textos en español, sin emojis, pensado primero para celular en vertical.
 - Soluciones mínimas y funcionales: no sobre-ingeniería.
 - Antes de cambiar física, verificar numéricamente (por ejemplo con Node, simulando sin DOM).
 
-## Diseño común (niños desde 5 años, celular primero)
-- Todos los simuladores comparten el bloque CSS entre `SyMula: estilo común` y `fin del estilo común`;
-  si se cambia, copiarlo idéntico en todos. Fuente Nunito, fondo #0b1226, acento #ffc94a.
-- Estructura fija: botón de inicio arriba a la izquierda (vuelve a `index.html`), tarjeta con título,
-  una frase de instrucción y una línea de datos reales; controles abajo en `.dock`.
-- Botones `.tile` de al menos 60 px con ícono y una o dos palabras. Sin menús desplegables, sin gestos
-  ocultos (doble toque) y sin sliders en la vista principal: lo avanzado va en el panel "Más".
+## Diseño común: sistema SyMula UX/UI v1.0
+- Objetivo: aplicación científica, elegante, legible y responsiva, que invite a experimentar sin verse infantil.
+- Todos los simuladores comparten el bloque CSS entre `SyMula: estilo común` y `fin del estilo común`; si se cambia,
+  copiarlo idéntico en todos. `index.html` y `docs/ver.html` usan los mismos tokens (temas y alias).
+- Tres temas (claro, oscuro, verde nocturno) con tokens background, surface, surface-2, text, text-muted, primary,
+  primary-text, accent, border, control-border y una paleta de datos sem-1…sem-5. El tema se guarda en
+  localStorage (`symula-tema`); sin elección se sigue `prefers-color-scheme`. Script de tema en el `<head>` y
+  selector (`data-theme-set`) al final del `<body>`, idénticos en todas las páginas; `SyMulaColor("token")` da los
+  colores del tema para dibujar en el lienzo y el evento `symula-tema` avisa del cambio.
+- Fuente Inter para la interfaz; fórmulas con KaTeX en las fichas. Tarjetas con borde discreto y radio de 12 px,
+  separación de 16 a 24 px; botones de al menos 44 px (los `.tile` 56 px) con hover, foco, deshabilitado y cargando
+  (`aria-busy="true"`). Sin sombras intensas, neón ni degradados decorativos en la interfaz.
+- WCAG AA: texto ≥ 4,5:1 y componentes ≥ 3:1; `node pruebas/contraste.js` lo verifica con los tokens reales.
+- No comunicar resultados solo con color: etiquetas, leyendas o símbolos. Las escenas de espacio se dibujan oscuras
+  en todos los temas; en el nocturno el lienzo pasa a verde suave (sin fluorescencia).
+- Estructura: botón de inicio arriba a la izquierda, tarjeta con título, una frase y una línea de datos reales;
+  controles abajo en `.dock`; lo avanzado y el selector de tema en el panel "Más".
 - Simulación ligada al tiempo real (pasos según dt, igual a 60 y 120 Hz) con un tope de ms por cuadro;
   los LBM ajustan solos la resolución de la malla según lo que el equipo alcanza.
 
 ## Simuladores
-- `index.html`: página de inicio que enlaza todos los simuladores.
+- `index.html`: página de inicio que enlaza todos los simuladores. El logo (`img/symula-logo.png`, con texto de respaldo
+  si falta) es también el enlace escondido a `nave.html`; en temas oscuros va sobre una placa clara.
 - `gravitacion.html`: gravitación y leyes de Kepler. Leapfrog con paso adaptativo (√(rⁿ⁺¹/M)),
   ley de fuerza 1/rⁿ con n = 0,5 / 1 / 2 / 3, modo Sol fijo y modo N cuerpos (hasta 4) con fusión
   que conserva masa y momento. Vistas de 1.ª ley (elipse osculadora y focos), 2.ª (áreas por sectores
@@ -53,11 +64,12 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   de la malla para que Reynolds no dependa de la resolución.
 - `flujo-tactil.html`: piscina a pantalla completa, LBM, el dedo agita el agua y genera ondas.
 - `lanzamiento.html`: lanzamiento vertical a escala real con cámara que se aleja y marcas cada 0,1 s.
-- `mareas.html`: marea de equilibrio h = A·(3/2·cos²ψ − 1/2) de la Luna (A = 0,358 m) y el Sol (0,164 m) sobre
-  un planeta inventado con ruido fractal (tabla 1024 × 512, 30 % de tierra, se genera por partes). Vista 3D
-  píxel a píxel con eje inclinado 23,44°, Luna inclinada 5,14°, día sidéreo; costas que se inundan con la marea
-  exagerada ×1/×100/×400, jorobas dibujadas en el contorno, puerto tocando la costa y gráfico de ±24 h.
-  Resolución adaptativa (≤ 9 ms por cuadro). Física entre `// @fisica` y `// @fin-fisica`; prueba en `pruebas/mareas.js`.
+- `mareas.html` (Bola de agua; reemplazó al simulador de mareas del planeta): bola líquida de radio 1 en el espacio
+  con ejes x, y, z y un objeto del mismo radio de densidad elegible (metano, roca, acero, mercurio, oro, osmio).
+  Unidades G·ρ_agua = 1 (tiempo ≈ 1,075 h). Forma de equilibrio r = 1 + q·P₂, q = (5/2)(M/m)(R/d)³ (Love h₂ = 5/2),
+  que se alcanza oscilando con el modo de Kelvin ω² = 16π/15; bajo el límite de Roche 2,44·(ρ/ρ_agua)^(1/3) la bola
+  se rompe en 520 gotas que sigue la marea (2x, −y, −z)·GM/d³. Trazado de rayos de elipsoide y esfera con calidad
+  adaptativa; arrastrar gira la vista. Física entre `// @fisica` y `// @fin-fisica`; prueba en `pruebas/mareas.js`.
 - `nave.html` (Beta, oculto: no aparece en `index.html` por decisión de Sebas; solo se abre por su URL): nave que planea viajes por órbitas en 5 sistemas (Sol, Dos soles, Tres soles,
   Cinco cuerpos y Agujero negro con potencial de Paczyński–Wiita, r_g = 0,08, c reducida). Las estrellas
   y gigantes se mueven en N cuerpos y se calculan una vez (efemérides: leapfrog h = 0,0005, tabla cada
@@ -76,6 +88,7 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
 - La fuente es `docs/fuentes/<simulador>.html` (KaTeX desde cdnjs). Para regenerar, servir el repo en local
   y imprimir con Edge sin ventana: `msedge --headless=new --no-pdf-header-footer --virtual-time-budget=15000
   --print-to-pdf=docs\<simulador>.pdf http://127.0.0.1:8765/docs/fuentes/<simulador>.html`.
+- Pruebas contra la teoría en `pruebas/` (`node pruebas/todas.js`; `--rapido` omite los fluidos, que tardan ~15 min).
 - Si cambia la física de un simulador, actualizar su ficha. En fórmulas, escribir `<` como `\lt` o `&lt;`.
 
 ## Pendientes posibles

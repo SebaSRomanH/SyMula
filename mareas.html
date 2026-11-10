@@ -4,87 +4,115 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1226">
+<!-- SyMula: tema (va antes del estilo para no parpadear) -->
+<script>(function(){var t=null;try{t=localStorage.getItem("symula-tema");if(!t&&localStorage.getItem("symula-noche")==="1")t="night";}catch(e){}
+if(t!=="light"&&t!=="dark"&&t!=="night")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";
+document.documentElement.setAttribute("data-theme",t);})();</script>
+<!-- fin SyMula: tema -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Mareas</title>
+<title>Bola de agua</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ===== SyMula: estilo común (igual en todos los simuladores) ===== */
+/* ===== SyMula: estilo común (sistema de diseño v1.0, igual en todas las páginas) ===== */
+:root,:root[data-theme="dark"]{
+  --background:#0B1526;--surface:#15253A;--surface-2:#1B2E47;--text:#F0F6FC;--text-muted:#B8C6D3;
+  --primary:#42C7CF;--primary-text:#0B1526;--accent:#E6B66A;--border:#30445B;--control-border:#5D7590;
+  --sem-1:#6CB4F0;--sem-2:#F29C6B;--sem-3:#6FCF97;--sem-4:#C49BEA;--sem-5:#E6C15A;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --background:#F8FAFC;--surface:#FFFFFF;--surface-2:#F1F5F8;--text:#102A43;--text-muted:#526779;
+  --primary:#087481;--primary-text:#FFFFFF;--accent:#D9A15B;--border:#DCE5EB;--control-border:#7B8FA1;
+  --sem-1:#1F6FB2;--sem-2:#B4532A;--sem-3:#2E7D4F;--sem-4:#7E4AB0;--sem-5:#8A6400;
+  color-scheme:light;
+}
+:root[data-theme="night"]{
+  --background:#09221D;--surface:#12382F;--surface-2:#174238;--text:#E7F8F2;--text-muted:#C1F4DD;
+  --primary:#21B68B;--primary-text:#09221D;--accent:#C1F4DD;--border:#286052;--control-border:#4E8A78;
+  --sem-1:#8FD3FF;--sem-2:#F5B38A;--sem-3:#9BE8C0;--sem-4:#D5B8F2;--sem-5:#F0D58A;
+  color-scheme:dark;
+}
 :root{
-  --bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2;
-  color-scheme:dark;box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  /* nombres antiguos que usa el código de cada página */
+  --bg:var(--background);--panel:var(--surface);--btn:var(--surface-2);--line:var(--border);--ink:var(--text);
+  --soft:var(--text-muted);--acc:var(--primary);--acc-ink:var(--primary-text);--cyan:var(--primary);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){--bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2}
-}
-:root[data-theme="dark"]{--bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2}
 *,*::before,*::after{box-sizing:border-box}
-html{height:100%;background:var(--bg)}
-body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
-  font:700 15px/1.3 Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-.stage{position:relative;flex:1;min-height:0;overflow:hidden}
+html{height:100%;background:var(--background)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;background:var(--background);color:var(--text);
+  font:500 15px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden;background:var(--background)}
 .stage canvas{display:block;width:100%;height:100%;touch-action:none}
-.home{position:absolute;top:10px;left:10px;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;z-index:3;
-  background:rgba(18,26,54,.88);border:1px solid var(--line);color:var(--ink);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.card{position:absolute;top:10px;left:72px;right:10px;max-width:460px;min-height:52px;padding:7px 12px;border-radius:16px;z-index:2;pointer-events:none;
-  background:rgba(18,26,54,.88);border:1px solid var(--line);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.card h1{font:800 18px/1.15 Nunito,sans-serif;margin:0;color:var(--acc)}
-.card p{margin:2px 0 0;font-size:14px;color:#d8ddf7}
-.card .data{font-size:13px;color:#8fd8ff;font-variant-numeric:tabular-nums}
+:root[data-theme="night"] .stage canvas{filter:grayscale(1) sepia(.8) hue-rotate(92deg) saturate(.85) brightness(.88)}   /* verde suave, sin fluorescencia */
+.home{position:absolute;top:12px;left:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text)}
+.card{position:absolute;top:12px;left:72px;right:12px;max-width:480px;min-height:48px;padding:10px 16px;border-radius:12px;z-index:2;pointer-events:none;
+  background:var(--surface);background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--border)}
+.card h1{font:700 17px/1.2 Inter,sans-serif;margin:0;color:var(--text);letter-spacing:-.01em}
+.card p{margin:3px 0 0;font-size:14px;color:var(--text-muted)}
+.card .data{font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
 .card p:empty{display:none}
-.toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:92%;padding:10px 18px;border-radius:999px;z-index:3;
-  background:var(--acc);color:var(--acc-ink);font-weight:800;text-align:center;pointer-events:none;transition:opacity .4s}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:max-content;max-width:92%;padding:10px 16px;border-radius:12px;z-index:3;
+  background:var(--surface);color:var(--text);border:1px solid var(--primary);font-weight:600;text-align:center;pointer-events:none;transition:opacity .3s}
 .toast.off{opacity:0}
-.dock{background:var(--panel);border-top:1px solid var(--line);padding:8px 10px 10px;display:flex;flex-direction:column;gap:8px}
+.dock{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px 14px;display:flex;flex-direction:column;gap:10px}
 .dock>*{width:100%;max-width:760px;margin:0 auto}
 .row{display:flex;gap:8px}
-.tile{flex:1 1 0;min-width:0;min-height:60px;padding:6px 3px;border-radius:16px;border:1px solid var(--line);background:var(--btn);color:var(--ink);
-  font:800 13px/1.1 Nunito,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;touch-action:manipulation}
-.tile svg{width:26px;height:26px;flex:none}
-.tile[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
-.tile:active{transform:scale(.96)}
-.tile:disabled{opacity:.4;cursor:default}
-.lbl{font-size:12px;font-weight:800;color:var(--soft);margin-bottom:-3px;padding:0 2px}
-button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.tile{flex:1 1 0;min-width:0;min-height:56px;padding:6px 4px;border-radius:12px;border:1px solid var(--control-border);background:var(--surface-2);color:var(--text);
+  font:600 13px/1.15 Inter,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;
+  touch-action:manipulation;transition:border-color .15s,background-color .15s}
+.tile svg{width:24px;height:24px;flex:none}
+.tile small{font-size:11px;font-weight:500;opacity:.85}
+@media (hover:hover){.tile:hover:not(:disabled),.home:hover{border-color:var(--primary)}}
+.tile[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+.tile:disabled{opacity:.45;cursor:not-allowed}
+.tile[aria-busy="true"]{position:relative;color:transparent}
+.tile[aria-busy="true"]::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;border:2px solid var(--text-muted);border-top-color:var(--primary);animation:sy-spin .8s linear infinite}
+@keyframes sy-spin{to{transform:rotate(360deg)}}
+.lbl{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:-4px;padding:0 2px;letter-spacing:.02em}
+.themes{display:flex;gap:4px;padding:4px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.themes button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--text);font:600 13px Inter,sans-serif;cursor:pointer}
+.themes button[aria-pressed="true"]{background:var(--primary);color:var(--primary-text)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 [hidden]{display:none!important}
 /* ===== fin del estilo común ===== */
 .sheet{display:flex;flex-direction:column;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.tile small{font-size:10.5px;font-weight:700;opacity:.85}
 </style>
 </head>
 <body>
 <div class="stage">
-  <canvas id="cv" aria-label="Mareas: la Tierra gira y la Luna y el Sol levantan el mar; toca una costa para poner un puerto"></canvas>
+  <canvas id="cv" aria-label="Bola de agua en el espacio y un objeto que la estira con su gravedad; arrastra para girar la vista"></canvas>
   <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
-  <div class="card" id="card" aria-live="polite"><h1>Mareas</h1><p id="say">Toca una costa para poner un puerto y mira cómo sube y baja el mar.</p><p class="data" id="data"></p></div>
+  <div class="card" id="card" aria-live="polite"><h1>Bola de agua</h1><p id="say">Acerca el objeto y mira cómo su gravedad estira el agua. Arrastra para girar.</p><p class="data" id="data"></p></div>
   <div class="toast off" id="toast"></div>
 </div>
 <nav class="dock" aria-label="Controles">
   <div class="sheet" id="sheet" hidden>
-    <div class="lbl">Altura del mar en el dibujo</div>
-    <div class="row" role="group" aria-label="Exageración">
-      <button class="tile" type="button" data-x="1" aria-pressed="false">Real<small>medio metro</small></button>
-      <button class="tile" type="button" data-x="100" aria-pressed="false">×100</button>
-      <button class="tile" type="button" data-x="400" aria-pressed="true">×400</button>
-    </div>
-    <div class="lbl">Eje de la Tierra</div>
-    <div class="row" role="group" aria-label="Eje">
-      <button class="tile" type="button" data-tilt="23.44" aria-pressed="true">Inclinado<small>23°, como el real</small></button>
-      <button class="tile" type="button" data-tilt="0" aria-pressed="false">Derecho<small>0°</small></button>
+    <div class="lbl">Tema</div>
+    <div class="themes" role="group" aria-label="Tema"><button type="button" data-theme-set="light">Claro</button><button type="button" data-theme-set="dark">Oscuro</button><button type="button" data-theme-set="night">Nocturno</button></div>
+    <div class="row">
+      <button class="tile" type="button" id="axesBtn" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M12 12h9" stroke="#ff6b6b"/><path d="M12 12V3" stroke="#6bdc8b"/><path d="M12 12l-7 7" stroke="#6bb5ff"/></svg>Ejes</button>
+      <button class="tile" type="button" id="spinBtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>Girar la vista</button>
+      <button class="tile" type="button" data-rho="22.59" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#9aa8bd"/></svg>Osmio<small>22,6 g/cm³</small></button>
     </div>
   </div>
-  <div class="lbl">Quién tira del mar</div>
-  <div class="row">
-    <button class="tile" type="button" id="moon" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#c9ccd6"/><circle cx="9" cy="9" r="1.8" fill="#9ea3b2"/><circle cx="15" cy="14" r="2.4" fill="#9ea3b2"/></svg>Luna</button>
-    <button class="tile" type="button" id="sun" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>Sol</button>
-    <button class="tile" type="button" id="near" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="6" fill="#4ea3ff"/><circle cx="18" cy="12" r="3" fill="#c9ccd6"/></svg>Luna cerca</button>
+  <div class="lbl">De qué está hecho el objeto</div>
+  <div class="row" role="group" aria-label="Material">
+    <button class="tile" type="button" data-rho="0.49" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#dcebff"/></svg>Metano<small>0,49 g/cm³</small></button>
+    <button class="tile" type="button" data-rho="3" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#8f7766"/></svg>Roca<small>3 g/cm³</small></button>
+    <button class="tile" type="button" data-rho="7.85" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#b9bfc9"/></svg>Acero<small>7,9 g/cm³</small></button>
+    <button class="tile" type="button" data-rho="13.53" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#e6e9ef"/><circle cx="9.5" cy="9.5" r="2.5" fill="#fff"/></svg>Mercurio<small>13,5 g/cm³</small></button>
+    <button class="tile" type="button" data-rho="19.32" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#f2c14e"/></svg>Oro<small>19,3 g/cm³</small></button>
   </div>
   <div class="row">
-    <button class="tile" type="button" id="play"><svg viewBox="0 0 24 24" id="playIco"></svg><span id="playLbl">Pausa</span></button>
-    <button class="tile" type="button" id="spd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13l4-4M12 3v2"/></svg><span id="spdLbl">1 h/s</span></button>
-    <button class="tile" type="button" id="view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span id="viewLbl">De lado</span></button>
+    <button class="tile" type="button" id="far"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="3"/><path d="M11 12h10M17 8l4 4-4 4"/></svg>Alejar</button>
+    <button class="tile" type="button" id="close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="3"/><path d="M21 12H11M15 8l-4 4 4 4"/></svg>Acercar</button>
+    <button class="tile" type="button" id="reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5"/></svg>Bola nueva</button>
     <button class="tile" type="button" id="more" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
   </div>
 </nav>
@@ -92,327 +120,307 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 (function(){
 "use strict";
 // @fisica ----------------------------------------------------------------------------------------
-// Marea de equilibrio: la Luna (y el Sol) atraen más al lado del planeta que tienen cerca y menos al lado
-// lejano. Lo que queda después de restar la atracción sobre el centro (fuerza de marea) estira el océano
-// en dos jorobas: una hacia la Luna y otra en el lado opuesto. La altura en un punto a un ángulo ψ de la
-// Luna es  h = A·(3/2·cos²ψ − 1/2),  con  A = (M/M_T)·(R/d)³·R.  Luna: A = 0,358 m; Sol: A = 0,164 m.
-// El tiempo se mide en días. Las órbitas son círculos exactos (no hace falta integrar).
-const R_T = 6.371e6;                                   // radio de la Tierra (m)
-const A_MOON = 0.01230*Math.pow(1/60.27, 3)*R_T;        // ≈ 0,358 m (masa Luna/Tierra y distancia 60,27 radios)
-const A_SUN = 332946*Math.pow(R_T/1.496e11, 3)*R_T;    // ≈ 0,164 m
-const W_SPIN = 2*Math.PI/0.99727, W_MOON = 2*Math.PI/27.3217, W_SUN = 2*Math.PI/365.25;
-const INC = 5.14*Math.PI/180;                          // inclinación de la órbita de la Luna
-const tideShape = c => 1.5*c*c - 0.5;                   // 3/2·cos²ψ − 1/2
-function moonDir(t){ const a = W_MOON*t + 1.2; return [Math.cos(a), Math.sin(a)*Math.cos(INC), Math.sin(a)*Math.sin(INC)]; }
-function sunDir(t){ const a = W_SUN*t; return [Math.cos(a), Math.sin(a), 0]; }
-// Eje de giro inclinado ε hacia +x y dos vectores del ecuador; la superficie gira ω·t alrededor del eje.
-function axes(eps){ return {A:[Math.sin(eps), 0, Math.cos(eps)], e1:[0, 1, 0], e2:[-Math.cos(eps), 0, Math.sin(eps)]}; }
-function surfaceNormal(ax, lat, lon, t){
-  const th = lon + W_SPIN*t, cl = Math.cos(lat), c = Math.cos(th), s = Math.sin(th), sl = Math.sin(lat);
-  return [cl*(c*ax.e1[0] + s*ax.e2[0]) + sl*ax.A[0], cl*(c*ax.e1[1] + s*ax.e2[1]) + sl*ax.A[1], cl*(c*ax.e1[2] + s*ax.e2[2]) + sl*ax.A[2]];
-}
-// Altura de la marea (m) en un punto de normal n: suma de la Luna (escalada por (d0/d)³) y del Sol.
-function tideAt(n, m, s, am, as){
-  return am*tideShape(n[0]*m[0] + n[1]*m[1] + n[2]*m[2]) + as*tideShape(n[0]*s[0] + n[1]*s[1] + n[2]*s[2]);
-}
+// Unidades: el radio de la bola es 1 y G·ρ_agua = 1, así la unidad de tiempo es 1/√(G·ρ_agua) ≈ 1,075 h
+// (no depende del tamaño de la bola). El objeto es una esfera del mismo radio y densidad ρ (g/cm³).
+// Se mira desde la bola, que cae libremente hacia el objeto (o lo orbita): solo queda la fuerza de marea.
+const R_OBJ = 1, HOURS = 1/Math.sqrt(6.674e-11*1000)/3600;   // ≈ 1,075 h por unidad de tiempo
+const massRatio = rho => rho*R_OBJ*R_OBJ*R_OBJ;             // M/m = (ρ/ρ_agua)·(R_obj/R)³
+const GM = rho => rho*(4*Math.PI/3)*R_OBJ*R_OBJ*R_OBJ;       // G·M del objeto (G·ρ_agua = 1)
+// Bola líquida homogénea que se atrae a sí misma (número de Love h₂ = 5/2): su superficie queda en
+// r(θ) = 1 + q·P₂(cos θ), con q = (5/2)·(M/m)·(R/d)³; el eje hacia el objeto mide 1 + q y los otros 1 − q/2.
+const qEq = (rho, d) => 2.5*massRatio(rho)/(d*d*d);
+// Límite de Roche de un cuerpo líquido: más cerca que d_R = 2,44·R_obj·(ρ/ρ_agua)^(1/3), la marea lo rompe.
+const roche = rho => 2.44*R_OBJ*Math.cbrt(rho);
+// Oscilación propia de una gota que se atrae a sí misma (modo l = 2 de Kelvin): ω² = (16π/15)·G·ρ.
+const W2 = 16*Math.PI/15;
+// Marea sobre una gota suelta, en el marco de la bola: a = (G·M/d³)·(2x, −y, −z).
+const tidalAcc = (rho, d, x, y, z) => { const k = GM(rho)/(d*d*d); return [2*k*x, -k*y, -k*z]; };
 // @fin-fisica -----------------------------------------------------------------------------------
 
 const $ = id => document.getElementById(id), cv = $("cv"), ctx = cv.getContext("2d");
-const fmt = (v, d) => v.toFixed(d).replace(".", ",").replace(/^-/, "−");
-const SPEEDS = [[1, "1 h/s"], [4, "4 h/s"], [24, "1 día/s"]];
-let t = 0, running = true, speedK = 0, moonOn = true, sunOn = true, near = false, X = 400, tiltDeg = 23.44, viewSide = true;
-let ax = axes(tiltDeg*Math.PI/180), port = null;
+const fmt = (v, dd) => v.toFixed(dd).replace(".", ",");
+const MATS = {
+  "0.49":  {name:"metano congelado", base:[220, 235, 255], metal:0, rough:0.6},
+  "3":     {name:"roca", base:[143, 119, 102], metal:0, rough:1},
+  "7.85":  {name:"acero", base:[185, 191, 201], metal:0.85, rough:0.35},
+  "13.53": {name:"mercurio", base:[230, 233, 240], metal:1, rough:0.05},
+  "19.32": {name:"oro", base:[242, 193, 78], metal:0.95, rough:0.25},
+  "22.59": {name:"osmio", base:[154, 168, 189], metal:0.9, rough:0.3}
+};
+let rho = 7.85, d = 8, dShown = 8, q = 0, qv = 0, broken = false, drops = [], showAxes = true, autoSpin = false;
+let yaw = -0.55, pitch = 0.32, W = 0, H = 0, dpr = 1, scale = 60, ox = 0, oy = 0, center = [0, 0, 0];
+const D_MIN = 2.08, D_MAX = 14;
 
-// ---------- Planeta: relieve generado con ruido fractal (se calcula una vez, por partes) ----------
-const TW = 1024, TH = 512, elev = new Float32Array(TW*TH);
-let genRow = 0, ready = false;
-const SEED = 1337;
-function hash(x, y, z){
-  let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(z, 1274126177) ^ SEED;
-  h = Math.imul(h ^ (h >>> 13), 1103515245); return ((h ^ (h >>> 16)) >>> 0)/4294967296;
-}
-function noise(x, y, z){
-  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z), xf = x - xi, yf = y - yi, zf = z - zi;
-  const u = xf*xf*(3 - 2*xf), v = yf*yf*(3 - 2*yf), w = zf*zf*(3 - 2*zf);
-  const L = (a, b, k) => a + (b - a)*k;
-  const c = (dx, dy, dz) => hash(xi + dx, yi + dy, zi + dz);
-  return L(L(L(c(0,0,0), c(1,0,0), u), L(c(0,1,0), c(1,1,0), u), v), L(L(c(0,0,1), c(1,0,1), u), L(c(0,1,1), c(1,1,1), u), v), w);
-}
-function fbm(x, y, z, oct = 6){ let s = 0, a = 0.5, f = 1.7; for (let o = 0; o < oct; o++){ s += a*noise(x*f + 31.7*o, y*f, z*f); a *= 0.5; f *= 2.03; } return s; }
-function genSome(ms){
-  const t0 = performance.now();
-  while (genRow < TH && performance.now() - t0 < ms){
-    const lat = Math.PI/2 - (genRow + 0.5)/TH*Math.PI, cl = Math.cos(lat), sl = Math.sin(lat);
-    for (let i = 0; i < TW; i++){
-      const lon = (i + 0.5)/TW*2*Math.PI, x = cl*Math.cos(lon), y = cl*Math.sin(lon);
-      const warp = 0.35*fbm(x*0.8 + 5, y*0.8, sl*0.8, 3);           // deforma un poco: costas más naturales
-      elev[genRow*TW + i] = fbm(x + warp, y - warp, sl + warp);
-    }
-    genRow++;
-  }
-  if (genRow < TH) return false;
-  // nivel del mar: el 30 % de la superficie (ponderada por cos(lat)) queda sobre el agua, como en la Tierra
-  const sample = [];
-  for (let j = 0; j < TH; j += 2){ const w = Math.cos(Math.PI/2 - (j + 0.5)/TH*Math.PI); for (let i = 0; i < TW; i += 4) if (Math.random() < w) sample.push(elev[j*TW + i]); }
-  sample.sort((a, b) => a - b);
-  const sea = sample[Math.floor(0.70*sample.length)], top = sample[sample.length-1], bot = sample[0];
-  for (let k = 0; k < elev.length; k++){
-    const e = elev[k] - sea;                                     // metros: tierra hasta 3500, mar hasta −5000
-    elev[k] = e > 0 ? 3500*Math.pow(e/(top - sea), 1.4) : -5000*Math.pow(-e/(sea - bot), 0.8);
-  }
-  // puerto inicial: un punto de costa cerca de los 35° de latitud
-  for (let dj = 0; dj < 60 && !port; dj++) for (const sg of [1, -1]){
-    const j = Math.round(TH*(0.5 - 35/180)) + sg*dj; if (port) break;
-    for (let i = 0; i < TW; i++){ const k = j*TW + i; if (elev[k] > 0 && elev[k] < 300 && elev[j*TW + (i+1)%TW] < 0){ port = {lat:Math.PI/2 - (j + 0.5)/TH*Math.PI, lon:(i + 0.5)/TW*2*Math.PI}; break; } }
-  }
-  ready = true; return true;
-}
-function elevAt(u, v){                                            // interpolación bilineal (costas suaves)
-  u -= Math.floor(u/TW)*TW; const u0 = u | 0, fu = u - u0, u1 = u0 + 1 === TW ? 0 : u0 + 1;
-  const v0 = Math.min(TH - 2, Math.max(0, v | 0)), fv = Math.min(1, Math.max(0, v - v0));
-  const a = elev[v0*TW + u0], b = elev[v0*TW + u1], c = elev[(v0+1)*TW + u0], d = elev[(v0+1)*TW + u1];
-  return (a + (b - a)*fu)*(1 - fv) + (c + (d - c)*fu)*fv;
-}
-
-// ---------- Cámara y malla de píxeles del planeta ----------
-let W = 0, H = 0, dpr = 1, Rpx = 100, cx = 0, cy = 0, res = 520, cam = null;
-let pix = null, off = document.createElement("canvas"), octx = off.getContext("2d"), img = null;
+// ---------- Cámara (ortográfica, gira con el dedo) ----------
+let cam = null;
 function camera(){
-  const el = (viewSide ? 16 : 72)*Math.PI/180, az = -52*Math.PI/180;
-  const c = [Math.cos(el)*Math.cos(az), Math.cos(el)*Math.sin(az), Math.sin(el)];
-  const r = [-Math.sin(az), Math.cos(az), 0];                       // derecha (horizontal)
-  const u = [c[1]*r[2] - c[2]*r[1], c[2]*r[0] - c[0]*r[2], c[0]*r[1] - c[1]*r[0]];   // arriba = c × r
-  return {c, r, u};
+  const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const f = [-cp*sy, -sp, -cp*cy];                           // hacia donde mira
+  const r = [cy, 0, -sy];                                    // derecha
+  const u = [r[1]*f[2] - r[2]*f[1], r[2]*f[0] - r[0]*f[2], r[0]*f[1] - r[1]*f[0]];   // arriba = derecha × adelante
+  return {f, r, u};
 }
-// Para cada píxel dentro del disco: su normal en el espacio, su latitud (fila de la textura) y su
-// longitud medida desde e1 (columna); al girar el planeta solo cambia un desplazamiento de columna.
-function buildPixels(){
-  cam = camera(); const N = res, half = N/2, list = [];
-  off.width = N; off.height = N; img = octx.createImageData(N, N);
-  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){
-    const x = (i + 0.5 - half)/half, y = -(j + 0.5 - half)/half, q = x*x + y*y;
-    if (q >= 1) continue;
-    const z = Math.sqrt(1 - q);
-    const n = [x*cam.r[0] + y*cam.u[0] + z*cam.c[0], x*cam.r[1] + y*cam.u[1] + z*cam.c[1], x*cam.r[2] + y*cam.u[2] + z*cam.c[2]];
-    const lat = Math.asin(Math.max(-1, Math.min(1, n[0]*ax.A[0] + n[1]*ax.A[1] + n[2]*ax.A[2])));
-    const lon = Math.atan2(n[0]*ax.e2[0] + n[1]*ax.e2[1] + n[2]*ax.e2[2], n[0]*ax.e1[0] + n[1]*ax.e1[1] + n[2]*ax.e1[2]);
-    list.push(j*N + i, n[0], n[1], n[2], (0.5 - lat/Math.PI)*TH - 0.5, lon/(2*Math.PI)*TW - 0.5, z, Math.abs(lat));
-  }
-  pix = Float32Array.from(list); img.data.fill(0);
+const dot = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+const proj = P => { const v = [P[0] - center[0], P[1] - center[1], P[2] - center[2]]; return [ox + dot(v, cam.r)*scale, oy - dot(v, cam.u)*scale, -dot(v, cam.f)]; };
+function layout(){
+  cam = camera();
+  const top = $("card").offsetTop + $("card").offsetHeight + 8, avH = H - top - 8;
+  // encuadre: la bola y el objeto (hasta 9 radios); más lejos, el objeto puede salir de la pantalla
+  const reach = Math.min(dShown, 9), span = Math.abs(reach*cam.r[0]) + 2.6, spanV = Math.abs(reach*cam.u[0]) + 2.6;
+  scale = Math.max(34, Math.min((W - 24)/span, avH/spanV, Math.min(W, avH)*0.24));
+  center = [reach*0.5, 0, 0]; ox = W/2; oy = top + avH/2;
 }
 function resize(){
-  dpr = Math.min(2, window.devicePixelRatio || 1);
-  W = cv.clientWidth; H = cv.clientHeight;
-  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
-  const top = $("card").offsetTop + $("card").offsetHeight + 8, graphH = 92;
-  const avH = H - top - graphH - 10;
-  Rpx = Math.max(40, Math.min((W*0.5 - 10)/1.95, avH*(viewSide ? 0.42 : 0.26)));   // cabe la órbita de la Luna (1,75 radios)
-  cx = W/2; cy = top + avH/2 + 4;
-  res = Math.min(maxRes, Math.round(2*Rpx*dpr)); buildPixels();
+  dpr = Math.min(2, window.devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); layout();
 }
-let maxRes = 900;
 new ResizeObserver(resize).observe(cv);
 
-// ---------- Pintar el planeta píxel a píxel ----------
-function renderPlanet(m, s, am, as){
-  const d = img.data, N = pix.length, Xs = X, shift = W_SPIN*t/(2*Math.PI)*TW, c = cam.c;
-  let hx = s[0] + c[0], hy = s[1] + c[1], hz = s[2] + c[2]; const hl = Math.hypot(hx, hy, hz); hx /= hl; hy /= hl; hz /= hl;
-  for (let k = 0; k < N; k += 8){
-    const nx = pix[k+1], ny = pix[k+2], nz = pix[k+3];
-    const e = elevAt(pix[k+5] - shift, pix[k+4]);
-    const cm = nx*m[0] + ny*m[1] + nz*m[2], cs = nx*s[0] + ny*s[1] + nz*s[2];
-    const h = am*(1.5*cm*cm - 0.5) + as*(1.5*cs*cs - 0.5);          // marea real en metros
-    const level = h*Xs;                                              // nivel del mar en el dibujo
-    let r, g, b, spec = 0;
-    if (e < level){                                                  // agua
-      if (e > 0){ r = 70; g = 175; b = 205; }                        // tierra inundada por la marea
-      else { const dp = Math.min(1, -e/3000); r = 38 - 26*dp; g = 120 - 78*dp; b = 178 - 70*dp; }
-      const tint = Math.max(-1, Math.min(1, h/0.6))*(Xs > 1 ? 18 : 0); r += tint*0.4; g += tint; b += tint;   // mar alto, más claro
-      spec = 1;
-    } else if (pix[k+7] > 1.2 || e > 2800){ r = 232; g = 238; b = 244; }       // hielo y nieve
-    else if (e < 500){ const q = e/500; r = 58 + 30*q; g = 112 + 8*q; b = 52 + 6*q; }                 // llanuras
-    else { const q = Math.min(1, (e - 500)/2300); r = 88 + 62*q; g = 120 + 12*q; b = 58 + 50*q; }        // cerros y montañas
-    // luz del Sol: día, crepúsculo y noche
-    const lam = cs, day = lam > 0.12 ? 1 : lam < -0.08 ? 0 : (lam + 0.08)/0.2;
-    const lit = 0.07 + 0.93*day*(0.35 + 0.65*Math.max(0, lam));
-    r *= lit; g *= lit; b *= lit + (1 - day)*0.12;
-    if (spec && day > 0){ const sh = nx*hx + ny*hy + nz*hz; if (sh > 0.992){ const p = (sh - 0.992)/0.008; const sp = p*p*110*day; r += sp; g += sp; b += sp; } }
-    const z = pix[k+6], rim = z < 0.35 ? (0.35 - z)/0.35 : 0;     // un poco de atmósfera en el borde
-    r += rim*40*day; g += rim*70*day; b += rim*120*(0.3 + day);
-    const o = pix[k]*4; d[o] = r; d[o+1] = g; d[o+2] = b; d[o+3] = 255;
+// ---------- Trazado de rayos: la bola (elipsoide) y el objeto (esfera) ----------
+const offB = document.createElement("canvas"), cB = offB.getContext("2d"), offO = document.createElement("canvas"), cO = offO.getContext("2d");
+let quality = 1;
+const L = (() => { const v = [-0.45, 0.75, 0.5], n = Math.hypot(...v); return v.map(x => x/n); })();   // luz de una estrella lejana
+function sky(dir){                                          // reflejo del cielo: oscuro con un poco de azul arriba
+  const t = 0.5 + 0.5*dir[1]; return [10 + 25*t, 14 + 35*t, 30 + 60*t];
+}
+function rayBox(cxw, rad, offc, c2){
+  const [Xc, Yc] = proj(cxw), R = rad*scale + 3, k = quality*dpr;
+  const size = Math.max(4, Math.ceil(2*R*k));
+  if (offc.width !== size){ offc.width = size; offc.height = size; }
+  return {X0:Xc - R, Y0:Yc - R, R, k, size, img:c2.createImageData(size, size)};
+}
+// Recorre los píxeles del cuadro; devuelve el punto de entrada del rayo en coordenadas de mundo.
+function forPixels(box, hit){
+  const {X0, Y0, k, size, img} = box, data = img.data, V = cam.f.map(x => -x);
+  for (let j = 0; j < size; j++) for (let i = 0; i < size; i++){
+    const sx = X0 + (i + 0.5)/k - ox, sy = -(Y0 + (j + 0.5)/k - oy);
+    const o = [center[0] + cam.r[0]*sx/scale + cam.u[0]*sy/scale - 60*cam.f[0],
+               center[1] + cam.r[1]*sx/scale + cam.u[1]*sy/scale - 60*cam.f[1],
+               center[2] + cam.r[2]*sx/scale + cam.u[2]*sy/scale - 60*cam.f[2]];
+    const c = hit(o, cam.f, V);
+    if (c){ const p = 4*(j*size + i); data[p] = c[0]; data[p+1] = c[1]; data[p+2] = c[2]; data[p+3] = c[3]; }
   }
-  octx.putImageData(img, 0, 0);
+}
+function renderBall(){
+  const a = 1 + q, b = 1 - q/2, box = rayBox([0, 0, 0], a, offB, cB);
+  forPixels(box, (o, f, V) => {
+    // elipsoide x²/a² + (y² + z²)/b² = 1: se escala a una esfera unitaria
+    const po = [o[0]/a, o[1]/b, o[2]/b], pd = [f[0]/a, f[1]/b, f[2]/b];
+    const A = dot(pd, pd), B = 2*dot(po, pd), C = dot(po, po) - 1, D = B*B - 4*A*C;
+    if (D <= 0) return null;
+    const sD = Math.sqrt(D), t1 = (-B - sD)/(2*A), t2 = (-B + sD)/(2*A);
+    const p = [o[0] + f[0]*t1, o[1] + f[1]*t1, o[2] + f[2]*t1];
+    let n = [p[0]/(a*a), p[1]/(b*b), p[2]/(b*b)]; const nl = Math.hypot(...n); n = n.map(x => x/nl);
+    const nv = Math.max(0, dot(n, V)), fres = 0.02 + 0.98*Math.pow(1 - nv, 5);
+    const thick = t2 - t1;                                   // cuánta agua cruza el rayo
+    const ab = Math.exp(-0.55*thick), wrap = Math.max(0, (dot(n, L) + 0.4)/1.4);
+    const h = [L[0] + V[0], L[1] + V[1], L[2] + V[2]], hl = Math.hypot(...h), sp = Math.pow(Math.max(0, dot(n, h)/hl), 140);
+    const rv = 2*dot(n, V), refl = sky([rv*n[0] - V[0], rv*n[1] - V[1], rv*n[2] - V[2]]);
+    // el agua absorbe primero el rojo: por dentro se ve azul, más oscuro donde es más gruesa
+    let r = 6 + 40*ab*wrap, g = 40 + 120*ab*wrap + 25*(1 - ab), bl = 85 + 150*ab*wrap + 40*(1 - ab);
+    r = r*(1 - fres) + refl[0]*fres + 255*sp; g = g*(1 - fres) + refl[1]*fres + 255*sp; bl = bl*(1 - fres) + refl[2]*fres + 255*sp;
+    return [r, g, bl, 200 + 55*fres];                          // un poco transparente: se ven los ejes adentro
+  });
+  cB.putImageData(box.img, 0, 0);
+  return box;
+}
+function renderObject(){
+  const m = MATS[String(rho)], box = rayBox([dShown, 0, 0], R_OBJ, offO, cO);
+  forPixels(box, (o, f, V) => {
+    const oc = [o[0] - dShown, o[1], o[2]], B = 2*dot(oc, f), C = dot(oc, oc) - R_OBJ*R_OBJ, D = B*B - 4*C;
+    if (D <= 0) return null;
+    const t = (-B - Math.sqrt(D))/2, p = [oc[0] + f[0]*t, oc[1] + f[1]*t, oc[2] + f[2]*t];
+    const n = p.map(x => x/R_OBJ), lam = Math.max(0, dot(n, L)), nv = Math.max(0, dot(n, V));
+    const h = [L[0] + V[0], L[1] + V[1], L[2] + V[2]], hl = Math.hypot(...h), nh = Math.max(0, dot(n, h)/hl);
+    const rv = 2*dot(n, V), R = [rv*n[0] - V[0], rv*n[1] - V[1], rv*n[2] - V[2]], env = sky(R);
+    // el lado que mira a la bola refleja su azul (metales y mercurio)
+    const towardBall = Math.max(0, -R[0])*0.5, envB = [env[0] + 12*towardBall, env[1] + 35*towardBall, env[2] + 60*towardBall];
+    const spec = Math.pow(nh, 8 + 300*(1 - m.rough)), bump = m.metal ? 0 : 0.85 + 0.3*noiseN(n);
+    const out = [0, 1, 2].map(k => {
+      const diff = m.base[k]*(0.06 + 0.94*lam)*bump;
+      const eg = (envB[0] + envB[1] + envB[2])/3, met = m.base[k]/255*(eg*1.6 + (envB[k] - eg)*0.5 + 150*lam + 25);   // reflejo del cielo y de la bola, más la luz directa
+      return diff*(1 - m.metal) + met*m.metal + 255*spec*(0.25 + 0.75*m.metal) + (1 - nv)*(m.metal ? 0 : 6);
+    });
+    return [out[0], out[1], out[2], 255];
+  });
+  cO.putImageData(box.img, 0, 0);
+  return box;
+}
+function noiseN(n){                                          // manchas para la roca y el hielo
+  const s = Math.sin(n[0]*12.9898 + n[1]*78.233 + n[2]*37.719)*43758.5453; const a = s - Math.floor(s);
+  const s2 = Math.sin(n[0]*4.1 + n[1]*7.3 + n[2]*5.7)*0.5 + 0.5; return 0.6*s2 + 0.4*a;
+}
+
+// ---------- Gotas cuando la bola se rompe ----------
+function breakBall(){
+  broken = true; drops = [];
+  const a = 1 + q, b = 1 - q/2;
+  while (drops.length < 520){
+    const x = Math.random()*2 - 1, y = Math.random()*2 - 1, z = Math.random()*2 - 1;
+    if (x*x + y*y + z*z > 1) continue;
+    drops.push({x:x*a, y:y*b, z:z*b, vx:0, vy:0, vz:0, r:0.075 + Math.random()*0.05});
+  }
+  toast(`¡La marea rompió la bola! Pasaste el límite de Roche (${fmt(roche(rho), 1)} radios).`, 5000);
+}
+function stepDrops(dt){
+  for (const p of drops){
+    if (p.gone) continue;
+    const [ax, ay, az] = tidalAcc(rho, dShown, p.x, p.y, p.z);
+    p.vx += ax*dt; p.vy += ay*dt; p.vz += az*dt; p.x += p.vx*dt; p.y += p.vy*dt; p.z += p.vz*dt;
+    if (Math.hypot(p.x - dShown, p.y, p.z) < R_OBJ || Math.abs(p.x) > 30) p.gone = true;   // cae en el objeto o se aleja
+  }
+}
+let dropSprite = null;
+function sprite(){
+  const s = document.createElement("canvas"); s.width = s.height = 64; const c = s.getContext("2d");
+  const g = c.createRadialGradient(24, 22, 2, 32, 32, 31);
+  g.addColorStop(0, "#e8f6ff"); g.addColorStop(0.25, "#5ab8f0"); g.addColorStop(0.8, "#0f4c8a"); g.addColorStop(1, "rgba(10,40,90,0)");
+  c.fillStyle = g; c.beginPath(); c.arc(32, 32, 31, 0, Math.PI*2); c.fill(); return s;
 }
 
 // ---------- Dibujo ----------
-const STARS = Array.from({length:150}, () => [Math.random(), Math.random(), Math.random()*1.1 + 0.3, Math.random()*6.3]);
-const proj = P => [cx + (P[0]*cam.r[0] + P[1]*cam.r[1] + P[2]*cam.r[2])*Rpx, cy - (P[0]*cam.u[0] + P[1]*cam.u[1] + P[2]*cam.u[2])*Rpx, P[0]*cam.c[0] + P[1]*cam.c[1] + P[2]*cam.c[2]];
-function drawMoon(m, s, dist){
-  const P = [m[0]*dist, m[1]*dist, m[2]*dist], [X0, Y0] = proj(P), r = Math.max(5, Rpx*0.27);
-  const sx = s[0]*cam.r[0] + s[1]*cam.r[1] + s[2]*cam.r[2], sy = s[0]*cam.u[0] + s[1]*cam.u[1] + s[2]*cam.u[2];
-  const g = ctx.createRadialGradient(X0 + sx*r*0.6, Y0 - sy*r*0.6, r*0.1, X0, Y0, r*1.05);
-  g.addColorStop(0, "#f2f2ee"); g.addColorStop(0.55, "#b9bcc4"); g.addColorStop(1, "#2a2e3a");
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X0, Y0, r, 0, Math.PI*2); ctx.fill();
-}
-function drawOrbit(dist, front){
-  ctx.strokeStyle = "rgba(200,210,240,0.28)"; ctx.lineWidth = 1.2; ctx.setLineDash([4, 6]); ctx.beginPath();
-  let first = true;
-  for (let k = 0; k <= 120; k++){
-    const a = k/120*2*Math.PI, P = [Math.cos(a)*dist, Math.sin(a)*Math.cos(INC)*dist, Math.sin(a)*Math.sin(INC)*dist], [X1, Y1, z] = proj(P);
-    if ((z >= 0) !== front){ first = true; continue; }
-    first ? ctx.moveTo(X1, Y1) : ctx.lineTo(X1, Y1); first = false;
+const STARS = Array.from({length:220}, () => [Math.random(), Math.random(), Math.random()*1.2 + 0.3, Math.random()*6.3]);
+function drawAxes(front){
+  if (!showAxes) return;
+  const a = 1 + q, b = 1 - q/2, AX = [[[1, 0, 0], "#ff6b6b", "x", a], [[0, 1, 0], "#6bdc8b", "y", b], [[0, 0, 1], "#6bb5ff", "z", b]];
+  for (const [u, col, name, semi] of AX){
+    for (const sg of [1, -1]){
+      // tramo dentro del agua (tenue) y tramo afuera (firme); "front" dibuja solo lo que está hacia la cámara
+      const p0 = proj([0, 0, 0]), p1 = proj(u.map(v => v*semi*sg)), p2 = proj(u.map(v => v*1.7*sg));
+      const nearCam = p2[2] > 0;
+      if (nearCam !== front) continue;
+      ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.globalAlpha = 0.55; ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.globalAlpha = 1; ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+      if (sg > 0){ ctx.fillStyle = col; ctx.font = "800 13px Inter, sans-serif"; ctx.fillText(name, p2[0] + 4, p2[1] - 4); }
+    }
   }
+  ctx.globalAlpha = 1;
+}
+function drawRoche(){                                         // anillo de peligro alrededor del objeto (plano x-z)
+  const dr = roche(rho); if (dr <= 2.05) return;
+  ctx.strokeStyle = broken ? "rgba(255,110,110,0.5)" : "rgba(255,201,74,0.4)"; ctx.lineWidth = 1.4; ctx.setLineDash([5, 6]); ctx.beginPath();
+  for (let k = 0; k <= 96; k++){ const t = k/96*2*Math.PI, P = proj([dShown + dr*Math.cos(t), 0, dr*Math.sin(t)]); k ? ctx.lineTo(P[0], P[1]) : ctx.moveTo(P[0], P[1]); }
   ctx.stroke(); ctx.setLineDash([]);
+  const P = proj([dShown - dr, 0, 0]); ctx.fillStyle = "rgba(255,201,74,0.8)"; ctx.font = "800 11px Inter, sans-serif"; ctx.fillText("Roche", P[0] - 16, P[1] + 16);
 }
-// Las dos jorobas de agua en el contorno, dibujadas muchísimo más grandes de lo real para que se vean.
-function drawBulge(m, s, am, as){
-  if (X <= 1) return;
-  const K = 0.12/(0.36*400)*X;                                     // radios por metro de marea
-  ctx.beginPath();
-  for (let k = 0; k <= 180; k++){
-    const a = k/180*2*Math.PI, ca = Math.cos(a), sa = Math.sin(a);
-    const d = [ca*cam.r[0] + sa*cam.u[0], ca*cam.r[1] + sa*cam.u[1], ca*cam.r[2] + sa*cam.u[2]];
-    const rr = Rpx*(1 + 0.3*Math.tanh(K*tideAt(d, m, s, am, as)/0.3)) + 1, Xb = cx + ca*rr, Yb = cy - sa*rr;   // tope suave: hasta 0,3 radios
-    k ? ctx.lineTo(Xb, Yb) : ctx.moveTo(Xb, Yb);
-  }
-  ctx.closePath(); ctx.fillStyle = "rgba(70,150,235,0.35)"; ctx.fill();
-  ctx.strokeStyle = "rgba(140,200,255,0.75)"; ctx.lineWidth = 1.5; ctx.stroke();
-}
-function drawSunMark(s){
-  const sx = s[0]*cam.r[0] + s[1]*cam.r[1] + s[2]*cam.r[2], sy = s[0]*cam.u[0] + s[1]*cam.u[1] + s[2]*cam.u[2], L = Math.hypot(sx, sy) || 1;
-  const reach = Math.min(W*0.5 - 26, (H*0.5) - 30), X1 = cx + sx/L*reach, Y1 = cy - sy/L*reach;
-  const g = ctx.createRadialGradient(X1, Y1, 0, X1, Y1, 26); g.addColorStop(0, "rgba(255,220,120,0.95)"); g.addColorStop(1, "rgba(255,180,60,0)");
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X1, Y1, 26, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = "#ffe08a"; ctx.beginPath(); ctx.arc(X1, Y1, 8, 0, Math.PI*2); ctx.fill();
-}
-function drawAxis(){
-  const len = 1.32, a = proj(ax.A.map(v => v*len)), b = proj(ax.A.map(v => -v*len));
-  ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
-  ctx.beginPath(); ctx.moveTo(b[0], b[1]); ctx.lineTo(a[0], a[1]); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.font = "800 11px Nunito, sans-serif"; ctx.fillText("N", a[0] + 4, a[1] - 2);
-}
-function drawPort(){
-  if (!port) return;
-  const n = surfaceNormal(ax, port.lat, port.lon, t), [X1, Y1, z] = proj(n);
-  if (z < 0.05) return;
-  ctx.strokeStyle = "#ffc94a"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(X1, Y1, 7, 0, Math.PI*2); ctx.stroke();
-  ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.arc(X1, Y1, 2.5, 0, Math.PI*2); ctx.fill();
-}
-// Gráfico de la marea en el puerto: un día antes y un día después de ahora.
-function drawGraph(am, as){
-  if (!port) return;
-  const gx = 14, gw = W - 28, gh = 70, gy = H - gh - 12;
-  ctx.fillStyle = "rgba(18,26,54,.85)"; ctx.strokeStyle = "#2c3a6e"; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(gx, gy, gw, gh, 12) : ctx.rect(gx, gy, gw, gh); ctx.fill(); ctx.stroke();
-  const vals = [], NS = 97; let mx = 0.05;
-  for (let k = 0; k < NS; k++){ const tt = t + (k/(NS-1) - 0.5)*2, v = tideAt(surfaceNormal(ax, port.lat, port.lon, tt), moonDir(tt), sunDir(tt), am, as); vals.push(v); mx = Math.max(mx, Math.abs(v)); }
-  const Y = v => gy + gh/2 - v/mx*(gh/2 - 10), Xg = k => gx + 10 + k/(NS-1)*(gw - 20);
-  ctx.strokeStyle = "rgba(163,174,216,0.35)"; ctx.beginPath(); ctx.moveTo(gx + 8, Y(0)); ctx.lineTo(gx + gw - 8, Y(0)); ctx.stroke();
-  for (let hr = -24; hr <= 24; hr += 6){ const X1 = Xg((hr/24 + 1)/2*(NS-1)); ctx.beginPath(); ctx.moveTo(X1, gy + gh - 8); ctx.lineTo(X1, gy + gh - 4); ctx.stroke(); }
-  ctx.strokeStyle = "#5ec8f2"; ctx.lineWidth = 2; ctx.beginPath(); vals.forEach((v, k) => k ? ctx.lineTo(Xg(k), Y(v)) : ctx.moveTo(Xg(k), Y(v))); ctx.stroke();
-  const Xn = Xg((NS-1)/2); ctx.strokeStyle = "#ffc94a"; ctx.beginPath(); ctx.moveTo(Xn, gy + 6); ctx.lineTo(Xn, gy + gh - 6); ctx.stroke();
-  ctx.fillStyle = "#ffc94a"; ctx.beginPath(); ctx.arc(Xn, Y(vals[(NS-1)/2]), 4, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = "#a3aed8"; ctx.font = "700 11px Nunito, sans-serif";
-  ctx.fillText("ayer", gx + 12, gy + 14); ctx.fillText("mañana", gx + gw - 54, gy + 14); ctx.fillText("ahora", Xn + 6, gy + 14);
-  ctx.fillText(`${fmt(mx, 2)} m`, gx + 12, gy + gh - 10);
-}
-
-// ---------- Textos ----------
-function phaseName(m, s){
-  const D = ((Math.atan2(m[1], m[0]) - Math.atan2(s[1], s[0]))*180/Math.PI + 360) % 360;
-  const name = D < 22 || D > 338 ? "Luna nueva" : D < 68 ? "Luna creciente" : D < 112 ? "cuarto creciente" : D < 158 ? "Luna gibosa creciente"
-    : D < 202 ? "Luna llena" : D < 248 ? "Luna gibosa menguante" : D < 292 ? "cuarto menguante" : "Luna menguante";
-  const c2 = Math.cos(2*D*Math.PI/180);
-  return [name, moonOn && sunOn ? (c2 > 0.6 ? " · mareas vivas" : c2 < -0.6 ? " · mareas muertas" : "") : ""];
-}
-function updateText(m, s, am, as){
-  const day = Math.floor(t) + 1, hr = (t % 1)*24, hh = Math.floor(hr), mm = Math.floor((hr - hh)*60);
-  let d = `Día ${day} · ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
-  if (port){ const h = tideAt(surfaceNormal(ax, port.lat, port.lon, t), m, s, am, as); d += ` · puerto ${h >= 0 ? "+" : "−"}${fmt(Math.abs(h), 2)} m`; }
-  const [ph, sp] = phaseName(m, s); d += ` · ${ph}${sp}`;
-  $("data").textContent = d;
+function drawArrows(){                                        // flechas de la marea: estira en x, aprieta en y y z
+  if (broken || q < 0.004) return;
+  const s = Math.min(0.9, 0.35 + q*3), a = 1 + q, b = 1 - q/2;
+  const arrow = (from, to) => {
+    const [x1, y1] = proj(from), [x2, y2] = proj(to), ang = Math.atan2(y2 - y1, x2 - x1);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+    ctx.moveTo(x2, y2); ctx.lineTo(x2 - 7*Math.cos(ang - 0.5), y2 - 7*Math.sin(ang - 0.5));
+    ctx.moveTo(x2, y2); ctx.lineTo(x2 - 7*Math.cos(ang + 0.5), y2 - 7*Math.sin(ang + 0.5)); ctx.stroke();
+  };
+  ctx.strokeStyle = "rgba(255,255,255,0.75)"; ctx.lineWidth = 2;
+  arrow([a + 0.08, 0, 0], [a + 0.08 + s, 0, 0]); arrow([-a - 0.08, 0, 0], [-a - 0.08 - s, 0, 0]);
+  arrow([0, b + 0.08 + s*0.5, 0], [0, b + 0.08, 0]); arrow([0, -b - 0.08 - s*0.5, 0], [0, -b - 0.08, 0]);
 }
 
 // ---------- Bucle ----------
 let last = 0, textT = 0, perf = [];
 function frame(now){
-  const dt = last ? Math.min(50, now - last) : 16.7; last = now;
+  const dt = last ? Math.min(50, now - last)/1000 : 1/60; last = now;
+  if (autoSpin && !drag) yaw += dt*0.25;
+  dShown += (d - dShown)*Math.min(1, dt*3);
+  const T = dt*1.0;                                          // 1 unidad de tiempo (≈ 1,07 h) por segundo
+  if (!broken){
+    // oscilación de la bola hacia su forma de equilibrio (modo de Kelvin, con un poco de roce)
+    const qe = qEq(rho, dShown), steps = 8, h = T/steps;
+    for (let s = 0; s < steps; s++){ qv += (-W2*(q - qe) - 0.6*qv)*h; q += qv*h; }
+    if (dShown < roche(rho) && roche(rho) > D_MIN + 0.02) breakBall();
+  } else stepDrops(T);
+  layout();
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = "#04060e"; ctx.fillRect(0, 0, W, H);
-  for (const [x, y, r, p] of STARS){ ctx.globalAlpha = 0.3 + 0.3*Math.sin(now/1300 + p); ctx.fillStyle = "#fff"; ctx.fillRect(x*W, y*H, r, r); }
+  ctx.fillStyle = "#03050c"; ctx.fillRect(0, 0, W, H);
+  for (const [x, y, r, p] of STARS){ ctx.globalAlpha = 0.25 + 0.3*Math.sin(now/1500 + p); ctx.fillStyle = "#fff"; ctx.fillRect(x*W, y*H, r, r); }
   ctx.globalAlpha = 1;
-  if (!ready){
-    ctx.fillStyle = "#a3aed8"; ctx.font = "800 15px Nunito, sans-serif"; ctx.textAlign = "center";
-    ctx.fillText(`Formando el planeta… ${Math.round(genRow/TH*100)} %`, W/2, H/2); ctx.textAlign = "start";
-    requestAnimationFrame(frame); return;
-  }
-  if (!pix) resize();
-  if (running) t += SPEEDS[speedK][0]*dt/1000/24;                  // horas por segundo → días
-  const m = moonDir(t), s = sunDir(t), dist = near ? 1.4 : 1.75;   // distancias de dibujo (no a escala: la real es 60 radios)
-  const am = moonOn ? A_MOON*(near ? 8 : 1) : 0, as = sunOn ? A_SUN : 0;   // Luna a la mitad de distancia: 2³ = 8 veces más marea
   const t0 = performance.now();
-  renderPlanet(m, s, am, as);
+  const oBox = renderObject(), bBox = broken ? null : renderBall();
   const ms = performance.now() - t0;
-  // la Luna detrás va antes que el planeta; la de adelante, después
-  const mz = m[0]*cam.c[0] + m[1]*cam.c[1] + m[2]*cam.c[2];
-  drawSunMark(s); drawOrbit(dist, false);
-  if (moonOn && mz < 0) drawMoon(m, s, dist);
-  drawBulge(m, s, am, as);
-  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(off, cx - Rpx, cy - Rpx, 2*Rpx, 2*Rpx);
-  drawAxis(); drawPort(); drawOrbit(dist, true);
-  if (moonOn && mz >= 0) drawMoon(m, s, dist);
-  drawGraph(am, as);
-  if (now - textT > 200){ textT = now; updateText(m, s, am, as); }
-  // resolución que se ajusta sola: si pintar el planeta tarda más de 9 ms, baja; si sobra, sube
-  perf.push(ms); if (perf.length >= 40){
-    const avg = perf.reduce((a, b) => a + b, 0)/perf.length; perf = [];
-    if (avg > 9 && maxRes > 260){ maxRes = Math.round(res*0.8); resize(); }
-    else if (avg < 4 && res < Math.round(2*Rpx*dpr) && maxRes < 1400){ maxRes = Math.round(res*1.2); resize(); }
+  drawRoche();
+  const zO = proj([dShown, 0, 0])[2], zB = proj([0, 0, 0])[2];
+  const drawObj = () => ctx.drawImage(offO, oBox.X0, oBox.Y0, 2*oBox.R, 2*oBox.R);
+  if (zO < zB) drawObj();
+  drawAxes(false);
+  if (bBox){ ctx.imageSmoothingEnabled = true; ctx.drawImage(offB, bBox.X0, bBox.Y0, 2*bBox.R, 2*bBox.R); }
+  else {
+    if (!dropSprite) dropSprite = sprite();
+    const list = drops.filter(p => !p.gone).map(p => [proj([p.x, p.y, p.z]), p.r]).sort((A, B) => A[0][2] - B[0][2]);
+    for (const [[X, Y], r] of list){ const s = r*scale*2.2; ctx.drawImage(dropSprite, X - s/2, Y - s/2, s, s); }
   }
+  drawAxes(true); drawArrows();
+  if (zO >= zB) drawObj();
+  // si el objeto quedó fuera de la pantalla, una flecha indica dónde está
+  const [Xo, Yo] = proj([dShown, 0, 0]);
+  if (Xo > W - 10 || Xo < 10){
+    const Xe = Math.min(W - 18, Math.max(18, Xo)); ctx.fillStyle = "#ffc94a"; ctx.font = "800 12px Inter, sans-serif"; ctx.textAlign = Xo > W ? "right" : "left";
+    ctx.fillText(`${Xo > W ? "" : "← "}${MATS[String(rho)].name} a ${fmt(dShown, 1)} radios${Xo > W ? " →" : ""}`, Xe, Math.min(H - 14, Math.max(90, Yo))); ctx.textAlign = "start";
+  }
+  if (now - textT > 200){ textT = now; updateText(); }
+  // la calidad del trazado de rayos se ajusta sola para no pasar de 10 ms por cuadro
+  perf.push(ms); if (perf.length >= 30){ const avg = perf.reduce((x, y) => x + y)/perf.length; perf = [];
+    if (avg > 10 && quality > 0.35) quality *= 0.8; else if (avg < 4 && quality < 1) quality = Math.min(1, quality*1.15); }
   requestAnimationFrame(frame);
+}
+function updateText(){
+  const m = MATS[String(rho)], dr = roche(rho);
+  let s = `${m.name[0].toUpperCase() + m.name.slice(1)} ${fmt(rho, rho < 10 ? 2 : 1)} g/cm³ · a ${fmt(dShown, 1)} radios`;
+  s += broken ? " · la bola se rompió" : ` · se estira ${fmt(150*q, 1)} %`;
+  s += dr > D_MIN ? ` · Roche ${fmt(dr, 1)} radios` : " · nunca la rompe";
+  $("data").textContent = s;
 }
 
 // ---------- Controles ----------
 let toastT = 0;
 function toast(msg, ms = 3500){ const el = $("toast"); el.textContent = msg; el.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add("off"), ms); }
-const PLAY = '<path d="M8 5v14l11-7z" fill="currentColor"/>', PAUSE = '<path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/>';
-function syncPlay(){ $("playIco").innerHTML = running ? PAUSE : PLAY; $("playLbl").textContent = running ? "Pausa" : "Seguir"; }
-$("play").addEventListener("click", () => { running = !running; syncPlay(); });
-$("spd").addEventListener("click", () => { speedK = (speedK + 1) % SPEEDS.length; $("spdLbl").textContent = SPEEDS[speedK][1]; });
-$("view").addEventListener("click", () => { viewSide = !viewSide; $("viewLbl").textContent = viewSide ? "De lado" : "Desde arriba"; resize(); });
+function setD(v){
+  const contact = 1 + q + R_OBJ + 0.06;
+  d = Math.max(Math.max(D_MIN, contact), Math.min(D_MAX, v));
+  if (v < contact && !broken) toast("¡Se tocan! El objeto no puede acercarse más.");
+}
+$("close").addEventListener("click", () => setD(d*0.85));
+$("far").addEventListener("click", () => setD(d/0.85));
+$("reset").addEventListener("click", () => {
+  broken = false; drops = []; q = 0; qv = 0;
+  if (d < roche(rho)) d = dShown = Math.min(D_MAX, roche(rho) + 1.5);
+  toast("Una bola de agua nueva, quieta y redonda");
+});
+document.querySelectorAll("[data-rho]").forEach(b => b.addEventListener("click", () => {
+  rho = +b.dataset.rho; document.querySelectorAll("[data-rho]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  const dr = roche(rho);
+  toast(dr > D_MIN ? `${MATS[b.dataset.rho].name}: rompe la bola si se acerca a menos de ${fmt(dr, 1)} radios` : `${MATS[b.dataset.rho].name}: es tan liviano que nunca puede romperla`, 4000);
+}));
 $("more").addEventListener("click", () => { const open = $("sheet").hidden; $("sheet").hidden = !open; $("more").setAttribute("aria-pressed", open); });
-$("moon").addEventListener("click", () => { moonOn = !moonOn; $("moon").setAttribute("aria-pressed", moonOn); if (!moonOn){ near = false; $("near").setAttribute("aria-pressed", false); } toast(moonOn ? "La Luna vuelve a tirar del mar" : "Sin Luna: solo queda la marea del Sol, menos de la mitad"); });
-$("sun").addEventListener("click", () => { sunOn = !sunOn; $("sun").setAttribute("aria-pressed", sunOn); toast(sunOn ? "El Sol también tira del mar" : "Sin el Sol: no hay mareas vivas ni muertas"); });
-$("near").addEventListener("click", () => {
-  near = !near; $("near").setAttribute("aria-pressed", near);
-  if (near && !moonOn){ moonOn = true; $("moon").setAttribute("aria-pressed", true); }
-  toast(near ? "Luna a la mitad de distancia: la marea crece 2 × 2 × 2 = 8 veces" : "Luna a su distancia real");
+$("axesBtn").addEventListener("click", () => { showAxes = !showAxes; $("axesBtn").setAttribute("aria-pressed", showAxes); });
+$("spinBtn").addEventListener("click", () => { autoSpin = !autoSpin; $("spinBtn").setAttribute("aria-pressed", autoSpin); });
+// arrastrar gira la vista
+let drag = null;
+cv.addEventListener("pointerdown", e => { try { cv.setPointerCapture(e.pointerId); } catch (err) {} drag = {x:e.clientX, y:e.clientY}; });
+cv.addEventListener("pointermove", e => {
+  if (!drag) return;
+  yaw += (e.clientX - drag.x)*0.008; pitch = Math.max(-1.35, Math.min(1.35, pitch + (e.clientY - drag.y)*0.008));
+  drag = {x:e.clientX, y:e.clientY};
 });
-document.querySelectorAll("[data-x]").forEach(b => b.addEventListener("click", () => {
-  X = +b.dataset.x; document.querySelectorAll("[data-x]").forEach(q => q.setAttribute("aria-pressed", q === b));
-  toast(X === 1 ? "Así es en realidad: medio metro no se ve desde el espacio" : `La altura del mar se dibuja ${X} veces más grande`);
-}));
-document.querySelectorAll("[data-tilt]").forEach(b => b.addEventListener("click", () => {
-  tiltDeg = +b.dataset.tilt; ax = axes(tiltDeg*Math.PI/180);
-  document.querySelectorAll("[data-tilt]").forEach(q => q.setAttribute("aria-pressed", q === b)); resize();
-}));
-// tocar el planeta pone el puerto ahí
-cv.addEventListener("pointerdown", e => {
-  if (!ready) return;
-  const rct = cv.getBoundingClientRect(), x = (e.clientX - rct.left - cx)/Rpx, y = -(e.clientY - rct.top - cy)/Rpx, q = x*x + y*y;
-  if (q >= 1) return;
-  const z = Math.sqrt(1 - q), n = [0, 1, 2].map(i => x*cam.r[i] + y*cam.u[i] + z*cam.c[i]);
-  const lat = Math.asin(n[0]*ax.A[0] + n[1]*ax.A[1] + n[2]*ax.A[2]);
-  const lonW = Math.atan2(n[0]*ax.e2[0] + n[1]*ax.e2[1] + n[2]*ax.e2[2], n[0]*ax.e1[0] + n[1]*ax.e1[1] + n[2]*ax.e1[2]);
-  port = {lat, lon:lonW - W_SPIN*t};
-  const hgt = elevAt((port.lon/(2*Math.PI))*TW - 0.5, (0.5 - lat/Math.PI)*TH - 0.5);
-  toast(hgt > 300 ? "El puerto quedó tierra adentro: la marea no lo alcanza. Prueba en la costa." : "Puerto nuevo: mira su marea en el gráfico de abajo");
-});
-syncPlay(); resize();
-(function pump(){ if (!genSome(40)) setTimeout(pump, 0); })();   // el relieve se calcula por partes, sin congelar la pantalla
+const end = () => drag = null;
+cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
+resize();
 requestAnimationFrame(frame);
 })();
 </script>
+<!-- SyMula: selector de tema (botones con data-theme-set) -->
+<script>(function(){
+function sync(){var t=document.documentElement.getAttribute("data-theme");
+  document.querySelectorAll("[data-theme-set]").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-theme-set")===t);});
+  var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",getComputedStyle(document.documentElement).getPropertyValue("--background").trim());}
+window.SyMulaTheme=function(t){document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("symula-tema",t);}catch(e){}sync();
+  window.dispatchEvent(new Event("symula-tema"));};
+// colores del tema para dibujar en el lienzo: SyMulaColor("sem-1"), SyMulaColor("primary")...
+window.SyMulaColor=function(name){return getComputedStyle(document.documentElement).getPropertyValue("--"+name).trim();};
+document.querySelectorAll("[data-theme-set]").forEach(function(b){b.addEventListener("click",function(){SyMulaTheme(b.getAttribute("data-theme-set"));});});
+try{if(!localStorage.getItem("symula-tema")&&window.matchMedia)matchMedia("(prefers-color-scheme: light)").addEventListener("change",function(e){document.documentElement.setAttribute("data-theme",e.matches?"light":"dark");sync();window.dispatchEvent(new Event("symula-tema"));});}catch(e){}
+sync();})();</script>
+<!-- fin SyMula: selector de tema -->
 </body>
 </html>

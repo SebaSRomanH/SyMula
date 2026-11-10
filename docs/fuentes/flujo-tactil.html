@@ -3,35 +3,35 @@
 <head>
 <meta charset="utf-8">
 <title>Piscina táctil: fórmulas</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
 <style>
 @page{size:A4;margin:14mm 15mm}
-body{font:10pt/1.45 Nunito,sans-serif;color:#1a2238;margin:0}
-header{border-bottom:3px solid #ffc94a;padding-bottom:6px;margin-bottom:8px}
-h1{font-size:20pt;margin:0;color:#0b1226;font-weight:800}
-.sub{color:#5a6480;font-size:9.5pt;margin:2px 0 0}
-h2{font-size:11.5pt;margin:10px 0 3px;color:#0b1226;font-weight:800;break-after:avoid}
-h2::before{content:"";display:inline-block;width:8px;height:8px;background:#ffc94a;border-radius:2px;margin-right:7px;vertical-align:1px}
+body{font:10pt/1.45 Inter,sans-serif;color:#102A43;margin:0}
+header{border-bottom:3px solid #087481;padding-bottom:6px;margin-bottom:8px}
+h1{font-size:20pt;margin:0;color:#102A43;font-weight:800}
+.sub{color:#526779;font-size:9.5pt;margin:2px 0 0}
+h2{font-size:11.5pt;margin:10px 0 3px;color:#102A43;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#087481;border-radius:2px;margin-right:7px;vertical-align:1px}
 p{margin:3px 0 5px}
 ul{margin:3px 0 5px;padding-left:18px}
 .katex-display{margin:5px 0}
-.note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 9px;font-size:9pt;margin:6px 0}
+.note{background:#F1F5F8;border-left:3px solid #087481;padding:4px 9px;font-size:9pt;margin:6px 0}
 section{break-inside:avoid}
 
 /* @portada */
 .cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
-.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c48a00;margin:0}
-.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#0b1226}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#087481;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#102A43}
 .cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
 .cover p{margin:0 0 7px}
-.cover .math{background:#fff6dc;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
-.cover .reto{border:2px dashed #ffc94a;border-radius:12px;padding:8px 12px;margin:6px 0}
-.cover .try{margin-top:auto;font-size:10.5pt;color:#5a6480}
+.cover .math{background:#EEF6F7;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #D9A15B;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#526779}
 .cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
-.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#f5f7fc;border:1px solid #dde2ee;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#F1F5F8;border:1px solid #DCE5EB;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
 .how{break-inside:auto}
 /* @fin-portada */
 </style>
@@ -43,7 +43,7 @@ section{break-inside:avoid}
 <h1>¿Qué pasa cuando revuelves el agua?</h1>
 <svg class="art" viewBox="0 0 400 150"><rect x="20" y="10" width="360" height="130" rx="14" fill="#e6f3ff"/>
   <path d="M90 75C150 30 250 30 300 75" fill="none" stroke="#9aa6c8" stroke-width="3" stroke-dasharray="6 6"/>
-  <circle cx="300" cy="75" r="12" fill="#ffc94a"/>
+  <circle cx="300" cy="75" r="12" fill="#087481"/>
   <g fill="none" stroke-width="3"><path d="M200 105a16 16 0 1 1 16-16" stroke="#e05a7a"/><path d="M200 45a16 16 0 1 0 16 16" stroke="#2a9d6f"/></g>
   <g fill="none" stroke="#4ea3ff" stroke-width="2.5"><path d="M330 45a40 40 0 0 1 0 60"/><path d="M350 30a60 60 0 0 1 0 90" opacity=".6"/></g></svg>
 <p>Cuando mueves el dedo empujas el agua. La que está adelante se aprieta y ese apretón viaja como una <b>onda</b>. Detrás del dedo queda un hueco que el agua llena girando: se forman <b>dos remolinos</b> que giran en sentidos opuestos, como cuando remas en un bote.</p>

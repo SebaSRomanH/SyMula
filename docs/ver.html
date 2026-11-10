@@ -3,23 +3,54 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1226">
+<meta name="theme-color" content="#0B1526">
+<!-- SyMula: tema (va antes del estilo para no parpadear) -->
+<script>(function(){var t=null;try{t=localStorage.getItem("symula-tema");if(!t&&localStorage.getItem("symula-noche")==="1")t="night";}catch(e){}
+if(t!=="light"&&t!=="dark"&&t!=="night")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";
+document.documentElement.setAttribute("data-theme",t);})();</script>
+<!-- fin SyMula: tema -->
 <title>Fórmulas de la simulación</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;color-scheme:dark}
+/* ===== SyMula: estilo común (sistema de diseño v1.0, igual en todas las páginas) ===== */
+:root,:root[data-theme="dark"]{
+  --background:#0B1526;--surface:#15253A;--surface-2:#1B2E47;--text:#F0F6FC;--text-muted:#B8C6D3;
+  --primary:#42C7CF;--primary-text:#0B1526;--accent:#E6B66A;--border:#30445B;--control-border:#5D7590;
+  --sem-1:#6CB4F0;--sem-2:#F29C6B;--sem-3:#6FCF97;--sem-4:#C49BEA;--sem-5:#E6C15A;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --background:#F8FAFC;--surface:#FFFFFF;--surface-2:#F1F5F8;--text:#102A43;--text-muted:#526779;
+  --primary:#087481;--primary-text:#FFFFFF;--accent:#D9A15B;--border:#DCE5EB;--control-border:#7B8FA1;
+  --sem-1:#1F6FB2;--sem-2:#B4532A;--sem-3:#2E7D4F;--sem-4:#7E4AB0;--sem-5:#8A6400;
+  color-scheme:light;
+}
+:root[data-theme="night"]{
+  --background:#09221D;--surface:#12382F;--surface-2:#174238;--text:#E7F8F2;--text-muted:#C1F4DD;
+  --primary:#21B68B;--primary-text:#09221D;--accent:#C1F4DD;--border:#286052;--control-border:#4E8A78;
+  --sem-1:#8FD3FF;--sem-2:#F5B38A;--sem-3:#9BE8C0;--sem-4:#D5B8F2;--sem-5:#F0D58A;
+  color-scheme:dark;
+}
+:root{
+  /* nombres antiguos que usa el código de cada página */
+  --bg:var(--background);--panel:var(--surface);--btn:var(--surface-2);--line:var(--border);--ink:var(--text);
+  --soft:var(--text-muted);--acc:var(--primary);--acc-ink:var(--primary-text);--cyan:var(--primary);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
 *,*::before,*::after{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:700 15px/1.4 Nunito,system-ui,sans-serif}
-header{position:sticky;top:0;z-index:2;display:flex;gap:10px;align-items:center;padding:10px 12px;background:rgba(18,26,54,.95);border-bottom:1px solid var(--line)}
-header h1{flex:1;min-width:0;margin:0;font:800 17px/1.2 Nunito,sans-serif;color:var(--acc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.btn{flex:none;min-height:48px;padding:0 14px;border-radius:14px;display:flex;align-items:center;gap:8px;background:var(--btn);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800}
+html,body{margin:0;background:var(--background);color:var(--text);font:500 15px/1.4 Inter,system-ui,sans-serif}
+header{position:sticky;top:0;z-index:2;display:flex;gap:12px;align-items:center;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+header h1{flex:1;min-width:0;margin:0;font:700 17px/1.2 Inter,sans-serif;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn{flex:none;min-height:44px;min-width:44px;padding:0 14px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--surface-2);border:1px solid var(--control-border);color:var(--text);text-decoration:none;font-weight:600}
+@media (hover:hover){.btn:hover{border-color:var(--primary)}}
 .btn svg{width:22px;height:22px}
-main{max-width:860px;margin:0 auto;padding:12px 10px 30px;display:flex;flex-direction:column;gap:12px}
-main canvas{width:100%;height:auto;border-radius:6px;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.4)}
-.msg{color:var(--soft);text-align:center;padding:30px 10px}
-.msg a{color:var(--acc)}
+main{max-width:860px;margin:0 auto;padding:16px 12px 32px;display:flex;flex-direction:column;gap:16px}
+main canvas{width:100%;height:auto;border-radius:12px;background:#fff;border:1px solid var(--border)}
+.msg{color:var(--text-muted);text-align:center;padding:32px 12px}
+.msg a{color:var(--primary)}
+a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -35,7 +66,7 @@ main canvas{width:100%;height:auto;border-radius:6px;background:#fff;box-shadow:
 // PDF dentro del navegador). El botón PDF descarga el archivo original.
 (function(){
   const NAMES = {"gravitacion":"Planetas y gravedad", "ondas-sonoras":"Sonido en una sala", "flujo-tubo":"Flujo en un tubo",
-                 "flujo-tactil":"Flujo táctil", "lanzamiento":"Lanzamiento vertical", "nave":"Nave espacial", "mareas":"Mareas"};
+                 "flujo-tactil":"Flujo táctil", "lanzamiento":"Lanzamiento vertical", "nave":"Nave espacial", "mareas":"Bola de agua"};
   const f = new URLSearchParams(location.search).get("f"), msg = document.getElementById("msg");
   if (!NAMES[f]){ msg.innerHTML = 'No encontré esa ficha. <a href="../index.html">Volver al inicio</a>.'; return; }
   const url = f + ".pdf";
@@ -59,5 +90,18 @@ main canvas{width:100%;height:auto;border-radius:6px;background:#fff;box-shadow:
   }).catch(fail);
 })();
 </script>
+<!-- SyMula: selector de tema (botones con data-theme-set) -->
+<script>(function(){
+function sync(){var t=document.documentElement.getAttribute("data-theme");
+  document.querySelectorAll("[data-theme-set]").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-theme-set")===t);});
+  var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",getComputedStyle(document.documentElement).getPropertyValue("--background").trim());}
+window.SyMulaTheme=function(t){document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("symula-tema",t);}catch(e){}sync();
+  window.dispatchEvent(new Event("symula-tema"));};
+// colores del tema para dibujar en el lienzo: SyMulaColor("sem-1"), SyMulaColor("primary")...
+window.SyMulaColor=function(name){return getComputedStyle(document.documentElement).getPropertyValue("--"+name).trim();};
+document.querySelectorAll("[data-theme-set]").forEach(function(b){b.addEventListener("click",function(){SyMulaTheme(b.getAttribute("data-theme-set"));});});
+try{if(!localStorage.getItem("symula-tema")&&window.matchMedia)matchMedia("(prefers-color-scheme: light)").addEventListener("change",function(e){document.documentElement.setAttribute("data-theme",e.matches?"light":"dark");sync();window.dispatchEvent(new Event("symula-tema"));});}catch(e){}
+sync();})();</script>
+<!-- fin SyMula: selector de tema -->
 </body>
 </html>

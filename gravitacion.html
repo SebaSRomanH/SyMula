@@ -4,49 +4,78 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1226">
+<!-- SyMula: tema (va antes del estilo para no parpadear) -->
+<script>(function(){var t=null;try{t=localStorage.getItem("symula-tema");if(!t&&localStorage.getItem("symula-noche")==="1")t="night";}catch(e){}
+if(t!=="light"&&t!=="dark"&&t!=="night")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";
+document.documentElement.setAttribute("data-theme",t);})();</script>
+<!-- fin SyMula: tema -->
 <title>Planetas: las leyes de Kepler</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ===== SyMula: estilo común (igual en todos los simuladores) ===== */
+/* ===== SyMula: estilo común (sistema de diseño v1.0, igual en todas las páginas) ===== */
+:root,:root[data-theme="dark"]{
+  --background:#0B1526;--surface:#15253A;--surface-2:#1B2E47;--text:#F0F6FC;--text-muted:#B8C6D3;
+  --primary:#42C7CF;--primary-text:#0B1526;--accent:#E6B66A;--border:#30445B;--control-border:#5D7590;
+  --sem-1:#6CB4F0;--sem-2:#F29C6B;--sem-3:#6FCF97;--sem-4:#C49BEA;--sem-5:#E6C15A;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --background:#F8FAFC;--surface:#FFFFFF;--surface-2:#F1F5F8;--text:#102A43;--text-muted:#526779;
+  --primary:#087481;--primary-text:#FFFFFF;--accent:#D9A15B;--border:#DCE5EB;--control-border:#7B8FA1;
+  --sem-1:#1F6FB2;--sem-2:#B4532A;--sem-3:#2E7D4F;--sem-4:#7E4AB0;--sem-5:#8A6400;
+  color-scheme:light;
+}
+:root[data-theme="night"]{
+  --background:#09221D;--surface:#12382F;--surface-2:#174238;--text:#E7F8F2;--text-muted:#C1F4DD;
+  --primary:#21B68B;--primary-text:#09221D;--accent:#C1F4DD;--border:#286052;--control-border:#4E8A78;
+  --sem-1:#8FD3FF;--sem-2:#F5B38A;--sem-3:#9BE8C0;--sem-4:#D5B8F2;--sem-5:#F0D58A;
+  color-scheme:dark;
+}
 :root{
-  --bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2;
-  color-scheme:dark;box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  /* nombres antiguos que usa el código de cada página */
+  --bg:var(--background);--panel:var(--surface);--btn:var(--surface-2);--line:var(--border);--ink:var(--text);
+  --soft:var(--text-muted);--acc:var(--primary);--acc-ink:var(--primary-text);--cyan:var(--primary);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){--bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2}
-}
-:root[data-theme="dark"]{--bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;--cyan:#5ec8f2}
 *,*::before,*::after{box-sizing:border-box}
-html{height:100%;background:var(--bg)}
-body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
-  font:700 15px/1.3 Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-.stage{position:relative;flex:1;min-height:0;overflow:hidden}
+html{height:100%;background:var(--background)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;background:var(--background);color:var(--text);
+  font:500 15px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden;background:var(--background)}
 .stage canvas{display:block;width:100%;height:100%;touch-action:none}
-.home{position:absolute;top:10px;left:10px;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;z-index:3;
-  background:rgba(18,26,54,.88);border:1px solid var(--line);color:var(--ink);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.card{position:absolute;top:10px;left:72px;right:10px;max-width:460px;min-height:52px;padding:7px 12px;border-radius:16px;z-index:2;pointer-events:none;
-  background:rgba(18,26,54,.88);border:1px solid var(--line);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.card h1{font:800 18px/1.15 Nunito,sans-serif;margin:0;color:var(--acc)}
-.card p{margin:2px 0 0;font-size:14px;color:#d8ddf7}
-.card .data{font-size:13px;color:#8fd8ff;font-variant-numeric:tabular-nums}
+:root[data-theme="night"] .stage canvas{filter:grayscale(1) sepia(.8) hue-rotate(92deg) saturate(.85) brightness(.88)}   /* verde suave, sin fluorescencia */
+.home{position:absolute;top:12px;left:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text)}
+.card{position:absolute;top:12px;left:72px;right:12px;max-width:480px;min-height:48px;padding:10px 16px;border-radius:12px;z-index:2;pointer-events:none;
+  background:var(--surface);background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--border)}
+.card h1{font:700 17px/1.2 Inter,sans-serif;margin:0;color:var(--text);letter-spacing:-.01em}
+.card p{margin:3px 0 0;font-size:14px;color:var(--text-muted)}
+.card .data{font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
 .card p:empty{display:none}
-.toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:92%;padding:10px 18px;border-radius:999px;z-index:3;
-  background:var(--acc);color:var(--acc-ink);font-weight:800;text-align:center;pointer-events:none;transition:opacity .4s}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:max-content;max-width:92%;padding:10px 16px;border-radius:12px;z-index:3;
+  background:var(--surface);color:var(--text);border:1px solid var(--primary);font-weight:600;text-align:center;pointer-events:none;transition:opacity .3s}
 .toast.off{opacity:0}
-.dock{background:var(--panel);border-top:1px solid var(--line);padding:8px 10px 10px;display:flex;flex-direction:column;gap:8px}
+.dock{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px 14px;display:flex;flex-direction:column;gap:10px}
 .dock>*{width:100%;max-width:760px;margin:0 auto}
 .row{display:flex;gap:8px}
-.tile{flex:1 1 0;min-width:0;min-height:60px;padding:6px 3px;border-radius:16px;border:1px solid var(--line);background:var(--btn);color:var(--ink);
-  font:800 13px/1.1 Nunito,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;touch-action:manipulation}
-.tile svg{width:26px;height:26px;flex:none}
-.tile[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
-.tile:active{transform:scale(.96)}
-.tile:disabled{opacity:.4;cursor:default}
-.lbl{font-size:12px;font-weight:800;color:var(--soft);margin-bottom:-3px;padding:0 2px}
-button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.tile{flex:1 1 0;min-width:0;min-height:56px;padding:6px 4px;border-radius:12px;border:1px solid var(--control-border);background:var(--surface-2);color:var(--text);
+  font:600 13px/1.15 Inter,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;
+  touch-action:manipulation;transition:border-color .15s,background-color .15s}
+.tile svg{width:24px;height:24px;flex:none}
+.tile small{font-size:11px;font-weight:500;opacity:.85}
+@media (hover:hover){.tile:hover:not(:disabled),.home:hover{border-color:var(--primary)}}
+.tile[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+.tile:disabled{opacity:.45;cursor:not-allowed}
+.tile[aria-busy="true"]{position:relative;color:transparent}
+.tile[aria-busy="true"]::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;border:2px solid var(--text-muted);border-top-color:var(--primary);animation:sy-spin .8s linear infinite}
+@keyframes sy-spin{to{transform:rotate(360deg)}}
+.lbl{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:-4px;padding:0 2px;letter-spacing:.02em}
+.themes{display:flex;gap:4px;padding:4px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.themes button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--text);font:600 13px Inter,sans-serif;cursor:pointer}
+.themes button[aria-pressed="true"]{background:var(--primary);color:var(--primary-text)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 [hidden]{display:none!important}
 /* ===== fin del estilo común ===== */
 .tile small{display:block;font-size:11px;font-weight:700;opacity:.75;margin-top:-2px}
@@ -54,10 +83,10 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 .card p{font-size:13.5px;padding-right:6px}
 .ctop{display:flex;align-items:center;gap:10px}
 .card h1{font-size:16px;white-space:nowrap}
-.energy{font-size:14px;color:#8fd8ff;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.info{flex:none;width:40px;height:40px;margin-left:auto;border-radius:12px;border:1px solid var(--line);background:var(--btn);color:var(--ink);font:800 17px Nunito,sans-serif;cursor:pointer}
+.energy{font-size:14px;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.info{flex:none;width:40px;height:40px;margin-left:auto;border-radius:12px;border:1px solid var(--line);background:var(--btn);color:var(--ink);font:800 17px Inter,sans-serif;cursor:pointer}
 .info[aria-expanded="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
-.corner.wide{width:auto;padding:0 14px;display:flex;align-items:center;gap:8px;font:800 14px Nunito,sans-serif}
+.corner.wide{width:auto;padding:0 14px;display:flex;align-items:center;gap:8px;font:800 14px Inter,sans-serif}
 .lbar{position:absolute;left:72px;bottom:10px;display:flex;gap:8px;z-index:3}
 .lbar .corner{position:static}
 .corner[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
@@ -69,18 +98,17 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 body.clean .home,body.clean .card,body.clean #hideDock,body.clean .lbar,body.clean .zoom,body.clean .dock,body.clean .toast{display:none!important}
 #showAll{display:none;left:auto;right:10px;opacity:.55}
 body.clean #showAll{display:grid}
-.corner{position:absolute;left:10px;bottom:10px;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;z-index:3;cursor:pointer;padding:0;
-  background:rgba(18,26,54,.88);border:1px solid var(--line);color:var(--ink);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.corner{position:absolute;left:10px;bottom:10px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;cursor:pointer;padding:0;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text)}
+@media (hover:hover){.corner:hover:not(:disabled){border-color:var(--primary)}}
 /* Botones semitransparentes: la botonera flota sobre el espacio y todo deja ver las órbitas detrás */
 body{position:relative}
-.dock{position:absolute;left:0;right:0;bottom:0;z-index:4;background:rgba(18,26,54,.42);border-top-color:rgba(44,58,110,.6);
-  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
-.dock .tile:not([aria-pressed="true"]),.info:not([aria-expanded="true"]){background:rgba(27,38,80,.5);border-color:rgba(44,58,110,.7)}
-.home,.card,.corner:not([aria-pressed="true"]){background:rgba(18,26,54,.45)}
+.dock{position:absolute;left:0;right:0;bottom:0;z-index:4;background:color-mix(in srgb,var(--surface) 62%,transparent)}
+.dock .tile:not([aria-pressed="true"]),.info:not([aria-expanded="true"]){background:color-mix(in srgb,var(--surface-2) 72%,transparent)}
+.home,.card,.corner:not([aria-pressed="true"]){background:color-mix(in srgb,var(--surface) 72%,transparent)}
 .lbar,.zoom,#hideDock,#showAll{bottom:calc(var(--dock-h, 0px) + 10px)}
 .toast{bottom:calc(var(--dock-h, 0px) + 72px)}
-/* Modo noche: todo en verde y más oscuro, para mirar sin encandilarse */
-body.night{filter:grayscale(1) sepia(1) hue-rotate(72deg) saturate(2.6) brightness(.78)}
+
 </style>
 </head>
 <body>
@@ -103,6 +131,8 @@ body.night{filter:grayscale(1) sepia(1) hue-rotate(72deg) saturate(2.6) brightne
 </div>
 <nav class="dock" id="dock" aria-label="Controles">
   <div class="sheet" id="sheet" hidden style="display:flex;flex-direction:column;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line)">
+    <div class="lbl">Tema</div>
+    <div class="themes" role="group" aria-label="Tema"><button type="button" data-theme-set="light">Claro</button><button type="button" data-theme-set="dark">Oscuro</button><button type="button" data-theme-set="night">Nocturno</button></div>
     <div class="lbl">Cómo cambia la gravedad con la distancia r</div>
     <div class="row" role="group" aria-label="Ley de fuerza" id="laws">
       <button class="tile" type="button" data-n="0.5" aria-pressed="false">1/√r<small>muy suave</small></button>
@@ -123,7 +153,6 @@ body.night{filter:grayscale(1) sepia(1) hue-rotate(72deg) saturate(2.6) brightne
     </div>
     <div class="row">
       <button class="tile" id="snd" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" id="sndIcon"></svg><span id="sndLbl">Sonido</span></button>
-      <button class="tile" id="night" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Modo noche</button>
       <button class="tile" id="dustClr" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 7V4h4v3M6.5 7l1 13h9l1-13"/></svg>Quitar polvo y gas</button>
     </div>
   </div>
@@ -959,12 +988,6 @@ const SND_ON = '<path d="M4 9h3.5L13 4.5v15L7.5 15H4z" fill="currentColor"/><pat
 const SND_OFF = '<path d="M4 9h3.5L13 4.5v15L7.5 15H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="#f27b9b" stroke-width="2.2" stroke-linecap="round"/>';
 function syncSound(){ $("sndIcon").innerHTML = soundOn ? SND_ON : SND_OFF; $("sndLbl").textContent = soundOn ? "Sonido" : "Sin sonido"; }
 $("snd").addEventListener("click", () => { soundOn = !soundOn; syncSound(); });
-function setNight(on){
-  document.body.classList.toggle("night", on); $("night").setAttribute("aria-pressed", on);
-  try { localStorage.setItem("symula-noche", on ? "1" : "0"); } catch (e) {}
-}
-$("night").addEventListener("click", () => setNight(!document.body.classList.contains("night")));
-try { if (localStorage.getItem("symula-noche") === "1") setNight(true); } catch (e) {}
 
 // tocar el cielo = planeta en órbita circular; tocar un planeta = seguirlo; arrastrar = lanzar
 function pos(e){ const r = cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
@@ -1056,7 +1079,7 @@ function ball(X, Y, r, color, halo = true){
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill();
 }
 function pill(text, X, Y, color = "#eef1ff"){
-  ctx.font = "800 12px Nunito, sans-serif";
+  ctx.font = "800 12px Inter, sans-serif";
   const w = ctx.measureText(text).width;
   ctx.fillStyle = "rgba(10,15,42,0.8)"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(X-w/2-5, Y-10, w+10, 17, 8) : ctx.rect(X-w/2-5, Y-10, w+10, 17); ctx.fill();
   ctx.fillStyle = color; ctx.textAlign = "center"; ctx.fillText(text, X, Y+3); ctx.textAlign = "start";
@@ -1103,7 +1126,7 @@ function drawKepler3(){                               // gráfico T² contra a³
   const L = X0+30, B = Y0+H-22, R = X0+W-10, T = Y0+12, px = v => L + v/mx*(R-L), py = v => B - v/mx*(B-T);
   ctx.strokeStyle = "#9aa6d6"; ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(L, B); ctx.lineTo(R, B); ctx.stroke();
   ctx.strokeStyle = "rgba(255,201,74,0.8)"; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(px(0), py(0)); ctx.lineTo(px(mx), py(mx)); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle = "#9aa6d6"; ctx.font = "700 11px Nunito, sans-serif";
+  ctx.fillStyle = "#9aa6d6"; ctx.font = "700 11px Inter, sans-serif";
   ctx.fillText("a³", R-12, B+15); ctx.fillText("T²", X0+8, T+8);
   ctx.fillStyle = "#ffc94a"; ctx.fillText("T² = a³", px(mx*0.42), py(mx*0.62));
   for (const p of pts){ ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(px(p.x), py(p.y), 5, 0, Math.PI*2); ctx.fill(); }
@@ -1119,7 +1142,7 @@ function draw(time){
     ctx.strokeStyle = "rgba(238,241,255,0.12)"; ctx.setLineDash([3, 6]); ctx.lineWidth = 1;
     const [ux0, uy0] = toScreen(0, 0);
     ctx.beginPath(); ctx.arc(ux0, uy0, scale, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(238,241,255,0.35)"; ctx.font = "700 11px Nunito, sans-serif"; ctx.fillText("1 UA", ux0 + scale*0.72 + 4, uy0 - scale*0.72);
+    ctx.fillStyle = "rgba(238,241,255,0.35)"; ctx.font = "700 11px Inter, sans-serif"; ctx.fillText("1 UA", ux0 + scale*0.72 + 4, uy0 - scale*0.72);
     if (kep === 2 && sel) drawSectors();
   }
   drawDust();
@@ -1242,5 +1265,18 @@ setLaw(2); setMode("central");
 requestAnimationFrame(frame);
 })();
 </script>
+<!-- SyMula: selector de tema (botones con data-theme-set) -->
+<script>(function(){
+function sync(){var t=document.documentElement.getAttribute("data-theme");
+  document.querySelectorAll("[data-theme-set]").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-theme-set")===t);});
+  var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",getComputedStyle(document.documentElement).getPropertyValue("--background").trim());}
+window.SyMulaTheme=function(t){document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("symula-tema",t);}catch(e){}sync();
+  window.dispatchEvent(new Event("symula-tema"));};
+// colores del tema para dibujar en el lienzo: SyMulaColor("sem-1"), SyMulaColor("primary")...
+window.SyMulaColor=function(name){return getComputedStyle(document.documentElement).getPropertyValue("--"+name).trim();};
+document.querySelectorAll("[data-theme-set]").forEach(function(b){b.addEventListener("click",function(){SyMulaTheme(b.getAttribute("data-theme-set"));});});
+try{if(!localStorage.getItem("symula-tema")&&window.matchMedia)matchMedia("(prefers-color-scheme: light)").addEventListener("change",function(e){document.documentElement.setAttribute("data-theme",e.matches?"light":"dark");sync();window.dispatchEvent(new Event("symula-tema"));});}catch(e){}
+sync();})();</script>
+<!-- fin SyMula: selector de tema -->
 </body>
 </html>
