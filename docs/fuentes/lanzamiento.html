@@ -25,9 +25,39 @@ th{color:#5a6480;font-weight:700}
 .note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 9px;font-size:9pt;margin:6px 0}
 .cols{columns:2;column-gap:18px}
 section{break-inside:avoid}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c48a00;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#0b1226}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#fff6dc;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #ffc94a;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#5a6480}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#f5f7fc;border:1px solid #dde2ee;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
 </style>
 </head>
 <body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Movimiento</p>
+<h1>¿Por qué todo lo que sube, baja?</h1>
+<svg class="art" viewBox="0 0 400 150"><path d="M20 140H380" stroke="#9aa6c8" stroke-width="3"/>
+  <g fill="#ffc94a"><circle cx="200" cy="128" r="7"/><circle cx="200" cy="88" r="7" opacity=".85"/><circle cx="200" cy="58" r="7" opacity=".75"/><circle cx="200" cy="38" r="7" opacity=".65"/><circle cx="200" cy="28" r="7" opacity=".55"/><circle cx="200" cy="25" r="7" opacity=".5"/></g>
+  <path d="M230 125V40" stroke="#e05a7a" stroke-width="3"/><text x="238" y="85" font-size="12" fill="#e05a7a">más lenta arriba</text></svg>
+<p>La Tierra tira de la pelota hacia abajo <b>todo el tiempo</b>, aunque vaya subiendo. Cada segundo le quita 9,8 metros por segundo de velocidad hacia arriba.</p>
+<p>Si la lanzas a 10 m/s, después de un segundo casi no le queda velocidad: se detiene un instante allá arriba y empieza a caer. Por eso las marcas que deja cada 0,1 segundos se juntan arriba (va lenta) y se separan abajo (va rápida).</p>
+<div class="math"><b>Un poco de matemática.</b> La altura que alcanza es <b>velocidad × velocidad ÷ (2 × 9,8)</b>. A 10 m/s: 10 × 10 ÷ 19,6 ≈ 5,1 metros.<br>
+¡Ojo! Si la lanzas el <i>doble</i> de rápido, sube <b>cuatro veces</b> más alto, porque la velocidad se multiplica por sí misma. En la Luna la gravedad es 6 veces más débil, así que la misma pelota sube 6 veces más alto.</div>
+<div class="reto"><b>Desafío.</b> Si lanzas la pelota a 20 m/s en la Tierra, ¿qué altura alcanza?</div>
+<p class="ans">Respuesta: 20 × 20 ÷ 19,6 ≈ 20,4 metros.</p>
+<p class="try"><b>Pruébalo:</b> lanza fuerte y suave y mira la altura; lanza lo mismo en la Tierra y en la Luna.</p>
+</section>
+<!-- @fin-portada -->
 <header>
 <h1>Lanzamiento vertical</h1>
 <p class="sub">SyMula · Fórmulas con las que se calcula el simulador (lanzamiento.html)</p>
@@ -91,6 +121,23 @@ $$H=1{,}12\left(y+\frac{v_y^2}{2g}\right)+0{,}4.$$
 $$H_\text{vista}\leftarrow H_\text{vista}+\left(H-H_\text{vista}\right)\min(1,\;2{,}5\,\Delta t).$$
 </section>
 
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b>: HTML para los botones, CSS para el estilo y JavaScript para la física y el dibujo. No usa programas externos: el navegador lo ejecuta tal cual.</li>
+<li><b>El lanzamiento:</b> mientras el dedo arrastra la pelota, <code>move()</code> guarda sus posiciones con la hora; al soltar, <code>release()</code> calcula la velocidad del dedo en los últimos 0,1 s.</li>
+<li><b>La física:</b> <code>physics(dt)</code> avanza en pasos de 1/240 s con la fórmula exacta de aceleración constante, revisa el suelo y las paredes, y deja una marca cada 0,1 s de vuelo.</li>
+<li><b>La cámara:</b> calcula hasta dónde llegará la pelota ($v^2/2g$) y se aleja suavemente para que siempre quepa.</li>
+<li><b>El bucle:</b> <code>frame()</code> llama a <code>physics</code> con el tiempo real transcurrido (por la velocidad elegida), luego <code>draw()</code> y <code>hud()</code>, que escribe la altura y la velocidad.</li>
+</ul>
+<div class="code">const h = Math.min(H, dt - t);            // paso de hasta 1/240 s
+ball.x  += ball.vx*h;
+ball.y  += ball.vy*h - 0.5*g*h*h;         // y = y0 + v·t − ½·g·t²
+ball.vy -= g*h;                           // v = v0 − g·t</div>
+<p>Son las ecuaciones del movimiento con aceleración constante, escritas tal cual.</p>
+</section>
+<!-- @fin-html -->
 <p class="note">Lo que no incluye: roce con el aire, rotación de la pelota ni variación de $g$ con la altura. Con roce, la altura máxima sería menor que $v^2/2g$ y la bajada más lenta que la subida.</p>
 </body>
 </html>

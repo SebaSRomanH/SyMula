@@ -24,9 +24,42 @@ th{color:#5a6480;font-weight:700}
 .note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 8px;font-size:8.6pt;margin:5px 0}
 .cols{columns:2;column-gap:16px}
 section{break-inside:avoid}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c48a00;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#0b1226}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#fff6dc;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #ffc94a;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#5a6480}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#f5f7fc;border:1px solid #dde2ee;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
 </style>
 </head>
 <body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Gravitación</p>
+<h1>¿Por qué los planetas dan vueltas?</h1>
+<svg class="art" viewBox="0 0 400 150"><defs><radialGradient id="s"><stop offset="0" stop-color="#fff3b0"/><stop offset=".5" stop-color="#ffc94a"/><stop offset="1" stop-color="#ff9a1f"/></radialGradient></defs>
+  <ellipse cx="200" cy="75" rx="150" ry="58" fill="none" stroke="#9aa6c8" stroke-width="2" stroke-dasharray="6 6"/>
+  <circle cx="170" cy="75" r="22" fill="url(#s)"/><circle cx="350" cy="75" r="9" fill="#4ea3ff"/>
+  <path d="M350 75 L350 25" stroke="#e05a7a" stroke-width="3" marker-end="url(#a)"/><path d="M350 75 L325 75" stroke="#2a9d6f" stroke-width="3"/>
+  <text x="356" y="30" font-size="12" fill="#e05a7a">va de lado</text><text x="250" y="70" font-size="12" fill="#2a9d6f">el Sol la atrae</text></svg>
+<p>Todo lo que tiene masa atrae a todo lo demás. Tú atraes a la Tierra y la Tierra te atrae a ti; como ella es enorme, gana ella y por eso los objetos caen al suelo.</p>
+<p>El Sol atrae a la Tierra. Si la Tierra estuviera quieta, caería directo al Sol. Pero va de lado muy rápido, <b>30 kilómetros cada segundo</b>. Cae hacia el Sol todo el tiempo y todo el tiempo se pasa de largo: <b>eso es una órbita</b>.</p>
+<div class="math"><b>Un poco de matemática.</b> La atracción se debilita con la distancia <i>al cuadrado</i>: al doble de distancia es 2 × 2 = 4 veces más débil; al triple, 3 × 3 = 9 veces más débil.<br>
+Johannes Kepler descubrió que el tiempo de una vuelta, <i>T</i> (en años), y la distancia al Sol, <i>a</i> (en unidades astronómicas, UA), cumplen <b><i>T</i> × <i>T</i> = <i>a</i> × <i>a</i> × <i>a</i></b>. Marte está a 1,52 UA: 1,52 × 1,52 × 1,52 ≈ 3,5, y 1,87 × 1,87 ≈ 3,5, así que su año dura 1,87 años de la Tierra.</div>
+<p>Kepler encontró tres reglas: las órbitas son elipses (círculos estirados), cerca del Sol el planeta va más rápido, y los planetas lejanos tardan mucho más en dar la vuelta. ¡Hasta la luz se curva al pasar cerca de una estrella!</p>
+<div class="reto"><b>Desafío.</b> Júpiter está a 5,2 UA del Sol. ¿Cuántos años tarda en dar una vuelta? Pista: 5,2 × 5,2 × 5,2 ≈ 140; busca un número que multiplicado por sí mismo dé 140.</div>
+<p class="ans">Respuesta: casi 12 años (11,9 × 11,9 ≈ 140).</p>
+<p class="try"><b>Pruébalo:</b> lanza un planeta despacio y otro rápido y compara sus órbitas; suelta polvo cerca del Sol; apunta un láser rozando el Sol.</p>
+</section>
+<!-- @fin-portada -->
 <header>
 <h1>Gravitación y leyes de Kepler</h1>
 <p class="sub">SyMula · Fórmulas con las que se calcula el simulador (gravitacion.html)</p>
@@ -135,7 +168,32 @@ $$q=\min\!\left(1,\max\!\left(0,\frac{4-r}{3{,}6}\right)\right),\qquad \alpha=q^
 </ul>
 </section>
 
+<section>
+<h2>Láser: luz que se curva</h2>
+<p>La luz va siempre a rapidez $c$; la gravedad solo cambia su dirección. Según la relatividad general se desvía el doble que una partícula lenta:</p>
+$$\vec v\leftarrow\vec v+2\,\vec a\,h,\qquad \vec v\leftarrow c\,\frac{\vec v}{|\vec v|},\qquad \Delta\theta\approx\frac{4M}{c^2 b}.$$
+<p>$b$ es la distancia a la que pasa. Con la $c$ real ($\approx 10\,066$) el Sol la desvía 1,75″; aquí $c=6$, así que al rozarlo se desvía unos 30°.</p>
+</section>
 </div>
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b>: HTML para los botones, CSS para el estilo y JavaScript para la física y el dibujo. No usa programas externos: el navegador lo ejecuta tal cual.</li>
+<li><b>El bucle:</b> <code>requestAnimationFrame</code> llama a <code>frame(time)</code> 60 o 120 veces por segundo. Cada cuadro avanza $T = 6\cdot0{,}0025\cdot$velocidad$\cdot\Delta t/16{,}7$ ms, y <code>substeps(T, t_din)</code> lo divide en $k$ pasos según el tiempo dinámico (hasta 4000).</li>
+<li><b>La física:</b> <code>accC</code> (Sol fijo) y <code>accN</code> (todas las parejas de masas) calculan la aceleración; <code>stepC</code> y <code>stepN</code> son el leapfrog; <code>mergeN</code> junta las masas que chocan y <code>collapse</code> hace la supernova. El polvo vive en arreglos <code>Float32Array</code> de 6000 granos (<code>stepDust</code>), los cometas en <code>stepComets</code> y el láser en <code>traceRay</code>.</li>
+<li><b>El dibujo:</b> <code>draw()</code> pinta en un <code>&lt;canvas&gt;</code>: el cielo en 3 capas, el polvo (se cuenta en una malla de 8 px y se amplía con suavizado, como la Vía Láctea), las estelas, los cuerpos, las guías de Kepler y los láseres.</li>
+<li><b>Los toques:</b> <code>pointerdown/move/up</code>: tocar crea un planeta con $v_c$, arrastrar lo lanza con $v = 1{,}6\cdot$desplazamiento$/$escala, y <code>boundVel</code> lo acota para que vuelva.</li>
+</ul>
+<div class="code">function stepC(p, h = DT){        // un paso leapfrog con el Sol fijo
+  p.vx += p.ax*h/2; p.vy += p.ay*h/2;
+  p.x  += p.vx*h;   p.y  += p.vy*h;
+  [p.ax, p.ay] = accC(p.x, p.y);   // a = −r/r^(n+1)
+  p.vx += p.ax*h/2; p.vy += p.ay*h/2;
+}</div>
+<p>Esa misma función, con la aceleración de todas las masas, mueve todo lo que se ve en pantalla.</p>
+</section>
+<!-- @fin-html -->
 <p class="note">Límites del modelo: el polvo y el gas no se atraen entre sí, y el gas no tiene presión. La supernova no conserva la masa: el 70 % que pierde la estrella sale como polvo de 0,01 unidades por grano. Con $n=3$, las órbitas circulares son inestables, como predice la física.</p>
 </body>
 </html>

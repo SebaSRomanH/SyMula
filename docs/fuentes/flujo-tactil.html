@@ -20,9 +20,40 @@ ul{margin:3px 0 5px;padding-left:18px}
 .katex-display{margin:5px 0}
 .note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 9px;font-size:9pt;margin:6px 0}
 section{break-inside:avoid}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c48a00;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#0b1226}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#fff6dc;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #ffc94a;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#5a6480}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#f5f7fc;border:1px solid #dde2ee;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
 </style>
 </head>
 <body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Fluidos</p>
+<h1>¿Qué pasa cuando revuelves el agua?</h1>
+<svg class="art" viewBox="0 0 400 150"><rect x="20" y="10" width="360" height="130" rx="14" fill="#e6f3ff"/>
+  <path d="M90 75C150 30 250 30 300 75" fill="none" stroke="#9aa6c8" stroke-width="3" stroke-dasharray="6 6"/>
+  <circle cx="300" cy="75" r="12" fill="#ffc94a"/>
+  <g fill="none" stroke-width="3"><path d="M200 105a16 16 0 1 1 16-16" stroke="#e05a7a"/><path d="M200 45a16 16 0 1 0 16 16" stroke="#2a9d6f"/></g>
+  <g fill="none" stroke="#4ea3ff" stroke-width="2.5"><path d="M330 45a40 40 0 0 1 0 60"/><path d="M350 30a60 60 0 0 1 0 90" opacity=".6"/></g></svg>
+<p>Cuando mueves el dedo empujas el agua. La que está adelante se aprieta y ese apretón viaja como una <b>onda</b>. Detrás del dedo queda un hueco que el agua llena girando: se forman <b>dos remolinos</b> que giran en sentidos opuestos, como cuando remas en un bote.</p>
+<p>Los remolinos no duran para siempre. El agua tiene un poco de roce por dentro (se llama <b>viscosidad</b>), que poco a poco convierte su movimiento en un calorcito muy pequeño. Por eso se apagan solos.</p>
+<div class="math"><b>Un poco de matemática.</b> Un remolino grande dura más que uno chico. El tiempo que tarda en apagarse crece con su tamaño <i>al cuadrado</i>: un remolino el doble de grande dura 2 × 2 = 4 veces más.</div>
+<div class="reto"><b>Desafío.</b> Si un remolino es 3 veces más grande que otro, ¿cuántas veces más dura?</div>
+<p class="ans">Respuesta: 3 × 3 = 9 veces más.</p>
+<p class="try"><b>Pruébalo:</b> dibuja un círculo con el dedo y mira el remolino; usa dos dedos y haz que dos remolinos choquen.</p>
+</section>
+<!-- @fin-portada -->
 <header>
 <h1>Piscina táctil</h1>
 <p class="sub">SyMula · Fórmulas con las que se calcula el simulador (flujo-tactil.html)</p>
@@ -75,6 +106,23 @@ $$\omega_z=\frac{\partial u_y}{\partial x}-\frac{\partial u_x}{\partial y}.$$
 <p>Se dan 5 pasos por cada 1/60 s de tiempo real, así el agua se ve igual a 60 y a 120 Hz. Hay un tope de 11 ms de cálculo por cuadro. Si el equipo no alcanza, la malla baja de nivel (entre 12 000 y 80 000 celdas); si sobra tiempo, sube. Las partículas que se ven en el agua se mueven con la velocidad de su celda.</p>
 </section>
 
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b>: HTML para los botones, CSS para el estilo y JavaScript para la física y el dibujo. No usa programas externos: el navegador lo ejecuta tal cual.</li>
+<li><b>La malla:</b> <code>setup()</code> divide la pantalla en celdas (entre 12 000 y 80 000, según el equipo) y marca los cuatro bordes como pared.</li>
+<li><b>El paso:</b> <code>step()</code> hace colisión y transporte del Lattice Boltzmann en una pasada; se dan 5 pasos por cada 1/60 s de tiempo real, con un tope de 11 ms.</li>
+<li><b>El dedo:</b> <code>updateVelocity()</code> calcula la velocidad del dedo en celdas por paso y <code>stir()</code> mezcla esa velocidad en un disco alrededor del dedo; el golpe al tocar (<code>boost</code>) se apaga multiplicándose por 0,7 en cada paso.</li>
+<li><b>El dibujo:</b> <code>render()</code> pinta un píxel por celda según la rapidez y el giro, y <code>advect()</code> mueve las partículas con la velocidad de su celda.</li>
+</ul>
+<div class="code">// dentro del disco del dedo, a distancia d del centro:
+let tx = t.vx + dx/d*push*(d/R),  ty = t.vy + dy/d*push*(d/R);
+const w = 0.6*(1 - d2/R2);                          // más fuerte al centro
+setEq(i, rho[i], ux[i] + (tx - ux[i])*w, uy[i] + (ty - uy[i])*w);</div>
+<p><code>setEq</code> pone la celda en equilibrio con la velocidad nueva, sin cambiar cuánta agua tiene.</p>
+</section>
+<!-- @fin-html -->
 <p class="note">Límites del modelo: es un fluido 2D visto desde arriba, como una capa delgada. No hay superficie libre, así que no se simulan olas de altura: lo que se ve son ondas de presión y corrientes. Las ondas viajan mucho más lento que el sonido real en el agua, para que se puedan ver.</p>
 </body>
 </html>

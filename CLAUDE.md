@@ -26,7 +26,7 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   ley de fuerza 1/rⁿ con n = 0,5 / 1 / 2 / 3, modo Sol fijo y modo N cuerpos (hasta 4) con fusión
   que conserva masa y momento. Vistas de 1.ª ley (elipse osculadora y focos), 2.ª (áreas por sectores
   de tiempo igual) y 3.ª (gráfico T² vs a³ medido por vuelta). Unidades: r = 1 UA, 1 año = 2π.
-  Hasta 6 masas, mostradas en unidades (100 unidades = 1 Sol = masa interna 1). Panel superior mínimo con
+  Hasta 6 masas, mostradas en unidades (100 unidades = 1 Sol = masa interna 1). Panel superior (oculto a pedido de Sebas; el código que lo llena sigue) con
   la energía (φ = −r^(1−n)/(n−1), ln r si n = 1) y la explicación detrás de "?". Vista fija: se mueve
   arrastrando con dos dedos, con el botón "Mover" o con el botón derecho del mouse; zoom con +/−, pellizco
   o rueda. Polvo galáctico sin masa ("en órbita" alrededor de la estrella dominante o "quieto"),
@@ -40,6 +40,10 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   Botón "Solo ver" (ojo): oculta todos los botones y las guías de Kepler; un ojo tenue abajo a la derecha
   los devuelve. Cielo infinito: 3 capas de estrellas en mosaico con paralaje. Las masas y cometas solo se
   olvidan a 2000 UA (el polvo, a 56 UA); los lanzamientos siguen acotados a 0,6 · 56 UA.
+  La botonera flota sobre el espacio y los botones son semitransparentes (--dock-h corre los botones de
+  las esquinas). "Modo noche" en "Más": filtro CSS verde sobre toda la página, recordado en localStorage.
+  Láser (tercera opción del botón de polvo, en "Más"): rayo de luz con c = 6 que se curva con a = 2·g
+  (relatividad general), hasta 3 fijos en el espacio. El polvo funciona aunque no haya masas (queda quieto).
 - `ondas-sonoras.html`: ondas de presión 2D por diferencias finitas en salas rectangular, circular,
   triangular, elíptica y romboide (paredes rígidas). Modos analíticos (rectángulo, Bessel en círculo,
   Lamé en triángulo) y medidos por FFT en elipse/romboide. Hasta 3 fuentes omni/cardioide/dipolo con
@@ -60,7 +64,9 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   y `// @fin-fisica`.
 
 ## Fichas de fórmulas (PDF)
-- `docs/<simulador>.pdf`: máximo dos hojas por simulador con las fórmulas que usa; se enlazan desde `index.html` (salvo la nave, oculta)
+- `docs/<simulador>.pdf`: máximo 3 hojas por simulador: una portada para niños curiosos (qué pasa, un poco de
+  matemática, un desafío con la respuesta al revés), las fórmulas que usa y "Cómo está hecho el archivo HTML"
+  (funciones principales y un trozo de código real); se enlazan desde `index.html` (salvo la nave, oculta)
   a través de `docs/ver.html?f=<simulador>`, que los dibuja con PDF.js (muchos celulares no abren PDF directo).
 - La fuente es `docs/fuentes/<simulador>.html` (KaTeX desde cdnjs). Para regenerar, servir el repo en local
   y imprimir con Edge sin ventana: `msedge --headless=new --no-pdf-header-footer --virtual-time-budget=15000

@@ -25,9 +25,40 @@ th{color:#5a6480;font-weight:700}
 section{break-inside:avoid}
 .cols{columns:2;column-gap:16px}
 section.split{break-inside:auto}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c48a00;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#0b1226}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#fff6dc;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #ffc94a;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#5a6480}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#f5f7fc;border:1px solid #dde2ee;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
 </style>
 </head>
 <body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Viajes espaciales</p>
+<h1>¿Cómo se viaja a otro planeta?</h1>
+<svg class="art" viewBox="0 0 400 150"><circle cx="200" cy="75" r="16" fill="#ffc94a"/>
+  <circle cx="200" cy="75" r="45" fill="none" stroke="#9aa6c8" stroke-width="2"/><circle cx="200" cy="75" r="68" fill="none" stroke="#9aa6c8" stroke-width="2"/>
+  <path d="M245 75A56.5 56.5 0 0 1 132 75" fill="none" stroke="#e0a000" stroke-width="3" stroke-dasharray="7 5"/>
+  <circle cx="245" cy="75" r="6" fill="#4ea3ff"/><circle cx="132" cy="75" r="6" fill="#e0613a"/>
+  <text x="255" y="79" font-size="12" fill="#4ea3ff">Tierra</text><text x="80" y="79" font-size="12" fill="#e0613a">Marte</text></svg>
+<p>Para ir a otro planeta <b>no se viaja en línea recta</b>. El Sol atrae a la nave y su camino se curva. Por eso los ingenieros usan las órbitas como si fueran un tobogán.</p>
+<p>Para ir a Marte, la nave acelera justo lo necesario para que su órbita se estire hasta la de Marte. Pero hay un truco: mientras la nave viaja, Marte también se mueve. Hay que salir cuando Marte va <b>44° más adelante</b> que la Tierra, para encontrarse justo al llegar. Ese momento se llama <b>ventana de lanzamiento</b>.</p>
+<div class="math"><b>Un poco de matemática.</b> El viaje dura media vuelta de la órbita nueva: unos 259 días. Y las ventanas para ir a Marte se repiten cada 2 años y 50 días, que es lo que tarda la Tierra en volver a “alcanzar” a Marte.</div>
+<div class="reto"><b>Desafío.</b> Si la próxima ventana para ir a Marte es en enero, ¿en qué mes y año aproximado es la siguiente?</div>
+<p class="ans">Respuesta: 2 años y 50 días después: a fines de febrero, dos años más tarde.</p>
+<p class="try"><b>Pruébalo:</b> elige Marte, toca Ruta auto y mira cuánto hay que esperar.</p>
+</section>
+<!-- @fin-portada -->
 <header>
 <h1>Nave espacial (Beta)</h1>
 <p class="sub">SyMula · Fórmulas con las que se calcula el simulador (nave.html)</p>
@@ -118,6 +149,22 @@ $$\Delta v_\text{llegar}=|\vec v_\text{nave}-\vec v_\text{destino}|.$$
 <p>En un planeta, la nave queda con él y recarga combustible. Con la cápsula, la recoge y sigue su órbita.</p>
 </section>
 </div>
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b>: HTML para los botones, CSS para el estilo y JavaScript para la física y el dibujo. No usa programas externos: el navegador lo ejecuta tal cual.</li>
+<li><b>Efemérides:</b> <code>Ephemeris()</code> mueve las estrellas y planetas con leapfrog y guarda una tabla; <code>state(i, t)</code> la interpola con Hermite.</li>
+<li><b>La nave:</b> <code>shipRun()</code> integra la nave con paso adaptativo y <code>Track()</code> guarda su ruta paso a paso, así la nave recorre exactamente lo predicho.</li>
+<li><b>El planificador:</b> <code>planner()</code> es un generador de JavaScript: prueba rutas y entrega su avance con <code>yield</code>; la página lo ejecuta en trozos de 25 ms para no congelar la pantalla.</li>
+</ul>
+<div class="code">for (const td of salidas) for (const a of direcciones) for (const m of fuerzas){
+  const r = evalRoute(E, src, tgt, td, m*Math.cos(a), m*Math.sin(a), ...);
+  cand.push({td, p: m*Math.cos(a), q: m*Math.sin(a), cost: r.cost});
+}                     // luego se afinan las 6 rutas más baratas</div>
+<p>Probar miles de rutas y quedarse con la mejor es una forma simple y poderosa de resolver problemas difíciles.</p>
+</section>
+<!-- @fin-html -->
 <div class="note">Límites de esta versión Beta:
 <ul style="margin:2px 0 0;padding-left:16px">
 <li>Todo ocurre en un plano.</li>

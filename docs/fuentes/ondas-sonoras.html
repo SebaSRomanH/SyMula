@@ -24,9 +24,40 @@ th{color:#5a6480;font-weight:700}
 .note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 8px;font-size:8.8pt;margin:5px 0}
 .cols{columns:2;column-gap:16px}
 section{break-inside:avoid}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c48a00;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#0b1226}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#fff6dc;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #ffc94a;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#5a6480}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#f5f7fc;border:1px solid #dde2ee;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
 </style>
 </head>
 <body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Sonido</p>
+<h1>¿Cómo viaja el sonido?</h1>
+<svg class="art" viewBox="0 0 400 150"><rect x="20" y="15" width="360" height="120" rx="10" fill="none" stroke="#9aa6c8" stroke-width="3"/>
+  <circle cx="80" cy="75" r="9" fill="#ffc94a"/>
+  <g fill="none" stroke="#4ea3ff" stroke-width="3"><path d="M100 50a30 30 0 0 1 0 50"/><path d="M125 35a52 52 0 0 1 0 80"/><path d="M150 22a74 74 0 0 1 0 106"/><path d="M175 22a96 96 0 0 1 0 106" opacity=".5"/></g>
+  <circle cx="320" cy="75" r="10" fill="#2a9d6f"/><text x="300" y="105" font-size="12" fill="#2a9d6f">oyente</text><text x="55" y="105" font-size="12" fill="#c48a00">parlante</text></svg>
+<p>El sonido es <b>aire empujado</b>. El parlante empuja el aire que tiene al lado, ese aire empuja al siguiente, y así. El aire casi no avanza: lo que viaja es el empujón, como la ola que hace el público en un estadio.</p>
+<p>Viaja a <b>343 metros cada segundo</b>. Una sala de 5 metros la cruza en 5 ÷ 343 ≈ 0,015 segundos: ¡más rápido que un parpadeo!</p>
+<div class="math"><b>Un poco de matemática.</b> Las ondas tienen <i>frecuencia</i> (cuántas veces por segundo vibran, en hertz) y <i>longitud de onda</i> (lo que mide una onda). Se cumple: <b>longitud × frecuencia = 343</b>. La nota La (440 Hz) mide 343 ÷ 440 ≈ 0,78 metros.<br>
+En una sala el sonido rebota en las paredes. Las ondas que van y vuelven se suman o se cancelan, así que en algunos lugares suena fuerte y en otros casi nada. Cada sala tiene sus propias “notas”: la más grave cabe justo media onda entre dos paredes. En una sala de 5 m: 343 ÷ (2 × 5) = 34,3 Hz.</div>
+<div class="reto"><b>Desafío.</b> La sala mide 3,5 metros de ancho. ¿Cuál es su nota más grave de ese lado? Pista: media onda cabe entre las paredes.</div>
+<p class="ans">Respuesta: 343 ÷ 7 = 49 Hz.</p>
+<p class="try"><b>Pruébalo:</b> mueve al oyente por la sala con el sonido encendido y busca dónde suena más fuerte; cambia la forma de la sala.</p>
+</section>
+<!-- @fin-portada -->
 <header>
 <h1>Ondas sonoras en una sala</h1>
 <p class="sub">SyMula · Fórmulas con las que se calcula el simulador (ondas-sonoras.html)</p>
@@ -107,6 +138,25 @@ $$\bar e\leftarrow\bar e+a\left(p^2-\bar e\right),\qquad a\approx\frac{1}{2\,\te
 </section>
 
 </div>
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b>: HTML para los botones, CSS para el estilo y JavaScript para la física y el dibujo. No usa programas externos: el navegador lo ejecuta tal cual.</li>
+<li><b>La malla:</b> <code>setup()</code> divide la sala en unas 48 000 celdas, marca cuáles están dentro (<code>mask</code>) y guarda para cada celda el índice de sus 4 vecinas (<code>nl, nr, nu, nd</code>); si una vecina es pared, apunta a la misma celda.</li>
+<li><b>El paso:</b> <code>step()</code> calcula la presión nueva de todas las celdas con la fórmula de diferencias finitas y suma los parlantes. Se guardan tres instantes (<code>p0, p1, p2</code>) y se rotan.</li>
+<li><b>Cámara lenta:</b> el sonido real es demasiado rápido para verlo; cada cuadro avanza cerca de 1/10 de periodo, con un tope de 10 ms de cálculo.</li>
+<li><b>Modos y curva:</b> <code>computeModes()</code> usa las fórmulas de cada sala o mide los modos con la FFT (<code>numericModes</code>); <code>response()</code> suma los modos para dibujar la curva.</li>
+<li><b>Imagen y audio:</b> <code>drawRoom()</code> convierte la presión en colores píxel a píxel; Web Audio toca un tono cuyo volumen sigue el nivel en el oyente.</li>
+</ul>
+<div class="code">for (let k = 0; k &lt; K; k++){          // todas las celdas de la sala
+  const i = fl[k], c = p1[i];
+  p2[i] = (2*c - B*p0[i]
+        + C2*(p1[nl[k]] + p1[nr[k]] + p1[nu[k]] + p1[nd[k]] - 4*c))*A;
+}                                      // A = 1/(1+βΔt), B = 1−βΔt</div>
+<p>Esa línea es exactamente la ecuación de diferencias finitas de la sección anterior.</p>
+</section>
+<!-- @fin-html -->
 <p class="note">Límites del modelo: es en 2D, como un corte de la sala, así que la presión decae con la distancia como $1/\sqrt r$ y no como $1/r$. Las paredes son perfectamente rígidas y la absorción es uniforme en toda la sala, en vez de concentrarse en las paredes.</p>
 </body>
 </html>

@@ -24,9 +24,41 @@ th{color:#5a6480;font-weight:700}
 .note{background:#f5f7fc;border-left:3px solid #ffc94a;padding:4px 8px;font-size:8.8pt;margin:5px 0}
 .cols{columns:2;column-gap:16px}
 section{break-inside:avoid}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c48a00;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#0b1226}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#fff6dc;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #ffc94a;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#5a6480}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#f5f7fc;border:1px solid #dde2ee;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
 </style>
 </head>
 <body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Fluidos</p>
+<h1>¿Cómo pasa el agua alrededor de una piedra?</h1>
+<svg class="art" viewBox="0 0 400 150"><path d="M10 20H390M10 130H390" stroke="#9aa6c8" stroke-width="4"/>
+  <g stroke="#4ea3ff" stroke-width="2.5" fill="none"><path d="M15 50H110q30-25 60 0"/><path d="M15 100H110q30 25 60 0"/><path d="M15 75H95"/></g>
+  <circle cx="140" cy="75" r="22" fill="#c9a27a"/>
+  <g fill="none" stroke-width="3"><circle cx="215" cy="60" r="13" stroke="#e05a7a"/><circle cx="265" cy="92" r="13" stroke="#2a9d6f"/><circle cx="315" cy="60" r="13" stroke="#e05a7a"/><circle cx="365" cy="92" r="13" stroke="#2a9d6f"/></g></svg>
+<p>El agua, el aire y la miel son <b>fluidos</b>: están hechos de muchísimas partículas diminutas que chocan entre sí. Cuando el agua encuentra una piedra, tiene que rodearla.</p>
+<p>Algunos fluidos son <b>espesos</b>, como la miel: avanzan suaves y ordenados. Otros son muy livianos, como el agua o el aire: detrás de la piedra se forman <b>remolinos</b> que se sueltan uno a cada lado, como en una fila de baile. Es lo mismo que hace flamear una bandera.</p>
+<div class="math"><b>Un poco de matemática.</b> Los científicos usan un solo número para saber qué va a pasar, el <b>número de Reynolds</b>:<br>
+<b>Re = rapidez × tamaño ÷ espesor (viscosidad)</b><br>
+Si Re es chico (menos de 50), el flujo es suave. Si es grande, aparecen los remolinos. Si duplicas la rapidez, Re se duplica.</div>
+<div class="reto"><b>Desafío.</b> La miel es unas 7000 veces más espesa que el agua. Con la misma piedra y la misma rapidez, ¿cuántas veces más chico es el número de Reynolds de la miel?</div>
+<p class="ans">Respuesta: 7000 veces más chico: por eso la miel nunca hace remolinos.</p>
+<p class="try"><b>Pruébalo:</b> pon la miel y luego el agua, y cambia la rapidez; mueve la piedra o agrega otra forma.</p>
+</section>
+<!-- @fin-portada -->
 <header>
 <h1>Flujo en un tubo</h1>
 <p class="sub">SyMula · Fórmulas con las que se calcula el simulador (flujo-tubo.html)</p>
@@ -114,6 +146,24 @@ $$\nu=\nu_{100}\,\frac{N_y}{100}.$$
 </section>
 
 </div>
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b>: HTML para los botones, CSS para el estilo y JavaScript para la física y el dibujo. No usa programas externos: el navegador lo ejecuta tal cual.</li>
+<li><b>Los datos:</b> las 9 poblaciones de todas las celdas viven en un solo arreglo <code>Float32Array(9·N)</code>: primero todas las $f_0$, luego todas las $f_1$, etc. <code>bar</code> marca las paredes y obstáculos.</li>
+<li><b>El paso:</b> <code>step()</code> recorre la malla una vez: calcula $\rho$ y $\vec u$, el equilibrio, la viscosidad de Smagorinsky y empuja cada población a su vecina (o la rebota si es pared). Luego intercambia <code>f</code> y <code>g</code>.</li>
+<li><b>Obstáculos:</b> cada forma es un polígono y <code>rebuildMask()</code> marca las celdas cuyo centro queda adentro (prueba del punto en polígono).</li>
+<li><b>El dibujo:</b> <code>render()</code> pasa la rapidez, los remolinos o la presión a colores con una tabla de 256 colores y pinta un píxel por celda, que luego se amplía.</li>
+<li><b>Se ajusta solo:</b> <code>quality()</code> mide cuánto tarda cada cuadro y cambia la malla entre 9 000 y 52 000 celdas para no pasar de 11 ms.</li>
+</ul>
+<div class="code">// población 1 (hacia la derecha) de la celda i, después de chocar:
+j = i + 1;                                   // la vecina de la derecha
+if (bar[j]) g[3*N + i] = f1 - om*d1;         // pared: rebota hacia la izquierda
+else        g[N + j]   = f1 - om*d1;         // si no, viaja a la vecina</div>
+<p>Así se escribe en el código el rebote en las paredes (bounce-back) de la sección de bordes.</p>
+</section>
+<!-- @fin-html -->
 <p class="note">Límites del modelo: el flujo es 2D, y los obstáculos son escalones de celdas en vez de bordes suaves. Además, el modelo de turbulencia suaviza los remolinos más finos.</p>
 </body>
 </html>
