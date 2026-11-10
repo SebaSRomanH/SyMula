@@ -32,7 +32,7 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
 
 ## Simuladores
 - `index.html`: página de inicio que enlaza todos los simuladores. El logo (`img/symula-logo.png`, con texto de respaldo
-  si falta) es también el enlace escondido a `nave.html`; en temas oscuros va sobre una placa clara.
+  si falta); en temas oscuros va sobre una placa clara.
 - `gravitacion.html`: gravitación y leyes de Kepler. Leapfrog con paso adaptativo (√(rⁿ⁺¹/M)),
   ley de fuerza 1/rⁿ con n = 0,5 / 1 / 2 / 3, modo Sol fijo y modo N cuerpos (hasta 4) con fusión
   que conserva masa y momento. Vistas de 1.ª ley (elipse osculadora y focos), 2.ª (áreas por sectores
@@ -55,6 +55,10 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   las esquinas). "Modo noche" en "Más": filtro CSS verde sobre toda la página, recordado en localStorage.
   Láser (tercera opción del botón de polvo, en "Más"): rayo de luz con c = 6 que se curva con a = 2·g
   (relatividad general), hasta 3 fijos en el espacio. El polvo funciona aunque no haya masas (queda quieto).
+  Ley "agujero negro" (quinto botón de la ley de fuerza): Paczyński–Wiita, a = M/(r − rₛ)², rₛ = 2M/c² con la
+  misma c = 6 (Sol: rₛ = 0,056); funciones invPow(r, M), tdyn, vcirc, phi(r, M) y sunR() la aplican en todo. En el
+  modo Sol el centro se dibuja como agujero negro con la última órbita estable (3 rₛ) punteada; en N cuerpos el par
+  usa M = m_i + m_j y se fusiona a R_i + R_j + rₛ.
 - `ondas-sonoras.html`: ondas de presión 2D por diferencias finitas en salas rectangular, circular,
   triangular, elíptica y romboide (paredes rígidas). Modos analíticos (rectángulo, Bessel en círculo,
   Lamé en triángulo) y medidos por FFT en elipse/romboide. Hasta 3 fuentes omni/cardioide/dipolo con
@@ -77,27 +81,15 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   Sin el cuadro de información de arriba (oculto a pedido de Sebas).
   La masa queda fija en el espacio donde se deja (gira sola solo al comienzo) y se mueve paralela a la pantalla
   a su propia profundidad: girando la vista se la puede llevar a cualquier punto. Contorno = silueta real.
-  Física entre `// @fisica` y `// @fin-fisica`; prueba en `pruebas/mareas.js` (10 comprobaciones).
-- `nave.html` (Beta, oculto: no aparece en `index.html` por decisión de Sebas; solo se abre por su URL): nave que planea viajes por órbitas en 5 sistemas (Sol, Dos soles, Tres soles,
-  Cinco cuerpos y Agujero negro con potencial de Paczyński–Wiita, r_g = 0,08, c reducida). Las estrellas
-  y gigantes se mueven en N cuerpos y se calculan una vez (efemérides: leapfrog h = 0,0005, tabla cada
-  0,01, Hermite cúbico); planetas, cápsula y nave no tienen masa. La nave sigue una trayectoria guardada
-  (leapfrog adaptativo) para que recorra exactamente lo que se predijo. Plan = instante + Δv (adelante
-  p, izquierda q). "Ruta auto" = planificador: 24 × 12 × 6 rutas con integrador rápido y afinado por
-  patrones de las 6 mejores (semilla de Hohmann en el sistema solar). Llegar iguala la velocidad (< 0,05
-  UA) y recarga combustible en planetas. Sistemas revisados en Node 20 años; física entre `// @fisica`
-  y `// @fin-fisica`.
+  Física entre `// @fisica` y `// @fin-fisica`; prueba en `pruebas/mareas.js` (14 comprobaciones).
 
 ## Fichas de fórmulas (PDF)
 - `docs/<simulador>.pdf`: máximo 3 hojas por simulador: una portada para niños curiosos (qué pasa, un poco de
   matemática, un desafío con la respuesta al revés), las fórmulas que usa y "Cómo está hecho el archivo HTML"
-  (funciones principales y un trozo de código real); se enlazan desde `index.html` (salvo la nave, oculta)
+  (funciones principales y un trozo de código real); se enlazan desde `index.html`
   a través de `docs/ver.html?f=<simulador>`, que los dibuja con PDF.js (muchos celulares no abren PDF directo).
 - La fuente es `docs/fuentes/<simulador>.html` (KaTeX desde cdnjs). Para regenerar, servir el repo en local
   y imprimir con Edge sin ventana: `msedge --headless=new --no-pdf-header-footer --virtual-time-budget=15000
   --print-to-pdf=docs\<simulador>.pdf http://127.0.0.1:8765/docs/fuentes/<simulador>.html`.
 - Pruebas contra la teoría en `pruebas/` (`node pruebas/todas.js`; `--rapido` omite los fluidos, que tardan ~15 min).
 - Si cambia la física de un simulador, actualizar su ficha. En fórmulas, escribir `<` como `\lt` o `&lt;`.
-
-## Pendientes posibles
-- Opción "agujero negro" en gravitación con potencial pseudo-newtoniano de Paczyński–Wiita.

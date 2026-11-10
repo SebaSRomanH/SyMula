@@ -4,11 +4,11 @@ const {read, fn, line, build, check} = require("./util");
 const S = read("gravitacion.html");
 const G = build([
   "let n = 2, mode = 'central', bodies = [], scale = 100, camX = 0, camY = 0, Wd = 100*90, Hd = 100*20;",
-  line(S, /const DT = [^;]+;/), line(S, /const ETA = [^;]+;/), line(S, /const C_LUZ = [^;]+;/),
-  line(S, /const invPow = [^;]+;/), line(S, /const radius = [^;]+;/), line(S, /const tDynC = [^;]+;/),
-  "const shownMass = b => b.m;",
+  line(S, /const DT = [^;]+;/), line(S, /const ETA = [^;]+;/), line(S, /const radius = [^;]+;/),
+  line(S, /const C_LUZ = [\s\S]*?const sunR = [^;]+;/), line(S, /const tDynC = [^;]+;/), line(S, /const phi = [^;]+;/),
+  "const shownMass = b => b.m; function setPw(v){ pw = v; }",
   fn(S, "accC"), fn(S, "stepC"), fn(S, "substeps"), fn(S, "traceRay")
-], "DT, ETA, SUN_R, C_LUZ, accC, stepC, substeps, tDynC, traceRay");
+], "DT, ETA, SUN_R, C_LUZ, accC, stepC, substeps, tDynC, traceRay, setPw, rsOf, vcirc, sunR, phi");
 
 // Avanza un planeta como el bucle del simulador: cuadros de T = 0,015 divididos con substeps.
 function orbit(p, frames, onStep){
@@ -54,5 +54,34 @@ module.exports = function(){
     const ang = -Math.atan2(y2 - y1, x2 - x1), q = 1/(G.C_LUZ*G.C_LUZ*b), want = 4*q*(L/Math.hypot(L, b)) + 15*Math.PI/4*q*q;
     check("Gravitación", `láser: desviación al pasar a ${b} UA del Sol`, ang, want, 0.02, " rad");
   }
+  // 5) Agujero negro (Paczyński–Wiita): a = 1/(r − rₛ)², rₛ = 2/c².
+  G.setPw(true);
+  try {
+    const rs = G.rsOf(1), eBH = p => (p.vx*p.vx + p.vy*p.vy)/2 + G.phi(Math.hypot(p.x, p.y));
+    // Órbita excéntrica que parte del punto más lejano (r = 1): energía y giro del punto más cercano por vuelta.
+    const p = {x:1, y:0, vx:0, vy:0.75*G.vcirc(1, 1)}, E0 = eBH(p), L = p.vy;
+    let emax = 0, lastVr = 0, apos = [];
+    orbit(p, Math.round(6*2*Math.PI/0.015), q => {
+      emax = Math.max(emax, Math.abs(eBH(q) - E0));
+      const vr = q.x*q.vx + q.y*q.vy; if (lastVr > 0 && vr <= 0) apos.push(Math.atan2(q.y, q.x)); lastVr = vr;
+    });
+    check("Agujero negro", "energía de una órbita excéntrica (peor caso en 6 vueltas)", E0 + emax, E0, 2e-3);
+    let adv = 0; for (let i = 1; i < apos.length; i++){ let d = apos[i] - apos[i-1]; while (d < 0) d += 2*Math.PI; adv += d; }
+    adv /= apos.length - 1;
+    // Teoría: Δφ = 2∫ L/r² / √(2(E − φ) − L²/r²) dr de r_min a r_max, menos 2π (r = c − w·cos u quita las raíces).
+    const F = r => 2*(E0 - G.phi(r)) - L*L/(r*r);
+    let lo = rs*1.5, hi = 0.999; for (let k = 0; k < 200; k++){ const m = (lo + hi)/2; if (F(m) > 0) hi = m; else lo = m; }
+    const rp = hi, ra = 1, c = (ra + rp)/2, w = (ra - rp)/2, N = 20000;
+    let I = 0; for (let k = 0; k < N; k++){ const u = Math.PI*(k + 0.5)/N, r = c - w*Math.cos(u); I += L/(r*r)/Math.sqrt(Math.max(1e-300, F(r)))*w*Math.sin(u)*Math.PI/N; }
+    check("Agujero negro", "giro del punto más lejano por vuelta", adv, 2*I - 2*Math.PI, 2e-3, " rad");
+    // Última órbita estable: L² = r³/(r − rₛ)² tiene su mínimo en r = 3 rₛ.
+    let best = 0, Lmin = Infinity; for (let r = 1.5*rs; r < 10*rs; r += rs*1e-4){ const l = r*G.vcirc(r, 1); if (l < Lmin){ Lmin = l; best = r; } }
+    check("Agujero negro", "radio de la última órbita estable (mínimo de L), en rₛ", best/rs, 3, 1e-3);
+    // Con 1 % menos de rapidez: a 4,5 rₛ sigue en órbita; a 2,6 rₛ cae (1/r² puro nunca caería).
+    const fall = r0 => { const q = {x:r0, y:0, vx:0, vy:0.99*G.vcirc(r0, 1)}; [q.ax, q.ay] = G.accC(q.x, q.y);
+      for (let f = 0; f < 2000; f++){ const [k, h] = G.substeps(0.015, G.tDynC(q)); for (let s = 0; s < k; s++){ G.stepC(q, h); if (Math.hypot(q.x, q.y) < G.sunR()) return 1; } } return 0; };
+    check("Agujero negro", "a 4,5 rₛ con 1 % menos de rapidez sigue en órbita (0 = no cae)", fall(4.5*rs), 0, 0);
+    check("Agujero negro", "a 2,6 rₛ con 1 % menos de rapidez cae (1 = cae)", fall(2.6*rs), 1, 0);
+  } finally { G.setPw(false); }
 };
 if (require.main === module){ module.exports(); require("./util").summary(); }

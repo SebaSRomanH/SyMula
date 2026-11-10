@@ -139,6 +139,7 @@ body{position:relative}
       <button class="tile" type="button" data-n="1" aria-pressed="false">1/r<small>suave</small></button>
       <button class="tile" type="button" data-n="2" aria-pressed="true">1/r²<small>la real</small></button>
       <button class="tile" type="button" data-n="3" aria-pressed="false">1/r³<small>brusca</small></button>
+      <button class="tile" type="button" data-n="pw" aria-pressed="false">1/(r−rₛ)²<small>agujero negro</small></button>
     </div>
     <div class="lbl">Qué se suelta con el botón de abajo</div>
     <div class="row" role="group" aria-label="Qué se suelta">
@@ -209,7 +210,7 @@ function resize(){
   Wd = cv.clientWidth; Hd = cv.clientHeight;
   cv.width = Math.round(Wd*dpr); cv.height = Math.round(Hd*dpr);
   const top = document.querySelector(".card").offsetHeight + 20, bot = dockH;
-  baseScale = 0.245*Math.min(Wd, Hd - (top + bot)*0.6); scale = baseScale*zoom*uz; cx = Wd/2; cy = top + (Hd - top - bot)/2;   // entre la tarjeta y la botonera
+  baseScale = Math.max(20, 0.245*Math.min(Wd, Hd - (top + bot)*0.6)); scale = baseScale*zoom*uz; cx = Wd/2; cy = top + (Hd - top - bot)/2;   // entre la tarjeta y la botonera
 }
 new ResizeObserver(resize).observe(cv);
 let dockH = 0;                                       // alto de la botonera que flota sobre el espacio
@@ -220,10 +221,24 @@ let camX = 0, camY = 0, uz = 1;
 const toWorld = (sx, sy) => [(sx-cx)/scale + camX, (sy-cy)/scale + camY];
 const toScreen = (x, y) => [cx+(x-camX)*scale, cy+(y-camY)*scale];
 const radius = m => 0.035*Math.cbrt(m);
+// Ley de fuerza. Con 1/rⁿ: a = M/rⁿ. Con "agujero negro" (Paczyński–Wiita, 1980): a = M/(r − rₛ)², con el radio
+// de Schwarzschild rₛ = 2M/c². Imita la relatividad general: no hay órbitas estables más cerca de 3 rₛ, lo que
+// pasa por debajo de 2 rₛ viniendo de lejos cae, y el punto más cercano de la órbita gira en cada vuelta.
+// Se usa la misma c reducida que el láser (c = 6): para el Sol rₛ = 0,056 UA.
+const C_LUZ = 6, C2 = C_LUZ*C_LUZ;
+let pw = false;
+const rsOf = M => pw ? 2*M/C2 : 0;
+const invPow = (r, M = 1) => {
+  if (pw){ const d = Math.max(r - 2*M/C2, RMIN); return 1/(d*d); }
+  return n === 2 ? 1/(r*r) : n === 1 ? 1/r : n === 3 ? 1/(r*r*r) : 1/Math.sqrt(r);
+};
+const tdyn = (r, M) => Math.sqrt(r/(M*invPow(r, M)));    // tiempo dinámico √(r/a)
+const vcirc = (r, M) => Math.sqrt(M*r*invPow(r, M));     // rapidez de una órbita circular, v² = r·a
+const sunR = () => pw ? rsOf(1) + RMIN : SUN_R;           // radio donde el centro se traga lo que llega
 
 // ---------- Física: Sol fijo (planetas sin masa) ----------
 function accC(x, y){
-  const r = Math.sqrt(x*x+y*y) || 1e-9, a = Math.pow(Math.max(r, RMIN), -n);
+  const r = Math.sqrt(x*x+y*y) || 1e-9, a = invPow(Math.max(r, RMIN));
   return [-a*x/r, -a*y/r];
 }
 function stepC(p, h = DT){                           // leapfrog (simpléctico)
@@ -232,7 +247,7 @@ function stepC(p, h = DT){                           // leapfrog (simpléctico)
   [p.ax, p.ay] = accC(p.x, p.y);
   p.vx += p.ax*h/2; p.vy += p.ay*h/2;
 }
-const aliveC = p => { const r = Math.hypot(p.x, p.y); return r > SUN_R && r < FAR; };
+const aliveC = p => { const r = Math.hypot(p.x, p.y); return r > sunR() && r < FAR; };
 
 // ---------- Física: N cuerpos ----------
 function accN(bs){
@@ -240,7 +255,7 @@ function accN(bs){
   for (let i = 0; i < bs.length; i++) for (let j = i+1; j < bs.length; j++){
     const a = bs[i], b = bs[j], dx = b.x-a.x, dy = b.y-a.y, r = Math.hypot(dx, dy) || 1e-9;
     // sin fusión, la fuerza se suaviza dentro de los radios para que las masas se atraviesen sin dispararse
-    const s = Math.pow(Math.max(r, mergeOn ? RMIN : radius(a.m)+radius(b.m)), -n)/r;
+    const s = invPow(Math.max(r, mergeOn ? RMIN : radius(a.m)+radius(b.m)+rsOf(a.m+b.m)), a.m+b.m)/r;
     a.ax += b.m*s*dx; a.ay += b.m*s*dy; b.ax -= a.m*s*dx; b.ay -= a.m*s*dy;
   }
 }
@@ -254,17 +269,17 @@ function tDynN(bs){
   let t = Infinity;
   for (let i = 0; i < bs.length; i++) for (let j = i+1; j < bs.length; j++){
     const a = bs[i], b = bs[j];
-    const r = Math.max(Math.hypot(b.x-a.x, b.y-a.y), mergeOn ? RMIN : radius(a.m)+radius(b.m));
-    t = Math.min(t, Math.sqrt(Math.pow(r, n+1)/(a.m+b.m)));
+    const r = Math.max(Math.hypot(b.x-a.x, b.y-a.y), mergeOn ? RMIN : radius(a.m)+radius(b.m)+rsOf(a.m+b.m));
+    t = Math.min(t, tdyn(r, a.m+b.m));
   }
   return t;
 }
-const tDynC = p => Math.sqrt(Math.pow(Math.max(Math.hypot(p.x, p.y), RMIN), n+1));
+const tDynC = p => tdyn(Math.max(Math.hypot(p.x, p.y), RMIN), 1);
 function mergeN(bs){                                 // choque: fusión con conservación de masa y momento
   if (!mergeOn) return false;
   for (let i = 0; i < bs.length; i++) for (let j = i+1; j < bs.length; j++){
     const a = bs[i], b = bs[j];
-    if (Math.hypot(b.x-a.x, b.y-a.y) < radius(a.m)+radius(b.m)){
+    if (Math.hypot(b.x-a.x, b.y-a.y) < radius(a.m)+radius(b.m)+rsOf(a.m+b.m)){
       const big = a.m >= b.m ? a : b, small = big === a ? b : a, M = a.m+b.m;
       const kinds = [a.kind, b.kind];                 // un agujero negro se traga lo que toca; si no, manda la estrella de neutrones
       big.kind = kinds.includes("bh") ? "bh" : kinds.includes("neutron") ? "neutron" : "star";
@@ -308,7 +323,6 @@ let dN = 0, dustTool = false, gax = 0, gay = 0, gHit = null;
 // Colores de estrellas reales: blanco, amarillo, blanco azulado (jóvenes), anaranjado y rojizo (viejas)
 const PAL = [[255,246,232], [255,222,170], [200,220,255], [255,184,135], [255,140,120], [255,105,160], [110,165,255], [185,135,255]];   // 5-7: gas
 const PAL_CUM = [0.32, 0.58, 0.82, 0.95, 1];
-const invPow = r => n === 2 ? 1/(r*r) : n === 1 ? 1/r : n === 3 ? 1/(r*r*r) : 1/Math.sqrt(r);
 // "En órbita": cada grano parte con la velocidad de una órbita circular alrededor de la estrella que
 // aporta más del 90 % de la atracción en ese punto (viaja con ella); si ninguna domina, alrededor del
 // centro de masa con la masa total. Verificado en Node con una pareja 10 + 2: un anillo junto a la
@@ -319,7 +333,7 @@ let dustRest = false;
 function dustCenter(px, py){                         // [x, y, vx, vy, masa] del centro que se orbita
   if (mode === "central") return [0, 0, 0, 0, 1];
   let best = null, bp = 0, P = 0;
-  for (const b of bodies){ const p = b.m*invPow(Math.max(Math.hypot(b.x-px, b.y-py), RMIN)); P += p; if (p > bp){ bp = p; best = b; } }
+  for (const b of bodies){ const p = b.m*invPow(Math.max(Math.hypot(b.x-px, b.y-py), RMIN), b.m); P += p; if (p > bp){ bp = p; best = b; } }
   if (best && bp > 0.9*P) return [best.x, best.y, best.vx, best.vy, best.m];
   const c = com(bodies); return [c.X, c.Y, c.VX, c.VY, c.M];
 }
@@ -334,7 +348,7 @@ function addDust(x, y, count){
     if (dustRest){ vx = c0.VX; vy = c0.VY; }
     else {
       const [ox, oy, ovx, ovy, M] = dustCenter(px, py), dx = px-ox, dy = py-oy, r = Math.hypot(dx, dy) || 1e-9;
-      const v = Math.sqrt(M*Math.pow(r, 1-n))*(0.92 + Math.random()*0.16), a = (Math.random()-0.5)*0.2;
+      const v = vcirc(r, M)*(0.92 + Math.random()*0.16), a = (Math.random()-0.5)*0.2;
       const tx = dy/r, ty = -dx/r, c = Math.cos(a), sn = Math.sin(a);   // tangente, como circularVel, con algo de dispersión
       vx = ovx + v*(tx*c - ty*sn); vy = ovy + v*(tx*sn + ty*c);
     }
@@ -348,13 +362,13 @@ function addDust(x, y, count){
 function accDust(x, y){                              // deja la aceleración en gax, gay; false si el grano cae
   gax = 0; gay = 0;
   if (mode === "central"){
-    const r = Math.sqrt(x*x + y*y); if (r < SUN_R) return false;
+    const r = Math.sqrt(x*x + y*y); if (r < sunR()) return false;
     const a = invPow(Math.max(r, RMIN))/r; gax = -a*x; gay = -a*y; return true;
   }
   for (const b of bodies){
     const dx = b.x-x, dy = b.y-y, r = Math.sqrt(dx*dx + dy*dy);
-    if (mergeOn && r < radius(b.m)){ gHit = b; return false; }
-    const a = b.m*invPow(Math.max(r, mergeOn ? RMIN : radius(b.m)))/r; gax += a*dx; gay += a*dy;
+    if (mergeOn && r < radius(b.m) + rsOf(b.m)){ gHit = b; return false; }
+    const a = b.m*invPow(Math.max(r, mergeOn ? RMIN : radius(b.m) + rsOf(b.m)), b.m)/r; gax += a*dx; gay += a*dy;
   }
   return true;
 }
@@ -366,7 +380,7 @@ function stepDust(T){
     gHit = null;
     let rmin = Math.hypot(x, y);
     if (mode === "nbody"){ rmin = Infinity; for (const b of bodies) rmin = Math.min(rmin, Math.hypot(b.x-x, b.y-y)); }
-    const k = Math.min(KMAX_D, Math.max(3, Math.ceil(T/(ETA_D*Math.sqrt(Math.pow(Math.max(rmin, RMIN), n+1)/Mt))))), h = T/k;
+    const k = Math.min(KMAX_D, Math.max(3, Math.ceil(T/(ETA_D*tdyn(Math.max(rmin, RMIN), Mt))))), h = T/k;
     for (let s = 0; s < k; s++){
       if (!accDust(x, y)){ alive = false; break; }
       vx += gax*h; vy += gay*h; x += vx*h; y += vy*h;
@@ -378,7 +392,7 @@ function stepDust(T){
       const mg = dB[i] === GAS ? GAS_M : DUST_M;
       for (const b of bodies){
         const dx = x-b.x, dy = y-b.y, r = Math.sqrt(dx*dx + dy*dy);
-        const a = mg*invPow(Math.max(r, mergeOn ? RMIN : radius(b.m)))/r*T; b.vx += a*dx; b.vy += a*dy;
+        const a = mg*invPow(Math.max(r, mergeOn ? RMIN : radius(b.m) + rsOf(b.m)), b.m)/r*T; b.vx += a*dx; b.vy += a*dy;
       }
     }
     if (!alive || x*x + y*y > ESCAPE*ESCAPE){ dN--; dX[i] = dX[dN]; dY[i] = dY[dN]; dVX[i] = dVX[dN]; dVY[i] = dVY[dN]; dC[i] = dC[dN]; dB[i] = dB[dN]; i--; continue; }
@@ -472,7 +486,7 @@ function circularVel(x, y){                          // perpendicular al radio, 
     const c = com(bodies); if (!c.M) return [0, 0];
     ox = c.X; oy = c.Y; M = c.M + newMass;          // órbita relativa de dos cuerpos: usa la masa total
   }
-  const dx = x-ox, dy = y-oy, r = Math.hypot(dx, dy) || 1e-9, v = Math.sqrt(M*Math.pow(r, 1-n));
+  const dx = x-ox, dy = y-oy, r = Math.hypot(dx, dy) || 1e-9, v = vcirc(Math.max(r, RMIN), M);
   return [dy/r*v, -dx/r*v];
 }
 function predict(x, y, vx, vy, massless){
@@ -494,22 +508,22 @@ function preset(name){
   camX = 0; camY = 0;
   bodies = []; colorIdx = 0;
   const add = (x, y, vx, vy, m) => bodies.push(makeBody(x, y, vx, vy, m));
-  if (name === "binaria"){                           // separación 1: fuerza = 1 con cualquier ley
-    const v = Math.sqrt(0.5);
+  if (name === "binaria"){                           // separación 1, órbita circular con la ley activa
+    const v = Math.sqrt(0.5*invPow(1, 2));
     add(0.5, 0, 0, -v, 1); add(-0.5, 0, 0, v, 1);
   } else if (name === "ocho"){                       // Chenciner–Montgomery (exacta solo con 1/r²)
     const x1 = 0.97000436, y1 = -0.24308753, vx = -0.93240737, vy = -0.86473146;
     add(x1, y1, -vx/2, -vy/2, 1); add(-x1, -y1, -vx/2, -vy/2, 1); add(0, 0, vx, vy, 1);
   } else if (name === "cuadrado"){                   // 4 masas iguales, órbita circular para la ley activa
-    const ac = Math.SQRT2*Math.pow(2, -n/2) + Math.pow(2, -n), v = Math.sqrt(ac);
+    const ac = Math.SQRT2*invPow(Math.SQRT2, 2) + invPow(2, 2), v = Math.sqrt(ac);
     for (let k = 0; k < 4; k++){ const a = k*Math.PI/2, x = Math.cos(a), y = Math.sin(a); add(x, y, y*v, -x*v, 1); }
   } else if (name === "nova"){                       // estrella de 1100 unidades; cae otra de 450 → 1550: supernova
     add(0, 0, 0, 0, 11); add(0, -2.8, 0.2, 0, 4.5);
-    for (const r of [2.3, 3.1]){ const v = Math.sqrt(15.5*Math.pow(r, 1-n)); add(-r, 0, 0, v, 0.1); }
+    for (const r of [2.3, 3.1]){ const v = vcirc(r, 15.5); add(-r, 0, 0, v, 0.1); }
   } else if (name === "sistema"){                    // estrella masiva y 3 planetas livianos que se perturban
     add(0, 0, 0, 0, 3);
     for (const [r, m] of [[0.7, 0.05], [1.2, 0.08], [1.85, 0.12]]){
-      const v = Math.sqrt(3*Math.pow(r, 1-n)), a = Math.random()*Math.PI*2, x = r*Math.cos(a), y = r*Math.sin(a);
+      const v = vcirc(r, 3), a = Math.random()*Math.PI*2, x = r*Math.cos(a), y = r*Math.sin(a);
       add(x, y, y/r*v, -x/r*v, m);
     }
   }
@@ -545,7 +559,7 @@ function addComet(x, y, vx, vy){
 function cometSource(c){                             // [x, y] de la estrella que más lo atrae
   if (mode === "central" || !bodies.length) return [0, 0];
   let best = bodies[0], bp = 0;
-  for (const b of bodies){ const q = b.m*invPow(Math.max(Math.hypot(b.x-c.x, b.y-c.y), RMIN)); if (q > bp){ bp = q; best = b; } }
+  for (const b of bodies){ const q = b.m*invPow(Math.max(Math.hypot(b.x-c.x, b.y-c.y), RMIN), b.m); if (q > bp){ bp = q; best = b; } }
   return [best.x, best.y];
 }
 function stepComets(T){
@@ -554,7 +568,7 @@ function stepComets(T){
     if (!Mt){ c.dead = true; continue; }
     let rmin = Math.hypot(c.x, c.y);
     if (mode === "nbody"){ rmin = Infinity; for (const b of bodies) rmin = Math.min(rmin, Math.hypot(b.x-c.x, b.y-c.y)); }
-    const k = Math.min(KMAX_C, Math.max(4, Math.ceil(T/(ETA_C*Math.sqrt(Math.pow(Math.max(rmin, RMIN), n+1)/Mt))))), h = T/k;
+    const k = Math.min(KMAX_C, Math.max(4, Math.ceil(T/(ETA_C*tdyn(Math.max(rmin, RMIN), Mt))))), h = T/k;
     if (!accDust(c.x, c.y)){ c.dead = true; continue; }
     for (let s = 0; s < k; s++){                     // leapfrog
       c.vx += gax*h/2; c.vy += gay*h/2; c.x += c.vx*h; c.y += c.vy*h;
@@ -622,7 +636,7 @@ function drawComets(){
 // general se desvía el doble que una partícula lenta, así que se usa a = 2·g (y se vuelve a fijar |v| = c).
 // Con la c real (10 066 en estas unidades) la desviación junto al Sol es de 1,75 segundos de arco, invisible;
 // aquí c = 6 (unos 180 km/s) para que la curva se vea: rozando el Sol se desvía unos 30°.
-const C_LUZ = 6, MAXL = 3;
+const MAXL = 3;
 let lasers = [];
 function traceRay(x, y, dx, dy){
   const d = Math.hypot(dx, dy) || 1; let vx = dx/d*C_LUZ, vy = dy/d*C_LUZ;
@@ -632,12 +646,12 @@ function traceRay(x, y, dx, dy){
   for (let k = 0; k < 5000 && s < far; k++){
     let ax = 0, ay = 0, dmin = Infinity;
     if (mode === "central"){
-      const r = Math.hypot(x, y); if (r < SUN_R){ hit = true; break; }
+      const r = Math.hypot(x, y); if (r < sunR()){ hit = true; break; }
       const a = invPow(r)/r; ax = -a*x; ay = -a*y; dmin = r;
     } else for (const b of bodies){
       const ddx = b.x - x, ddy = b.y - y, r = Math.hypot(ddx, ddy);
-      if (r < Math.max(radius(shownMass(b)), 0.02)){ hit = true; break; }
-      const a = b.m*invPow(r)/r; ax += a*ddx; ay += a*ddy; dmin = Math.min(dmin, r);
+      if (r < Math.max(radius(shownMass(b)), 0.02) + rsOf(b.m)){ hit = true; break; }
+      const a = b.m*invPow(r, b.m)/r; ax += a*ddx; ay += a*ddy; dmin = Math.min(dmin, r);
     }
     if (hit) break;
     const ds = Math.min(dsMax, Math.max(0.001, 0.05*dmin)), h = ds/C_LUZ;
@@ -759,8 +773,8 @@ function track(p, h){
 let sel = null, kep = 1, sectors = [], cur = null, dtArea = 0.5;
 function estPeriod(p){
   const r = Math.hypot(p.x, p.y), v2 = p.vx*p.vx + p.vy*p.vy, E = v2/2 - 1/r;
-  if (n === 2 && E < 0) return 2*Math.PI*Math.pow(-1/(2*E), 1.5);
-  return 2*Math.PI*Math.pow(r, (1+n)/2);
+  if (n === 2 && !pw && E < 0) return 2*Math.PI*Math.pow(-1/(2*E), 1.5);
+  return 2*Math.PI*r/vcirc(Math.max(r, sunR()), 1);
 }
 function select(p){
   sel = p; sectors = []; cur = null;
@@ -783,6 +797,7 @@ function trackArea(p, h){
 
 // ---------- Textos ----------
 const LAWTXT = {0.5:"1/√r", 1:"1/r", 2:"1/r²", 3:"1/r³"};
+const lawTxt = () => pw ? "de agujero negro" : LAWTXT[n];
 function updateCard(){
   let title, text;
   if (mode === "nbody"){
@@ -791,15 +806,16 @@ function updateCard(){
                     : "Todas se atraen entre sí. Al chocar se atraviesan.");
   } else if (kep === 1){
     title = "Elipses";
-    text = n === 2 ? "Cada planeta da vueltas en una elipse, con el Sol en uno de sus focos."
+    text = pw ? "Junto a un agujero negro la órbita no se cierra: el punto más cercano gira en cada vuelta. Más cerca de 3 rₛ ya no hay órbitas estables."
+         : n === 2 ? "Cada planeta da vueltas en una elipse, con el Sol en uno de sus focos."
                    : `Con gravedad ${LAWTXT[n]} la órbita no es una elipse: el punto más cercano se corre en cada vuelta.`;
   } else if (kep === 2){
     title = "Áreas";
-    text = "En tiempos iguales el planeta barre áreas iguales: cerca del Sol va más rápido.";
+    text = `En tiempos iguales el planeta barre áreas iguales: cerca ${pw ? "del agujero negro" : "del Sol"} va más rápido.`;
   } else {
     title = "Tiempos";
-    text = n === 2 ? "Mientras más lejos, más tarda en dar la vuelta: T² = a³ (en años y UA)."
-                   : `Con gravedad ${LAWTXT[n]} los puntos se salen de la recta T² = a³.`;
+    text = n === 2 && !pw ? "Mientras más lejos, más tarda en dar la vuelta: T² = a³ (en años y UA)."
+                   : `Con gravedad ${lawTxt()} los puntos se salen de la recta T² = a³.`;
   }
   const LAW = {1:"1.ª ley de Kepler. ", 2:"2.ª ley de Kepler. ", 3:"3.ª ley de Kepler. "};
   $("title").textContent = title; $("text").textContent = (mode === "central" ? LAW[kep] : "") + text;
@@ -807,7 +823,8 @@ function updateCard(){
 // Energía. Potencial de la ley 1/rⁿ: φ(r) = −r^(1−n)/(n−1), y ln r cuando n = 1.
 // Con el Sol: energía por unidad de masa del planeta elegido (negativa = ligado, si n > 1).
 // Con masas: energía total, cinética + potencial de cada par; se conserva salvo en choques y supernovas.
-const phi = r => n === 1 ? Math.log(r) : -Math.pow(r, 1-n)/(n-1);
+// Con agujero negro: φ = −1/(r − rₛ).
+const phi = (r, M = 1) => pw ? -1/Math.max(r - rsOf(M), RMIN) : n === 1 ? Math.log(r) : -Math.pow(r, 1-n)/(n-1);
 const fmtS = v => (v < 0 ? "−" : "") + fmt(Math.abs(v), Math.abs(v) < 10 ? 2 : 1);
 function energyText(){
   if (mode === "central"){
@@ -819,8 +836,8 @@ function energyText(){
   let K = 0, U = 0;
   for (const b of bodies) K += b.m*(b.vx*b.vx + b.vy*b.vy)/2;
   for (let i = 0; i < bodies.length; i++) for (let j = i+1; j < bodies.length; j++){
-    const a = bodies[i], b = bodies[j], r = Math.max(Math.hypot(b.x-a.x, b.y-a.y), mergeOn ? RMIN : radius(a.m)+radius(b.m));
-    U += a.m*b.m*phi(r);
+    const a = bodies[i], b = bodies[j], r = Math.max(Math.hypot(b.x-a.x, b.y-a.y), mergeOn ? RMIN : radius(a.m)+radius(b.m)+rsOf(a.m+b.m));
+    U += a.m*b.m*phi(r, a.m+b.m);
   }
   return `Energía total ${fmtS(K + U)}`;
 }
@@ -853,8 +870,8 @@ let toastT = 0;
 function toast(t, ms = 3000){ const el = $("toast"); el.textContent = t; el.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add("off"), ms); }
 function updateCount(){}
 function setLaw(v){
-  n = v;
-  document.querySelectorAll("#laws button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.n === n));
+  pw = v === "pw"; n = pw ? 2 : v;
+  document.querySelectorAll("#laws button").forEach(b => b.setAttribute("aria-pressed", b.dataset.n === String(v)));
   if (mode === "central") for (const p of bodies){ [p.ax, p.ay] = accC(p.x, p.y); initTrack(p); }
   else accN(bodies);
   select(sel); updateCard();
@@ -876,7 +893,7 @@ function addPlanet(x, y, vx, vy){
   if (bodies.length !== before || mode === "central") sPop();
 }
 document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
-document.querySelectorAll("#laws button").forEach(b => b.addEventListener("click", () => setLaw(+b.dataset.n)));
+document.querySelectorAll("#laws button").forEach(b => b.addEventListener("click", () => setLaw(b.dataset.n === "pw" ? "pw" : +b.dataset.n)));
 document.querySelectorAll("[data-k]").forEach(b => b.addEventListener("click", () => {
   kep = +b.dataset.k; select(sel);
   document.querySelectorAll("[data-k]").forEach(x => x.setAttribute("aria-pressed", x === b)); updateCard();
@@ -998,7 +1015,7 @@ function boundVel(x, y, vx, vy, massless){
   let ox = 0, oy = 0, M = 1;
   if (mode === "nbody"){ const c = com(bodies); if (!c.M) return [vx, vy]; ox = c.X; oy = c.Y; M = c.M + (massless ? 0 : newMass); }
   const r = Math.max(Math.hypot(x-ox, y-oy), RMIN), v = Math.hypot(vx, vy);
-  const vmax = Math.sqrt(Math.max(0, 2*M*(phi(R_BOUND) - phi(r))));
+  const vmax = Math.sqrt(Math.max(0, 2*M*(phi(R_BOUND, M) - phi(r, M))));
   return v > vmax ? [vx*vmax/v, vy*vmax/v] : [vx, vy];
 }
 const dragVel = (massless) => { const [x, y] = toWorld(drag.sx, drag.sy); return boundVel(x, y, (drag.ex-drag.sx)/baseScale*1.6, (drag.ey-drag.sy)/baseScale*1.6, massless); };
@@ -1164,15 +1181,22 @@ function draw(time){
   ctx.globalAlpha = 1;
   if (mode === "central"){
     if (kep === 1 && sel && !clean){
-      if (n === 2) drawEllipse(sel);
+      if (n === 2 && !pw) drawEllipse(sel);   // con agujero negro la elipse de Newton ya no describe la órbita
       ctx.fillStyle = "#ffc94a";
       for (const [x, y] of sel.peris){ const [X, Y] = toScreen(x, y); ctx.beginPath(); ctx.arc(X, Y, 3.5, 0, Math.PI*2); ctx.fill(); }
     }
-    const sr = Math.max(SUN_R*scale, 16), [sx0, sy0] = toScreen(0, 0);
-    glow(sx0, sy0, sr*3.4, "rgba(255,201,74,0.5)", "rgba(255,150,40,0)");
-    const g = ctx.createRadialGradient(sx0-sr*0.3, sy0-sr*0.35, sr*0.1, sx0, sy0, sr);
-    g.addColorStop(0, "#fff6c8"); g.addColorStop(0.45, "#ffd23f"); g.addColorStop(1, "#ffa31a");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx0, sy0, sr, 0, Math.PI*2); ctx.fill();
+    const [sx0, sy0] = toScreen(0, 0);
+    if (pw){                                         // agujero negro: horizonte de radio rₛ y la última órbita estable (3 rₛ)
+      const rs = rsOf(1)*scale, isco = 3*rs;
+      if (!clean && isco > 14){ ctx.strokeStyle = "rgba(255,200,140,0.45)"; ctx.setLineDash([4, 5]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(sx0, sy0, isco, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]); }
+      drawBody({kind:"bh"}, sx0, sy0, Math.max(rs, 8), time);
+    } else {
+      const sr = Math.max(SUN_R*scale, 16);
+      glow(sx0, sy0, sr*3.4, "rgba(255,201,74,0.5)", "rgba(255,150,40,0)");
+      const g = ctx.createRadialGradient(sx0-sr*0.3, sy0-sr*0.35, sr*0.1, sx0, sy0, sr);
+      g.addColorStop(0, "#fff6c8"); g.addColorStop(0.45, "#ffd23f"); g.addColorStop(1, "#ffa31a");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx0, sy0, sr, 0, Math.PI*2); ctx.fill();
+    }
   }
   // cuerpos que están siendo comidos
   for (const gh of ghosts){
@@ -1185,7 +1209,7 @@ function draw(time){
   for (const b of bodies){
     if (b.mt !== undefined && b.mt < 1) b.mt = Math.min(1, b.mt + 0.022);
     const [X, Y] = toScreen(b.x, b.y);
-    const pr = mode === "nbody" ? Math.max(7, radius(shownMass(b))*scale*1.5) : (b === sel ? 8 : 6);
+    const pr = mode === "nbody" ? Math.max(7, radius(shownMass(b))*scale*1.5, b.kind === "bh" ? rsOf(b.m)*scale : 0) : (b === sel ? 8 : 6);
     drawBody(b, X, Y, pr, time);
     if (b === sel && mode === "central" && !clean){ ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, pr+5, 0, Math.PI*2); ctx.stroke(); }
   }
@@ -1230,7 +1254,7 @@ function frame(time){
         const [k, h] = substeps(T, tDynC(p));
         for (let s = 0; s < k; s++){
           stepC(p, h);
-          if (!aliveC(p)){ p.dead = true; if (Math.hypot(p.x, p.y) <= SUN_R) onEaten(p); break; }
+          if (!aliveC(p)){ p.dead = true; if (Math.hypot(p.x, p.y) <= sunR()) onEaten(p); break; }
           track(p, h); trackArea(p, h); pushTrail(p);
         }
       }
