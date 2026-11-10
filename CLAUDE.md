@@ -57,7 +57,8 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   y `// @fin-fisica`.
 
 ## Fichas de fórmulas (PDF)
-- `docs/<simulador>.pdf`: máximo dos hojas por simulador con las fórmulas que usa; se enlazan desde `index.html` (salvo la nave, oculta).
+- `docs/<simulador>.pdf`: máximo dos hojas por simulador con las fórmulas que usa; se enlazan desde `index.html` (salvo la nave, oculta)
+  a través de `docs/ver.html?f=<simulador>`, que los dibuja con PDF.js (muchos celulares no abren PDF directo).
 - La fuente es `docs/fuentes/<simulador>.html` (KaTeX desde cdnjs). Para regenerar, servir el repo en local
   y imprimir con Edge sin ventana: `msedge --headless=new --no-pdf-header-footer --virtual-time-budget=15000
   --print-to-pdf=docs\<simulador>.pdf http://127.0.0.1:8765/docs/fuentes/<simulador>.html`.

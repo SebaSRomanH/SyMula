@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1226">
+<title>Fórmulas de la simulación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1226;--panel:#121a36;--btn:#1b2650;--line:#2c3a6e;--ink:#eef1ff;--soft:#a3aed8;--acc:#ffc94a;--acc-ink:#2a1c00;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:700 15px/1.4 Nunito,system-ui,sans-serif}
+header{position:sticky;top:0;z-index:2;display:flex;gap:10px;align-items:center;padding:10px 12px;background:rgba(18,26,54,.95);border-bottom:1px solid var(--line)}
+header h1{flex:1;min-width:0;margin:0;font:800 17px/1.2 Nunito,sans-serif;color:var(--acc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn{flex:none;min-height:48px;padding:0 14px;border-radius:14px;display:flex;align-items:center;gap:8px;background:var(--btn);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800}
+.btn svg{width:22px;height:22px}
+main{max-width:860px;margin:0 auto;padding:12px 10px 30px;display:flex;flex-direction:column;gap:12px}
+main canvas{width:100%;height:auto;border-radius:6px;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.4)}
+.msg{color:var(--soft);text-align:center;padding:30px 10px}
+.msg a{color:var(--acc)}
+</style>
+</head>
+<body>
+<header>
+  <a class="btn" href="../index.html" aria-label="Volver al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
+  <h1 id="title">Fórmulas</h1>
+  <a class="btn" id="dl" href="#" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>PDF</a>
+</header>
+<main id="pages"><p class="msg" id="msg">Cargando…</p></main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+// Muestra la ficha PDF dibujada con PDF.js, así se ve igual en cualquier celular (muchos no abren
+// PDF dentro del navegador). El botón PDF descarga el archivo original.
+(function(){
+  const NAMES = {"gravitacion":"Planetas y gravedad", "ondas-sonoras":"Sonido en una sala", "flujo-tubo":"Flujo en un tubo",
+                 "flujo-tactil":"Flujo táctil", "lanzamiento":"Lanzamiento vertical", "nave":"Nave espacial"};
+  const f = new URLSearchParams(location.search).get("f"), msg = document.getElementById("msg");
+  if (!NAMES[f]){ msg.innerHTML = 'No encontré esa ficha. <a href="../index.html">Volver al inicio</a>.'; return; }
+  const url = f + ".pdf";
+  document.title = "Fórmulas: " + NAMES[f];
+  document.getElementById("title").textContent = NAMES[f];
+  document.getElementById("dl").href = url;
+  const fail = () => { msg.innerHTML = `No pude mostrar la ficha aquí. <a href="${url}">Abrir o descargar el PDF</a>.`; };
+  if (!window.pdfjsLib) return fail();
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  pdfjsLib.getDocument(url).promise.then(async pdf => {
+    msg.remove();
+    const box = document.getElementById("pages"), dpr = Math.min(2, window.devicePixelRatio || 1);
+    for (let i = 1; i <= pdf.numPages; i++){
+      const page = await pdf.getPage(i), w = Math.min(860, box.clientWidth);
+      const vp = page.getViewport({scale: w/page.getViewport({scale:1}).width*dpr});
+      const cv = document.createElement("canvas"); cv.width = vp.width; cv.height = vp.height;
+      cv.setAttribute("aria-label", `Página ${i} de ${pdf.numPages}`);
+      box.appendChild(cv);
+      await page.render({canvasContext: cv.getContext("2d"), viewport: vp}).promise;
+    }
+  }).catch(fail);
+})();
+</script>
+</body>
+</html>
