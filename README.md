@@ -1,6 +1,8 @@
 # SyMula
 
-Simuladores interactivos de física que corren en el navegador, sin instalación ni dependencias.
+Visualizaciones simples de conceptos de física. El objetivo es que ver un fenómeno, como la gravitación, haga más fácil aprenderlo y entenderlo. Los simuladores corren en el navegador, sin instalación ni dependencias.
+
+Una idea de Sebastián Román, potenciada por Claude.
 
 Página de inicio con todos los simuladores: https://sebasromanh.github.io/SyMula/
 
