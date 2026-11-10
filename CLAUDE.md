@@ -62,12 +62,16 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
 - `ondas-sonoras.html`: ondas de presión 2D por diferencias finitas en salas rectangular, circular,
   triangular, elíptica y romboide (paredes rígidas). Modos analíticos (rectángulo, Bessel en círculo,
   Lamé en triángulo) y medidos por FFT en elipse/romboide. Hasta 3 fuentes omni/cardioide/dipolo con
-  fase, oyente móvil y tono real con Web Audio cuyo volumen sigue el nivel simulado.
+  fase, oyente móvil y tono real con Web Audio cuyo volumen sigue el nivel simulado. Dibujo con relieve (luz según la
+  pendiente del campo), 10 curvas de nivel suaves y sombra interior junto a las paredes.
 - `flujo-tubo.html`: flujo en un tubo con obstáculos, Lattice Boltzmann D2Q9 + Smagorinsky, colisión y
   transporte fusionados (push). En celular vertical el tubo se dibuja vertical. ν se escala con el ancho
-  de la malla para que Reynolds no dependa de la resolución.
-- `flujo-tactil.html`: piscina a pantalla completa, LBM, el dedo agita el agua y genera ondas.
-- `lanzamiento.html`: lanzamiento vertical a escala real con cámara que se aleja y marcas cada 0,1 s.
+  de la malla para que Reynolds no dependa de la resolución. Obstáculos dibujados como formas vectoriales con luz y
+  sombra; partículas como estelas cortas a lo largo de la velocidad.
+- `flujo-tactil.html`: piscina a pantalla completa, LBM, el dedo agita el agua y genera ondas. Cáusticas (mosaico de
+  senos que se desplaza, mezcla "lighter"), centro más hondo y borde de azulejos.
+- `lanzamiento.html`: lanzamiento vertical a escala real con cámara que se aleja y marcas cada 0,1 s. Escenario por
+  lugar (SCENE: cielo, cerros, suelo y estrellas), sombra de la pelota y marcas como pelotas fantasma.
 - `mareas.html` (Bola de agua, estilo dibujo animado; reemplazó al simulador de mareas): bola fija al centro con
   núcleo de roca (R = 0,45, densidad 3) y océano hasta R = 1. El dedo o el mouse es la masa (Luna/Planeta/Estrella,
   M/m = 0,35/0,8/1,6) que levanta la marea; sin puntero gira sola. Superficie (marea al 40 %, capa delgada: alturas suavizadas desde ±0,12) η = Σ a_lm·Y_lm hasta l = 12 en

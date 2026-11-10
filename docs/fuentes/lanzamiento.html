@@ -129,7 +129,7 @@ $$H_\text{vista}\leftarrow H_\text{vista}+\left(H-H_\text{vista}\right)\min(1,\;
 <li><b>El lanzamiento:</b> mientras el dedo arrastra la pelota, <code>move()</code> guarda sus posiciones con la hora; al soltar, <code>release()</code> calcula la velocidad del dedo en los últimos 0,1 s.</li>
 <li><b>La física:</b> <code>physics(dt)</code> avanza en pasos de 1/240 s con la fórmula exacta de aceleración constante, revisa el suelo y las paredes, y deja una marca cada 0,1 s de vuelo.</li>
 <li><b>La cámara:</b> calcula hasta dónde llegará la pelota ($v^2/2g$) y se aleja suavemente para que siempre quepa.</li>
-<li><b>El bucle:</b> <code>frame()</code> llama a <code>physics</code> con el tiempo real transcurrido (por la velocidad elegida), luego <code>draw()</code> y <code>hud()</code>, que escribe la altura y la velocidad.</li>
+<li><b>El bucle:</b> <code>frame()</code> llama a <code>physics</code> con el tiempo real transcurrido (por la velocidad elegida), luego <code>draw()</code> (cielo, cerros y suelo de cada lugar, y la sombra de la pelota) y <code>hud()</code>, que escribe la altura y la velocidad.</li>
 </ul>
 <div class="code">const h = Math.min(H, dt - t);            // paso de hasta 1/240 s
 ball.x  += ball.vx*h;

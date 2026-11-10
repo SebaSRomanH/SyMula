@@ -336,7 +336,7 @@ function render(){
   if (vertical){ ctx.save(); ctx.translate(rect.x + rect.w, rect.y); ctx.rotate(Math.PI/2); ctx.drawImage(off, 0, 0, rect.h, rect.w); ctx.restore(); }
   else ctx.drawImage(off, rect.x, rect.y, rect.w, rect.h);
   // paredes del tubo
-  ctx.strokeStyle = "#7d8da1"; ctx.lineWidth = 3;
+  ctx.strokeStyle = "#8d9bb0"; ctx.lineWidth = 4;
   ctx.beginPath();
   if (vertical){ ctx.moveTo(rect.x, rect.y); ctx.lineTo(rect.x, rect.y+rect.h); ctx.moveTo(rect.x+rect.w, rect.y); ctx.lineTo(rect.x+rect.w, rect.y+rect.h); }
   else { ctx.moveTo(rect.x, rect.y); ctx.lineTo(rect.x+rect.w, rect.y); ctx.moveTo(rect.x, rect.y+rect.h); ctx.lineTo(rect.x+rect.w, rect.y+rect.h); }
@@ -348,10 +348,27 @@ function render(){
   if (vertical){ ctx.moveTo(ax-9, ay-9); ctx.lineTo(ax+9, ay-9); ctx.lineTo(ax, ay); }
   else { ctx.moveTo(ax-9, ay-9); ctx.lineTo(ax-9, ay+9); ctx.lineTo(ax, ay); }
   ctx.fill();
-  // partículas trazadoras
-  ctx.fillStyle = "rgba(255,255,255,0.62)";
-  const s = Math.max(1.6, rect[vertical ? "h" : "w"]/NX*0.6);
-  for (let k = 0; k < NPART; k++){ const [X, Y] = toS(pxs[k], pys[k]); ctx.fillRect(X - s/2, Y - s/2, s, s); }
+  // obstáculos: forma vectorial con luz y sombra (borde nítido sobre la malla)
+  for (const o of obstacles){
+    const pts = shapePoly(o).map(([x, y]) => toS(x, y));
+    let mx = 0, my = 0; for (const [X, Y] of pts){ mx += X; my += Y; } mx /= pts.length; my /= pts.length;
+    const R = Math.max(...pts.map(([X, Y]) => Math.hypot(X - mx, Y - my)));
+    const path = () => { ctx.beginPath(); pts.forEach(([X, Y], k) => k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y)); ctx.closePath(); };
+    ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+    const g = ctx.createRadialGradient(mx - R*0.35, my - R*0.4, R*0.1, mx, my, R*1.1);
+    g.addColorStop(0, "#f4f1ec"); g.addColorStop(0.6, "#cfc8bd"); g.addColorStop(1, "#968d80");
+    ctx.fillStyle = g; path(); ctx.fill(); ctx.restore();
+    ctx.strokeStyle = "rgba(60,52,44,0.6)"; ctx.lineWidth = 1.2; path(); ctx.stroke();
+  }
+  // partículas trazadoras: estelas cortas en la dirección del flujo (más largas donde va más rápido)
+  const cs = rect[vertical ? "h" : "w"]/NX, tail = 2.2*steps;
+  ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = Math.max(1.1, cs*0.35); ctx.lineCap = "round";
+  ctx.beginPath();
+  for (let k = 0; k < NPART; k++){
+    const x = pxs[k], y = pys[k], i = (x|0) + (y|0)*NX, [X, Y] = toS(x, y), [X0, Y0] = toS(x - ux[i]*tail, y - uy[i]*tail);
+    ctx.moveTo(X0, Y0); ctx.lineTo(X === X0 && Y === Y0 ? X + 0.5 : X, Y);
+  }
+  ctx.stroke();
   // forma elegida
   if (selected){
     ctx.beginPath();

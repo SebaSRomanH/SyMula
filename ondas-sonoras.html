@@ -544,6 +544,7 @@ function lut(stops){
 }
 const LUT_P = lut([[0,[90,180,255]],[0.25,[25,80,160]],[0.5,[11,18,38]],[0.75,[200,95,35]],[1,[255,205,140]]]);
 const LUT_I = lut([[0,[11,18,38]],[0.3,[25,70,120]],[0.6,[40,160,150]],[0.85,[235,200,110]],[1,[255,246,220]]]);
+const SHADE = 0.014;                                 // fuerza del relieve
 let OUT = 0xff000000 | (38 << 16) | (18 << 8) | 11, BG = "#0b1226", FG = "#eef1ff";
 function themeColors(){                              // colores del tema para lo que rodea la sala
   const c = s => (window.SyMulaColor ? SyMulaColor(s) : "") || null;
@@ -572,11 +573,21 @@ function drawRoom(){
   let mp = 0, me = 0;
   for (let k = 0; k < K; k++){ const i = fl[k], a = Math.abs(p1[i]); if (a > mp) mp = a; if (en[i] > me) me = en[i]; }
   pk = Math.max(mp, pk*0.985, 1e-6); ek = Math.max(me, ek*0.985, 1e-12);
-  const L = view === "p" ? LUT_P : LUT_I, kp = 127.5/pk, ke = 1/ek;
-  for (let i = 0, N = NX*NY; i < N; i++){
-    if (!mask[i]){ px32[i] = OUT; continue; }
-    const v = view === "p" ? 127.5 + p1[i]*kp : 255*Math.sqrt(en[i]*ke);
-    px32[i] = L[v <= 0 ? 0 : v >= 255 ? 255 : v|0];
+  const L = view === "p" ? LUT_P : LUT_I, kp = 127.5/pk, ke = 1/ek, isP = view === "p";
+  for (let i = 0, N = NX*NY; i < N; i++) if (!mask[i]) px32[i] = OUT;
+  // Relieve: el campo se ilumina como una superficie (luz desde arriba a la izquierda), así se ven las
+  // crestas y los valles de la onda; el color sigue diciendo el valor (presión o intensidad).
+  for (let k = 0; k < K; k++){
+    const i = fl[k];
+    let v, gx, gy;
+    if (isP){ v = 127.5 + p1[i]*kp; gx = (p1[nr[k]] - p1[nl[k]])*kp; gy = (p1[nd[k]] - p1[nu[k]])*kp; }
+    else { v = 255*Math.sqrt(en[i]*ke); gx = 255*(Math.sqrt(en[nr[k]]*ke) - Math.sqrt(en[nl[k]]*ke)); gy = 255*(Math.sqrt(en[nd[k]]*ke) - Math.sqrt(en[nu[k]]*ke)); }
+    const c = L[v <= 0 ? 0 : v >= 255 ? 255 : v|0];
+    let sh = 1 - (gx + gy)*SHADE; sh = sh < 0.55 ? 0.55 : sh > 1.6 ? 1.6 : sh;
+    const q = v*0.0392 + 0.5, fq = q - Math.floor(q), dq = fq < 0.5 ? fq : 1 - fq;   // curvas de nivel: 10 franjas, de borde suave
+    if (dq < 0.12) sh *= 0.8 + 0.2*dq/0.12;
+    const r = Math.min(255, (c & 255)*sh + (sh > 1.25 ? (sh - 1.25)*120 : 0)), g = Math.min(255, ((c >> 8) & 255)*sh + (sh > 1.25 ? (sh - 1.25)*120 : 0)), b = Math.min(255, ((c >> 16) & 255)*sh + (sh > 1.25 ? (sh - 1.25)*120 : 0));
+    px32[i] = 0xff000000 | (b << 16) | (g << 8) | r;
   }
   octx.putImageData(img, 0, 0);
   rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -584,6 +595,8 @@ function drawRoom(){
   rctx.save(); wallPath(); rctx.clip();
   rctx.imageSmoothingEnabled = true; rctx.imageSmoothingQuality = "high";
   rctx.drawImage(off, rect.x, rect.y, rect.w, rect.h);
+  rctx.shadowColor = "rgba(0,0,0,0.55)"; rctx.shadowBlur = 14;                 // sombra interior junto a las paredes
+  rctx.strokeStyle = "rgba(0,0,0,0.35)"; rctx.lineWidth = 6; wallPath(); rctx.stroke();
   rctx.restore();
   rctx.strokeStyle = "#a3aed8"; rctx.lineWidth = 3; rctx.lineJoin = "round"; wallPath(); rctx.stroke();
   // parlantes

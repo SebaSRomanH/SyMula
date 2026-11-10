@@ -114,7 +114,7 @@ $$\omega_z=\frac{\partial u_y}{\partial x}-\frac{\partial u_x}{\partial y}.$$
 <li><b>La malla:</b> <code>setup()</code> divide la pantalla en celdas (entre 12 000 y 80 000, según el equipo) y marca los cuatro bordes como pared.</li>
 <li><b>El paso:</b> <code>step()</code> hace colisión y transporte del Lattice Boltzmann en una pasada; se dan 5 pasos por cada 1/60 s de tiempo real, con un tope de 11 ms.</li>
 <li><b>El dedo:</b> <code>updateVelocity()</code> calcula la velocidad del dedo en celdas por paso y <code>stir()</code> mezcla esa velocidad en un disco alrededor del dedo; el golpe al tocar (<code>boost</code>) se apaga multiplicándose por 0,7 en cada paso.</li>
-<li><b>El dibujo:</b> <code>render()</code> pinta un píxel por celda según la rapidez y el giro, y <code>advect()</code> mueve las partículas con la velocidad de su celda.</li>
+<li><b>El dibujo:</b> <code>render()</code> pinta un píxel por celda según la rapidez y el giro, ilumina las ondas por su pendiente y suma la luz del fondo (cáusticas que se desplazan); y <code>advect()</code> mueve las partículas con la velocidad de su celda.</li>
 </ul>
 <div class="code">// dentro del disco del dedo, a distancia d del centro:
 let tx = t.vx + dx/d*push*(d/R),  ty = t.vy + dy/d*push*(d/R);

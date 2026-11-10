@@ -238,6 +238,40 @@ function makeLut(stops){
   return t;
 }
 const LUT_CURL = makeLut([[0,[120,200,255]],[0.25,[30,100,190]],[0.5,[11,18,38]],[0.75,[220,110,40]],[1,[255,210,150]]]);
+// Luz del fondo de la piscina (cáusticas): un mosaico que se repite sin costuras, hecho una vez con senos de
+// frecuencias enteras; dos copias que se desplazan despacio en direcciones distintas hacen que brille.
+const CT = 192, caus = document.createElement("canvas"); caus.width = caus.height = CT;
+{
+  const c2 = caus.getContext("2d"), im = c2.createImageData(CT, CT), d = im.data;
+  for (let y = 0; y < CT; y++) for (let x = 0; x < CT; x++){
+    const u = 2*Math.PI*x/CT, v = 2*Math.PI*y/CT;
+    const s = Math.sin(2*u + 1.3*Math.sin(3*v)) + Math.sin(3*v + 1.1*Math.sin(2*u + v)) + Math.sin(u - 2*v + 0.9*Math.sin(u + v));
+    const I = Math.pow(Math.max(0, 1 - Math.abs(s)/0.7), 3), p = (x + y*CT)*4;
+    d[p] = 170*I; d[p+1] = 235*I; d[p+2] = 255*I; d[p+3] = 255;
+  }
+  c2.putImageData(im, 0, 0);
+}
+let causPat = null;
+function drawCaustics(now){
+  if (!causPat) causPat = ctx.createPattern(caus, "repeat");
+  const dpr = cv.width/Math.max(1, cv.clientWidth), sc = 1.15*dpr, t = now/1000;
+  ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = causPat;
+  for (const [vx, vy, a, k] of [[9, 5, 0.09, 1], [-6, 8, 0.07, 1.37]]){
+    ctx.globalAlpha = a;
+    ctx.setTransform(sc*k, 0, 0, sc*k, (t*vx*dpr) % (CT*sc*k), (t*vy*dpr) % (CT*sc*k));
+    ctx.fillRect(-CT*sc*k, -CT*sc*k, cv.width + 2*CT*sc*k, cv.height + 2*CT*sc*k);
+  }
+  ctx.restore();
+}
+// Borde de la piscina: azulejos claros con sombra hacia el agua.
+function drawRim(){
+  const w = cv.width, h = cv.height, b = 7*cv.width/Math.max(1, cv.clientWidth);
+  ctx.save();
+  ctx.strokeStyle = "rgba(0,20,40,0.45)"; ctx.lineWidth = b*2.5; ctx.filter = "blur(" + (b*0.8).toFixed(1) + "px)";
+  ctx.strokeRect(b*1.25, b*1.25, w - b*2.5, h - b*2.5); ctx.filter = "none";
+  ctx.fillStyle = "#cfe3ea"; ctx.fillRect(0, 0, w, b); ctx.fillRect(0, h - b, w, b); ctx.fillRect(0, 0, b, h); ctx.fillRect(w - b, 0, b, h);
+  ctx.restore();
+}
 // Agua: color según rapidez + sombreado por la pendiente de la presión (así se ven las ondas)
 const LX = -0.6, LY = -0.8, GAIN = 260;
 function render(){
@@ -271,8 +305,15 @@ function render(){
   const dw = cv.width, dh = cv.height;
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
   ctx.drawImage(off, 0, 0, dw, dh);
+  if (water){
+    drawCaustics(performance.now());
+    const vg = ctx.createRadialGradient(dw/2, dh/2, Math.min(dw, dh)*0.25, dw/2, dh/2, Math.hypot(dw, dh)*0.6);   // más hondo al centro
+    vg.addColorStop(0, "rgba(0,10,30,0.18)"); vg.addColorStop(1, "rgba(0,10,30,0)");
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, dw, dh);
+    drawRim();
+  }
   const sx = dw/NX, sy = dh/NY, s = Math.max(1.5, sx*0.4);
-  ctx.fillStyle = water ? "rgba(235,250,255,0.35)" : "rgba(235,242,250,0.55)";
+  ctx.fillStyle = water ? "rgba(235,250,255,0.28)" : "rgba(235,242,250,0.55)";
   for (let k = 0; k < NPART; k++) ctx.fillRect(pxs[k]*sx-s/2, pys[k]*sy-s/2, s, s);
   return bad;
 }

@@ -154,7 +154,7 @@ $$\nu=\nu_{100}\,\frac{N_y}{100}.$$
 <li><b>Los datos:</b> las 9 poblaciones de todas las celdas viven en un solo arreglo <code>Float32Array(9·N)</code>: primero todas las $f_0$, luego todas las $f_1$, etc. <code>bar</code> marca las paredes y obstáculos.</li>
 <li><b>El paso:</b> <code>step()</code> recorre la malla una vez: calcula $\rho$ y $\vec u$, el equilibrio, la viscosidad de Smagorinsky y empuja cada población a su vecina (o la rebota si es pared). Luego intercambia <code>f</code> y <code>g</code>.</li>
 <li><b>Obstáculos:</b> cada forma es un polígono y <code>rebuildMask()</code> marca las celdas cuyo centro queda adentro (prueba del punto en polígono).</li>
-<li><b>El dibujo:</b> <code>render()</code> pasa la rapidez, los remolinos o la presión a colores con una tabla de 256 colores y pinta un píxel por celda, que luego se amplía.</li>
+<li><b>El dibujo:</b> <code>render()</code> pasa la rapidez, los remolinos o la presión a colores con una tabla de 256 colores y pinta un píxel por celda, que luego se amplía; encima van los obstáculos con luz y sombra y las partículas como estelas cortas en la dirección del flujo.</li>
 <li><b>Se ajusta solo:</b> <code>quality()</code> mide cuánto tarda cada cuadro y cambia la malla entre 9 000 y 52 000 celdas para no pasar de 11 ms.</li>
 </ul>
 <div class="code">// población 1 (hacia la derecha) de la celda i, después de chocar:

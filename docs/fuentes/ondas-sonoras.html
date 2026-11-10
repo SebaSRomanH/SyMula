@@ -147,7 +147,7 @@ $$\bar e\leftarrow\bar e+a\left(p^2-\bar e\right),\qquad a\approx\frac{1}{2\,\te
 <li><b>El paso:</b> <code>step()</code> calcula la presión nueva de todas las celdas con la fórmula de diferencias finitas y suma los parlantes. Se guardan tres instantes (<code>p0, p1, p2</code>) y se rotan.</li>
 <li><b>Cámara lenta:</b> el sonido real es demasiado rápido para verlo; cada cuadro avanza cerca de 1/10 de periodo, con un tope de 10 ms de cálculo.</li>
 <li><b>Modos y curva:</b> <code>computeModes()</code> usa las fórmulas de cada sala o mide los modos con la FFT (<code>numericModes</code>); <code>response()</code> suma los modos para dibujar la curva.</li>
-<li><b>Imagen y audio:</b> <code>drawRoom()</code> convierte la presión en colores píxel a píxel; Web Audio toca un tono cuyo volumen sigue el nivel en el oyente.</li>
+<li><b>Imagen y audio:</b> <code>drawRoom()</code> convierte la presión en colores píxel a píxel, con relieve (luz según la pendiente) y curvas de nivel; Web Audio toca un tono cuyo volumen sigue el nivel en el oyente.</li>
 </ul>
 <div class="code">for (let k = 0; k &lt; K; k++){          // todas las celdas de la sala
   const i = fl[k], c = p1[i];
