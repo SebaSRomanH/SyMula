@@ -45,87 +45,85 @@ section{break-inside:avoid}
 <!-- @portada -->
 <section class="cover">
 <p class="kick">SyMula · Bola de agua</p>
-<h1>¿Puede la gravedad estirar y romper una bola de agua?</h1>
-<svg class="art" viewBox="0 0 400 150"><ellipse cx="120" cy="75" rx="62" ry="48" fill="#4ea3ff"/><path d="M50 75H190M120 20V130" stroke="#102a43" stroke-width="1.5" stroke-dasharray="4 4"/>
-<circle cx="320" cy="75" r="44" fill="#b9bfc9"/><circle cx="305" cy="60" r="9" fill="#fff" opacity=".7"/>
-<path d="M190 75h22M50 75H28" stroke="#d9534f" stroke-width="3"/><text x="96" y="146" font-size="12" fill="#2a6fb0">se estira hacia el objeto</text><text x="290" y="140" font-size="12" fill="#526779">acero</text></svg>
-<p>Imagina una bola de agua flotando en el espacio, lejos de todo. Su propia gravedad la mantiene redonda, como una gota gigante.</p>
-<p>Ahora acercamos otro objeto, por ejemplo una bola de acero. Su gravedad tira <b>más fuerte del lado del agua que está más cerca</b> y más débil del lado lejano. Esa diferencia estira la bola: se alarga hacia el objeto y hacia el lado contrario, y se aprieta por los costados. Es la misma fuerza que hace las mareas en la Tierra.</p>
-<div class="math"><b>Un poco de matemática.</b> El estiramiento crece con la densidad del objeto y baja con la distancia <i>al cubo</i>: al doble de distancia, se estira 2 × 2 × 2 = 8 veces menos.<br>
-Si el objeto es muy denso y se acerca demasiado, cruza el <b>límite de Roche</b>: la marea gana a la gravedad del agua y la bola se rompe en gotas. Para el acero ese límite está a unos 5 radios; para el oro, a 6,5. ¡Así se formaron los anillos de Saturno!</div>
-<div class="reto"><b>Desafío.</b> El límite de Roche es 2,44 × (densidad del objeto ÷ densidad del agua) elevado a 1/3. ¿Por qué una bola de metano congelado (0,49 g/cm³) nunca puede romper la de agua? Pista: las dos bolas miden 1 radio, así que se tocan a 2 radios.</div>
-<p class="ans">Respuesta: su límite de Roche da 2,44 × 0,79 ≈ 1,9 radios, menos que los 2 radios en que ya se tocan.</p>
-<p class="try"><b>Pruébalo:</b> cambia el material, acerca el objeto poco a poco y mira el porcentaje de estiramiento; gira la vista arrastrando con el dedo.</p>
+<h1>¿Cómo levanta olas la gravedad?</h1>
+<svg class="art" viewBox="0 0 400 150"><path d="M60 75c0-40 40-62 90-58 30 2 60 22 78 44 10 12 10 26 0 38-18 22-48 42-78 44-50 4-90-18-90-68z" fill="#4ea3ff" stroke="#102A43" stroke-width="4"/><circle cx="135" cy="80" r="26" fill="#9c7656" opacity=".5"/>
+<path d="M205 52c10 8 18 16 22 23" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+<circle cx="318" cy="75" r="26" fill="#e0613a" stroke="#102A43" stroke-width="4"/><path d="M250 75h40" stroke="#D9A15B" stroke-width="3" stroke-dasharray="6 5"/>
+<text x="70" y="146" font-size="12" fill="#2a6fb0">el agua sube hacia el planeta</text><text x="296" y="122" font-size="12" fill="#526779">planeta</text></svg>
+<p>Imagina un planeta pequeño cubierto de agua: un núcleo de roca y un océano encima. Ahora pasa otro planeta cerca. Su gravedad tira <b>más fuerte del agua que tiene cerca</b> que del centro, y más débil del agua del lado lejano. El océano se estira hacia él: eso es una <b>marea</b>.</p>
+<p>Si el planeta se mueve, la joroba de agua lo sigue, pero el agua no puede cambiar de forma al instante: se pasa, vuelve y se balancea. Así nacen las <b>olas</b>. Si pasa muy cerca, el agua salpica, y si choca contra el núcleo de roca… ¡todo vuela!</p>
+<div class="math"><b>Un poco de matemática.</b> La marea grande baja con la distancia <i>al cubo</i>: al doble de distancia, el agua sube 2 × 2 × 2 = 8 veces menos. Por eso solo se nota cuando el planeta pasa cerca.<br>
+Un planeta que orbita en círculo va a la velocidad justa para no caer: <b>v × v = G × masa total ÷ distancia</b>. Si va más lento, cae hacia la bola.</div>
+<div class="reto"><b>Desafío.</b> Si alejas el planeta al triple de distancia, ¿cuántas veces más chica es la marea?</div>
+<p class="ans">Respuesta: 3 × 3 × 3 = 27 veces más chica.</p>
+<p class="try"><b>Pruébalo:</b> mueve el dedo o el mouse alrededor del agua; elige la estrella y pasa muy cerca; toca «Soltar» y mira cómo orbita; gira la vista y aleja la cámara.</p>
 </section>
 <!-- @fin-portada -->
 <header>
 <h1>Bola de agua</h1>
 <p class="sub">SyMula · Fórmulas con las que se calcula el simulador (mareas.html)</p>
 </header>
-
+<div class="cols">
 <section>
-<h2>Unidades</h2>
-<p>La bola de agua tiene radio $R=1$ y el objeto también ($R_o=1$). Se toma $G\rho_\text{agua}=1$, así que la unidad de tiempo es $1/\sqrt{G\rho_\text{agua}}\approx 3871$ s $\approx 1{,}075$ h, sin importar el tamaño de la bola. Con densidad $\rho$ (en g/cm³), el objeto tiene $GM=\tfrac{4\pi}{3}\rho$ y la razón de masas es $M/m=\rho/\rho_\text{agua}$.</p>
+<h2>Unidades y cuerpos</h2>
+<p>La bola tiene radio 1: un núcleo de roca de radio $R_c=0{,}62$ y densidad 3, bajo una capa de agua de densidad 1. Se toma $G\rho_\text{agua}=1$ y una unidad de tiempo por segundo de animación. La masa de la bola es</p>
+$$Gm=\tfrac{4\pi}{3}\big(3R_c^3+(1-R_c^3)\big)\approx6{,}19.$$
+<p>La masa que se mueve (Luna, Planeta o Estrella) vale $M=s\,m$, con $s=0{,}35$, $0{,}8$ o $1{,}6$.</p>
 </section>
-
 <section>
-<h2>Forma de equilibrio</h2>
-<p>El potencial de marea del objeto a distancia $d$, en un punto a distancia $r$ del centro de la bola y a un ángulo $\theta$ del eje $x$, es</p>
-$$W_2=\frac{GM\,r^2}{d^3}\,P_2(\cos\theta),\qquad P_2(c)=\tfrac32c^2-\tfrac12.$$
-<p>Una esfera líquida homogénea que se atrae a sí misma responde con número de Love $h_2=\tfrac52$, así que su superficie queda en</p>
-$$r(\theta)=R\big(1+q\,P_2(\cos\theta)\big),\qquad q=\frac52\,\frac{M}{m}\Big(\frac{R}{d}\Big)^3.$$
-<p>El eje hacia el objeto mide $1+q$ y los otros dos $1-q/2$. El estiramiento que muestra la pantalla es $(a-b)/R=\tfrac32q=\tfrac{15}{4}\tfrac{M}{m}\big(\tfrac{R}{d}\big)^3$.</p>
+<h2>La superficie del agua</h2>
+<p>La altura del agua es una suma de armónicos esféricos reales y ortonormales hasta $l=12$, evaluada en una malla de 200 × 100 puntos:</p>
+$$\eta(\theta,\varphi,t)=\sum_{l=2}^{12}\sum_{m=-l}^{l}a_{lm}(t)\,Y_{lm}(\theta,\varphi).$$
+<p>Cada modo es un oscilador con la frecuencia de Kelvin de una gota líquida que se atrae a sí misma:</p>
+$$\ddot a_{lm}=-\omega_l^2\big(a_{lm}-a^\text{eq}_{lm}\big)-\gamma\dot a_{lm},\qquad\omega_l^2=\frac{4\pi}{3}\,\frac{2l(l-1)}{2l+1},$$
+<p>con $\gamma=0{,}1$. El agua no baja del fondo de roca: $\eta\ge R_c-1$.</p>
 </section>
-
 <section>
-<h2>Oscilación hasta el equilibrio</h2>
-<p>Al cambiar la distancia, la bola no salta a la forma nueva: oscila con el modo $l=2$ de Kelvin de una esfera líquida autogravitante,</p>
-$$\omega^2=\frac{2l(l-1)}{2l+1}\cdot\frac{4\pi}{3}G\rho=\frac{16\pi}{15}G\rho,\qquad T=\frac{2\pi}{\omega}\approx 3{,}69\ \text{h},$$
-<p>con un poco de roce: $\ddot q=-\omega^2(q-q_\text{eq})-0{,}6\,\dot q$, integrado con 8 pasos por cuadro.</p>
+<h2>La marea de la masa</h2>
+<p>Con la masa a distancia $d$ en la dirección $\hat u$, la marea de equilibrio de grado $l$ es</p>
+$$\eta_l=h_l\,s\Big(\frac{R}{d}\Big)^{l+1}P_l(\hat n\cdot\hat u),\qquad h_l=\frac{2l+1}{2(l-1)}.$$
+<p>$h_l$ es el número de Love de un líquido (con $l=2$, $h_2=\tfrac52$). Se usan todos los grados $l=2\dots12$: lejos solo cuenta la joroba doble ($l=2$); cerca, el agua sube en punta hacia la masa. Por el teorema de adición,</p>
+$$a^\text{eq}_{lm}=\eta_l\,\frac{4\pi}{2l+1}\,Y_{lm}(\hat u).$$
+<p>Comprobado: la suma converge a $\sum_l\eta_lP_l$ con error menor a 0,001 %.</p>
 </section>
-
 <section>
-<h2>Límite de Roche y ruptura</h2>
-<p>Un cuerpo líquido que se acerca más que</p>
-$$d_R=2{,}44\,R_o\Big(\frac{\rho}{\rho_\text{agua}}\Big)^{1/3}$$
-<p>se rompe. En ese punto $q=\tfrac52/2{,}44^3\approx0{,}17$, igual para cualquier material.</p>
-<table>
-<tr><th>Material</th><th>$\rho$ (g/cm³)</th><th>$d_R$ (radios)</th></tr>
-<tr><td>Metano congelado</td><td>0,49</td><td>1,92 (se tocan antes: nunca la rompe)</td></tr>
-<tr><td>Roca</td><td>3</td><td>3,52</td></tr>
-<tr><td>Acero</td><td>7,85</td><td>4,85</td></tr>
-<tr><td>Mercurio</td><td>13,53</td><td>5,81</td></tr>
-<tr><td>Oro</td><td>19,32</td><td>6,55</td></tr>
-<tr><td>Osmio</td><td>22,59</td><td>6,90</td></tr>
-</table>
-<p>Al romperse, 520 gotas siguen la marea en el marco de la bola: $\vec a=\dfrac{GM}{d^3}(2x,\,-y,\,-z)$. Se estiran a lo largo de $x$ y se aprietan en $y$ y $z$, formando un chorro.</p>
-</section>
-
-<section>
-<h2>Lo que se dibuja</h2>
+<h2>Masa suelta: gravedad completa</h2>
+<p>Al tocar «Soltar», la masa sale en órbita circular, $v=\sqrt{G(M+m)/r}$, y se mueve con el problema de dos cuerpos (movimiento relativo):</p>
+$$\ddot{\vec r}=-\frac{G(M+m)}{r^3}\,\vec r,$$
+<p>integrado con leapfrog en pasos de 0,003. Así sigue un círculo durante 5 vueltas con error menor a 0,001 %.</p>
 <ul>
-<li><b>Trazado de rayos:</b> por cada píxel se lanza un rayo; se corta con el elipsoide $x^2/a^2+(y^2+z^2)/b^2=1$ (escalado a una esfera unitaria) y con la esfera del objeto.</li>
-<li><b>Agua:</b> se oscurece con el grosor que cruza el rayo, $e^{-0{,}55\,\ell}$, y refleja más en el borde según Fresnel–Schlick, $F=0{,}02+0{,}98(1-\hat n\cdot\hat v)^5$.</li>
-<li><b>Metales:</b> reflejan el cielo y un poco del agua. La roca y el hielo tienen manchas.</li>
-<li><b>Guías:</b> los ejes $x$, $y$, $z$ atraviesan el agua (tenues por dentro), las flechas muestran dónde estira y dónde aprieta la marea, y el anillo punteado marca el límite de Roche.</li>
+<li><b>Al entrar al agua</b> ($r&lt;1+\eta$): la frena el roce, $\vec v\leftarrow\vec v(1-3h)$, y deja un golpe en todos los modos, $\dot a_{lm}\mathrel{-}=A\,e^{-(l/8)^2}Y_{lm}(\hat u)$, más gotas que salpican.</li>
+<li><b>Contra el núcleo</b> ($r&lt;R_c+r_\text{masa}$): los cuerpos chocan, con un golpe mucho mayor y gotas de agua y roca.</li>
 </ul>
 </section>
-
+<section>
+<h2>El dibujo animado</h2>
+<ul>
+<li><b>Trazado de rayos en la tarjeta gráfica (WebGL2):</b> $\eta$ se sube como textura y cada píxel lanza un rayo que avanza según la distancia que le falta para llegar a la superficie $r=1+\eta$. La normal sale de dos puntos vecinos de la superficie.</li>
+<li><b>Colores:</b> el agua se pinta con una escala tipo fuego según la distancia a la masa que tira. Es roja en la parte más cercana y azul en la más lejana, en 7 franjas:</li>
+</ul>
+$$k=rac{|ec p-ec P|-d_	ext{cerca}}{d_	ext{lejos}-d_	ext{cerca}}.$$
+<ul>
+<li><b>Luz y leyenda:</b> la luz cambia el tono en tres niveles. Una leyenda en pantalla dice qué significa cada color, así no depende solo del color. El agua poco profunda deja ver el fondo, y aparece roca donde el agua se va.</li>
+<li><b>Contorno:</b> es vectorial y grueso, trazado por la silueta.</li>
+<li><b>Gotas:</b> son círculos con borde y brillo que vuelven a la bola con $g\propto1/r^2$.</li>
+</ul>
+</section>
+</div>
 <!-- @html -->
 <section class="how">
 <h2>Cómo está hecho el archivo HTML</h2>
 <ul>
-<li>Es <b>un solo archivo</b>: HTML para los botones, CSS para el estilo y JavaScript para la física y el dibujo, sin imágenes externas.</li>
-<li><b>La física</b> está entre <code>// @fisica</code> y <code>// @fin-fisica</code>: <code>qEq</code>, <code>roche</code>, <code>W2</code> y <code>tidalAcc</code>. <code>pruebas/mareas.js</code> la compara en Node con los valores de los libros.</li>
-<li><b>Cada cuadro:</b> <code>frame()</code> mueve la distancia suavemente hacia la elegida, integra la oscilación (o las gotas) y llama a <code>renderObject()</code> y <code>renderBall()</code>, que trazan rayos en dos lienzos pequeños. La calidad baja sola si pasa de 10 ms.</li>
-<li><b>Los toques:</b> arrastrar gira la cámara (ortográfica, con ángulos de giro e inclinación); Acercar y Alejar multiplican la distancia por 0,85.</li>
+<li><b>Estructura:</b> un solo archivo con HTML, CSS y JavaScript. La física está entre <code>// @fisica</code> y <code>// @fin-fisica</code> (<code>shAll</code>, <code>tideCoefs</code>, <code>stepModes</code>, <code>relAcc</code>) y <code>pruebas/mareas.js</code> la comprueba en Node.</li>
+<li><b>Superficie:</b> la base de armónicos (169 × 20 000 valores) se calcula una vez. Cada cuadro, <code>updateSurface()</code> suma los modos y saca las normales.</li>
+<li><b>Dibujo:</b> <code>renderGPU()</code> sube la malla como textura y dibuja con un sombreador WebGL2 a resolución completa. Si no hay WebGL2, <code>renderBall()</code> hace lo mismo en el procesador, con resolución adaptativa.</li>
+<li><b>Cámara:</b> gira con «Girar vista» (giro e inclinación) y se acerca o aleja con el zoom.</li>
 </ul>
-<div class="code">const qEq = (rho, d) =&gt; 2.5*massRatio(rho)/(d*d*d);    // q = (5/2)(M/m)(R/d)³
-const roche = rho =&gt; 2.44*R_OBJ*Math.cbrt(rho);          // d_R = 2,44·R·(ρ/ρ_agua)^(1/3)
-qv += (-W2*(q - qe) - 0.6*qv)*h;  q += qv*h;             // oscilación hacia el equilibrio</div>
-<p>Con esas tres líneas se decide cuánto se estira la bola, cuándo se rompe y cómo tiembla.</p>
+<div class="code">tideCoefs(mass*sPull, dm, u, aEq);                  // marea que pide la masa
+for (let s = 0; s &lt; n; s++) stepModes(amp, vel, aEq, h, GAMMA);   // el agua la persigue y se balancea
+updateSurface();                                     // η en los 20 000 puntos</div>
 </section>
 <!-- @fin-html -->
-<p class="note">Límites del modelo: es la respuesta lineal de una esfera líquida homogénea. Cerca del límite de Roche la forma real es más alargada que el elipsoide lineal. La bola no gira, y se mira desde su propio marco en caída libre. Las gotas no se atraen entre sí ni chocan.</p>
+<p class="note">Límites del modelo: es de dibujo animado. Las frecuencias son las de una gota homogénea (sin núcleo), la ola no rompe y las alturas cerca de la masa se suavizan. La masa suelta no se frena por la marea ni la bola se mueve. Al chocar, la masa queda incrustada.</p>
 </body>
 </html>

@@ -64,12 +64,17 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   de la malla para que Reynolds no dependa de la resolución.
 - `flujo-tactil.html`: piscina a pantalla completa, LBM, el dedo agita el agua y genera ondas.
 - `lanzamiento.html`: lanzamiento vertical a escala real con cámara que se aleja y marcas cada 0,1 s.
-- `mareas.html` (Bola de agua; reemplazó al simulador de mareas del planeta): bola líquida de radio 1 en el espacio
-  con ejes x, y, z y un objeto del mismo radio de densidad elegible (metano, roca, acero, mercurio, oro, osmio).
-  Unidades G·ρ_agua = 1 (tiempo ≈ 1,075 h). Forma de equilibrio r = 1 + q·P₂, q = (5/2)(M/m)(R/d)³ (Love h₂ = 5/2),
-  que se alcanza oscilando con el modo de Kelvin ω² = 16π/15; bajo el límite de Roche 2,44·(ρ/ρ_agua)^(1/3) la bola
-  se rompe en 520 gotas que sigue la marea (2x, −y, −z)·GM/d³. Trazado de rayos de elipsoide y esfera con calidad
-  adaptativa; arrastrar gira la vista. Física entre `// @fisica` y `// @fin-fisica`; prueba en `pruebas/mareas.js`.
+- `mareas.html` (Bola de agua, estilo dibujo animado; reemplazó al simulador de mareas): bola fija al centro con
+  núcleo de roca (R = 0,62, densidad 3) y océano hasta R = 1. El dedo o el mouse es la masa (Luna/Planeta/Estrella,
+  M/m = 0,35/0,8/1,6) que levanta la marea; sin puntero gira sola. Superficie η = Σ a_lm·Y_lm hasta l = 12 en
+  malla 200 × 100, modos de Kelvin forzados hacia η_l = h_l·s·(R/d)^(l+1)·P_l con l = 2…12 (Love h_l =
+  (2l+1)/(2(l−1))). "Soltar": órbita circular y gravedad de dos cuerpos (leapfrog); al entrar al agua salpica y se
+  frena, contra el núcleo choca. Render en la tarjeta gráfica (WebGL2: η como textura R16F, rayos por píxel a
+  resolución completa; color en escala tipo fuego por distancia a la masa —rojo cerca, azul lejos— en 7 franjas,
+  con la luz en tres niveles y una leyenda "cerca de la masa / lejos"; fondo y roca visibles); si no hay WebGL2, el
+  mismo dibujo en el procesador con resolución adaptativa. Contorno vectorial. Mouse: moverlo lleva la masa y
+  arrastrar gira la vista; dedo: arrastrar lleva la masa ("Girar vista" para girar). Zoom con +/− y rueda.
+  Física entre `// @fisica` y `// @fin-fisica`; prueba en `pruebas/mareas.js` (10 comprobaciones).
 - `nave.html` (Beta, oculto: no aparece en `index.html` por decisión de Sebas; solo se abre por su URL): nave que planea viajes por órbitas en 5 sistemas (Sol, Dos soles, Tres soles,
   Cinco cuerpos y Agujero negro con potencial de Paczyński–Wiita, r_g = 0,08, c reducida). Las estrellas
   y gigantes se mueven en N cuerpos y se calculan una vez (efemérides: leapfrog h = 0,0005, tabla cada

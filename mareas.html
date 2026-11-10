@@ -82,37 +82,39 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-of
 /* ===== fin del estilo común ===== */
 .sheet{display:flex;flex-direction:column;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
 .tile small{font-size:10.5px;font-weight:700;opacity:.85}
+.zoom{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:8px;z-index:3}
+.zoom button{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--control-border);color:var(--text);cursor:pointer}
+.zoom button:disabled{opacity:.45}
 </style>
 </head>
 <body>
 <div class="stage">
-  <canvas id="cv" aria-label="Bola de agua en el espacio y un objeto que la estira con su gravedad; arrastra para girar la vista"></canvas>
+  <canvas id="cv" aria-label="Bola de agua: mueve el dedo o el mouse alrededor; su gravedad levanta el agua y hace olas"></canvas>
   <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
-  <div class="card" id="card" aria-live="polite"><h1>Bola de agua</h1><p id="say">Acerca el objeto y mira cómo su gravedad estira el agua. Arrastra para girar.</p><p class="data" id="data"></p></div>
+  <div class="card" id="card" aria-live="polite"><h1>Bola de agua</h1><p id="say">Mueve el mouse (o arrastra el dedo) alrededor del agua: su gravedad la levanta y hace olas. Con el mouse, arrastra para girar la vista.</p><p class="data" id="data"></p></div>
   <div class="toast off" id="toast"></div>
+  <div class="zoom">
+    <button type="button" id="zin" aria-label="Acercar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button type="button" id="zout" aria-label="Alejar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+  </div>
 </div>
 <nav class="dock" aria-label="Controles">
   <div class="sheet" id="sheet" hidden>
     <div class="lbl">Tema</div>
     <div class="themes" role="group" aria-label="Tema"><button type="button" data-theme-set="light">Claro</button><button type="button" data-theme-set="dark">Oscuro</button><button type="button" data-theme-set="night">Nocturno</button></div>
-    <div class="row">
-      <button class="tile" type="button" id="axesBtn" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M12 12h9" stroke="#ff6b6b"/><path d="M12 12V3" stroke="#6bdc8b"/><path d="M12 12l-7 7" stroke="#6bb5ff"/></svg>Ejes</button>
-      <button class="tile" type="button" id="spinBtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>Girar la vista</button>
-      <button class="tile" type="button" data-rho="22.59" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#9aa8bd"/></svg>Osmio<small>22,6 g/cm³</small></button>
-    </div>
   </div>
-  <div class="lbl">De qué está hecho el objeto</div>
-  <div class="row" role="group" aria-label="Material">
-    <button class="tile" type="button" data-rho="0.49" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#dcebff"/></svg>Metano<small>0,49 g/cm³</small></button>
-    <button class="tile" type="button" data-rho="3" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#8f7766"/></svg>Roca<small>3 g/cm³</small></button>
-    <button class="tile" type="button" data-rho="7.85" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#b9bfc9"/></svg>Acero<small>7,9 g/cm³</small></button>
-    <button class="tile" type="button" data-rho="13.53" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#e6e9ef"/><circle cx="9.5" cy="9.5" r="2.5" fill="#fff"/></svg>Mercurio<small>13,5 g/cm³</small></button>
-    <button class="tile" type="button" data-rho="19.32" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#f2c14e"/></svg>Oro<small>19,3 g/cm³</small></button>
+  <div class="lbl">Qué tan pesada es la masa que mueves</div>
+  <div class="row" role="group" aria-label="Masa">
+    <button class="tile" type="button" data-mass="0.35" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="#c9ccd6" stroke="#102A43" stroke-width="1.6"/><circle cx="10" cy="10" r="1.5" fill="#9ea3b2"/></svg>Luna</button>
+    <button class="tile" type="button" data-mass="0.8" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#e0613a" stroke="#102A43" stroke-width="1.6"/><path d="M6 10c3 1 7-1 12 1" stroke="#a8432a" stroke-width="1.8" fill="none"/></svg>Planeta</button>
+    <button class="tile" type="button" data-mass="1.6" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="#ffc94a" stroke="#102A43" stroke-width="1.6"/></svg>Estrella</button>
+    <button class="tile" type="button" id="free" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="8" r="4" fill="currentColor" fill-opacity=".3"/><path d="M4 20c3-1 6-4 8-8M9 14l3-2 1 3"/></svg><span id="freeLbl">Soltar</span></button>
   </div>
   <div class="row">
-    <button class="tile" type="button" id="far"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="3"/><path d="M11 12h10M17 8l4 4-4 4"/></svg>Alejar</button>
-    <button class="tile" type="button" id="close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="3"/><path d="M21 12H11M15 8l-4 4 4 4"/></svg>Acercar</button>
-    <button class="tile" type="button" id="reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5"/></svg>Bola nueva</button>
+    <button class="tile" type="button" id="play"><svg viewBox="0 0 24 24" id="playIco"></svg><span id="playLbl">Pausa</span></button>
+    <button class="tile" type="button" id="calm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 9c3-3 6 3 9 0s6 3 9 0M3 16h18"/></svg>Calmar</button>
+    <button class="tile" type="button" id="rot" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M12 3v18M18 6l3 2-3 2"/></svg>Girar vista</button>
+    <button class="tile" type="button" id="axesBtn" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M12 12h9" stroke="#ff6b6b"/><path d="M12 12V3" stroke="#6bdc8b"/><path d="M12 12l-7 7" stroke="#6bb5ff"/></svg>Ejes</button>
     <button class="tile" type="button" id="more" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
   </div>
 </nav>
@@ -120,292 +122,512 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-of
 (function(){
 "use strict";
 // @fisica ----------------------------------------------------------------------------------------
-// Unidades: el radio de la bola es 1 y G·ρ_agua = 1, así la unidad de tiempo es 1/√(G·ρ_agua) ≈ 1,075 h
-// (no depende del tamaño de la bola). El objeto es una esfera del mismo radio y densidad ρ (g/cm³).
-// Se mira desde la bola, que cae libremente hacia el objeto (o lo orbita): solo queda la fuerza de marea.
-const R_OBJ = 1, HOURS = 1/Math.sqrt(6.674e-11*1000)/3600;   // ≈ 1,075 h por unidad de tiempo
-const massRatio = rho => rho*R_OBJ*R_OBJ*R_OBJ;             // M/m = (ρ/ρ_agua)·(R_obj/R)³
-const GM = rho => rho*(4*Math.PI/3)*R_OBJ*R_OBJ*R_OBJ;       // G·M del objeto (G·ρ_agua = 1)
-// Bola líquida homogénea que se atrae a sí misma (número de Love h₂ = 5/2): su superficie queda en
-// r(θ) = 1 + q·P₂(cos θ), con q = (5/2)·(M/m)·(R/d)³; el eje hacia el objeto mide 1 + q y los otros 1 − q/2.
-const qEq = (rho, d) => 2.5*massRatio(rho)/(d*d*d);
-// Límite de Roche de un cuerpo líquido: más cerca que d_R = 2,44·R_obj·(ρ/ρ_agua)^(1/3), la marea lo rompe.
-const roche = rho => 2.44*R_OBJ*Math.cbrt(rho);
-// Oscilación propia de una gota que se atrae a sí misma (modo l = 2 de Kelvin): ω² = (16π/15)·G·ρ.
-const W2 = 16*Math.PI/15;
-// Marea sobre una gota suelta, en el marco de la bola: a = (G·M/d³)·(2x, −y, −z).
-const tidalAcc = (rho, d, x, y, z) => { const k = GM(rho)/(d*d*d); return [2*k*x, -k*y, -k*z]; };
+// La bola de agua tiene radio 1 y se queda en el centro. Una masa (el dedo o el mouse) la atrae.
+// Unidades de dibujo animado: G·ρ_agua = 1 y 1 unidad de tiempo por segundo.
+// La altura del agua es una suma de ondas sobre la esfera: η = Σ a_lm·Y_lm (armónicos reales hasta l = 12),
+// evaluada en una malla de 200 × 100 puntos. Cada onda oscila con la frecuencia de Kelvin de una gota que se
+// atrae a sí misma, ω_l² = (4π/3)·2l(l−1)/(2l+1), y la masa la empuja hacia la marea de equilibrio:
+//   η_l = h_l·s·(R/d)^(l+1)·P_l(cos θ),   h_l = (2l+1)/(2(l−1)) (número de Love de un líquido),
+// donde s = M/m es la masa relativa y d la distancia. Todos los grados l = 2…12: cerca, el agua sube en punta
+// hacia la masa; lejos, solo queda el estiramiento en dos jorobas (l = 2).
+const LMAX = 12, NK = (LMAX + 1)*(LMAX + 1);
+const omega2 = l => (4*Math.PI/3)*2*l*(l - 1)/(2*l + 1);
+const loveH = l => (2*l + 1)/(2*(l - 1));
+const etaEq = (l, s, d) => loveH(l)*s/Math.pow(d, l + 1);
+// Armónicos esféricos reales y ortonormales hasta LMAX en la dirección unitaria (x, y, z); polo = eje y.
+// Índice k = l² + l + m. Polinomios de Legendre normalizados con recurrencias estables.
+function shAll(x, y, z, out = new Float64Array(NK)){
+  const ct = Math.max(-1, Math.min(1, y)), st = Math.sqrt(Math.max(0, 1 - ct*ct)), ph = Math.atan2(z, x);
+  const P = shAll.P || (shAll.P = new Float64Array(NK));
+  P[0] = Math.sqrt(1/(4*Math.PI));
+  for (let m = 1; m <= LMAX; m++) P[m*m + 2*m] = Math.sqrt((2*m + 1)/(2*m))*st*P[(m-1)*(m-1) + 2*(m-1)];
+  for (let m = 0; m < LMAX; m++) P[(m+1)*(m+1) + (m+1) + m] = Math.sqrt(2*m + 3)*ct*P[m*m + 2*m];
+  for (let m = 0; m <= LMAX; m++) for (let l = m + 2; l <= LMAX; l++){
+    const a = Math.sqrt((4*l*l - 1)/(l*l - m*m)), b = Math.sqrt(((l-1)*(l-1) - m*m)/(4*(l-1)*(l-1) - 1));
+    P[l*l + l + m] = a*(ct*P[(l-1)*(l-1) + (l-1) + m] - b*P[(l-2)*(l-2) + (l-2) + m]);
+  }
+  for (let l = 0; l <= LMAX; l++){
+    out[l*l + l] = P[l*l + l];
+    for (let m = 1; m <= l; m++){ const p = Math.SQRT2*P[l*l + l + m]; out[l*l + l + m] = p*Math.cos(m*ph); out[l*l + l - m] = p*Math.sin(m*ph); }
+  }
+  return out;
+}
+const lOf = k => Math.floor(Math.sqrt(k));
+// Coeficientes de la marea de equilibrio con la masa en la dirección u, a distancia d (teorema de adición:
+// P_l(n·u) = 4π/(2l+1)·Σ_m Y_lm(n)·Y_lm(u)).
+function tideCoefs(s, d, u, out){
+  out.fill(0); if (s <= 0) return out;
+  const Yu = shAll(u[0], u[1], u[2]);
+  for (let l = 2; l <= LMAX; l++){ const c = etaEq(l, s, d)*4*Math.PI/(2*l + 1); for (let k = l*l; k < (l+1)*(l+1); k++) out[k] = c*Yu[k]; }
+  return out;
+}
+// La bola tiene un núcleo de roca (radio 0,62, densidad 3) bajo una capa de agua hasta el radio 1.
+const R_CORE = 0.62, RHO_CORE = 3;
+const M_BALL = (4*Math.PI/3)*(RHO_CORE*Math.pow(R_CORE, 3) + (1 - Math.pow(R_CORE, 3)));   // G·m de la bola
+// Masa suelta: movimiento relativo de dos cuerpos, r'' = −G(M + m)·r/|r|³, con M = s·m.
+function relAcc(s, x, y, z){ const r = Math.hypot(x, y, z), k = -M_BALL*(1 + s)/(r*r*r); return [k*x, k*y, k*z]; }
+// Un paso de los osciladores: a'' = −ω_l²(a − a_eq) − γ·a'  (Euler simpléctico).
+function stepModes(a, v, aEq, h, gamma){
+  for (let k = 4; k < NK; k++){ const w2 = omega2(lOf(k)); v[k] += (-w2*(a[k] - aEq[k]) - gamma*v[k])*h; a[k] += v[k]*h; }
+}
 // @fin-fisica -----------------------------------------------------------------------------------
 
 const $ = id => document.getElementById(id), cv = $("cv"), ctx = cv.getContext("2d");
 const fmt = (v, dd) => v.toFixed(dd).replace(".", ",");
-const MATS = {
-  "0.49":  {name:"metano congelado", base:[220, 235, 255], metal:0, rough:0.6},
-  "3":     {name:"roca", base:[143, 119, 102], metal:0, rough:1},
-  "7.85":  {name:"acero", base:[185, 191, 201], metal:0.85, rough:0.35},
-  "13.53": {name:"mercurio", base:[230, 233, 240], metal:1, rough:0.05},
-  "19.32": {name:"oro", base:[242, 193, 78], metal:0.95, rough:0.25},
-  "22.59": {name:"osmio", base:[154, 168, 189], metal:0.9, rough:0.3}
-};
-let rho = 7.85, d = 8, dShown = 8, q = 0, qv = 0, broken = false, drops = [], showAxes = true, autoSpin = false;
-let yaw = -0.55, pitch = 0.32, W = 0, H = 0, dpr = 1, scale = 60, ox = 0, oy = 0, center = [0, 0, 0];
-const D_MIN = 2.08, D_MAX = 14;
+const NAMES = {"0.35":"Luna", "0.8":"Planeta", "1.6":"Estrella"};
+const GAMMA = 0.1, D_MIN = 1.22;
+let mass = 0.8, running = true, showAxes = true, W = 0, H = 0, dpr = 1, R = 100, R0 = 100, cx = 0, cy = 0, rotMode = false;
+const amp = new Float64Array(NK), vel = new Float64Array(NK), aEq = new Float64Array(NK);
+// la masa: posición en el plano de la pantalla (unidades de radio), con el puntero o girando sola
+let px = 2.4, py = 0, tx = 2.4, ty = 0, pointerOn = false, idleT = 99, autoA = 0, sPull = 0;
+// la masa en el espacio: posición P y velocidad V (mundo). "free": suelta, se mueve sola con la gravedad.
+const trail = [];                                       // camino recorrido por la masa suelta
+let P = [2.4, 0, 0], V = [0, 0, 0], free = false, stuck = false, inWater = false, vpx = 0, vpy = 0, mx = 2.4, my = 0, mz = 0;
 
-// ---------- Cámara (ortográfica, gira con el dedo) ----------
-let cam = null;
-function camera(){
-  const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
-  const f = [-cp*sy, -sp, -cp*cy];                           // hacia donde mira
-  const r = [cy, 0, -sy];                                    // derecha
-  const u = [r[1]*f[2] - r[2]*f[1], r[2]*f[0] - r[0]*f[2], r[0]*f[1] - r[1]*f[0]];   // arriba = derecha × adelante
-  return {f, r, u};
+// ---------- Superficie: 200 puntos alrededor × 100 de polo a polo ----------
+const NLON = 200, NLAT = 100, NG = NLON*NLAT;
+const BASIS = new Float32Array(NK*NG), eta = new Float32Array(NG), nrm = new Float32Array(3*NG);
+const sinT = new Float32Array(NLAT), cosT = new Float32Array(NLAT), sinP = new Float32Array(NLON), cosP = new Float32Array(NLON);
+(function buildBasis(){
+  const Y = new Float64Array(NK);
+  for (let j = 0; j < NLAT; j++){ const th = (j + 0.5)/NLAT*Math.PI; sinT[j] = Math.sin(th); cosT[j] = Math.cos(th); }
+  for (let i = 0; i < NLON; i++){ const ph = i/NLON*2*Math.PI; sinP[i] = Math.sin(ph); cosP[i] = Math.cos(ph); }
+  for (let j = 0; j < NLAT; j++) for (let i = 0; i < NLON; i++){
+    const p = j*NLON + i; shAll(sinT[j]*cosP[i], cosT[j], sinT[j]*sinP[i], Y);
+    for (let k = 0; k < NK; k++) BASIS[k*NG + p] = Y[k];
+  }
+})();
+let etaMax = 0, etaMin = 0;
+function updateSurface(){
+  eta.fill(0);
+  for (let k = 4; k < NK; k++){ const c = amp[k]; if (Math.abs(c) < 1e-7) continue; const o = k*NG; for (let p = 0; p < NG; p++) eta[p] += c*BASIS[o + p]; }
+  etaMax = -1; etaMin = 1;
+  for (let p = 0; p < NG; p++){ let e = eta[p]; e = e > 0.55 ? 0.55 + 0.3*Math.tanh((e - 0.55)/0.3) : Math.max(R_CORE - 1, e); eta[p] = e; if (e > etaMax) etaMax = e; if (e < etaMin) etaMin = e; }
+  const dth = Math.PI/NLAT, dph = 2*Math.PI/NLON;
+  for (let j = 0; j < NLAT; j++){
+    const st = Math.max(sinT[j], 0.05), ct = cosT[j], jn = Math.min(NLAT - 1, j + 1), jp = Math.max(0, j - 1);
+    for (let i = 0; i < NLON; i++){
+      const p = j*NLON + i, iE = j*NLON + (i + 1) % NLON, iW = j*NLON + (i + NLON - 1) % NLON;
+      const gT = (eta[jn*NLON + i] - eta[jp*NLON + i])/((jn - jp)*dth), gP = (eta[iE] - eta[iW])/(2*dph)/st, r = 1 + eta[p];
+      const cp = cosP[i], sp = sinP[i];
+      const nx = st*cp - (gT*ct*cp - gP*sp)/r, ny = ct + gT*st/r, nz = st*sp - (gT*ct*sp + gP*cp)/r, L = Math.hypot(nx, ny, nz);
+      nrm[3*p] = nx/L; nrm[3*p+1] = ny/L; nrm[3*p+2] = nz/L;
+    }
+  }
 }
-const dot = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-const proj = P => { const v = [P[0] - center[0], P[1] - center[1], P[2] - center[2]]; return [ox + dot(v, cam.r)*scale, oy - dot(v, cam.u)*scale, -dot(v, cam.f)]; };
-function layout(){
-  cam = camera();
-  const top = $("card").offsetTop + $("card").offsetHeight + 8, avH = H - top - 8;
-  // encuadre: la bola y el objeto (hasta 9 radios); más lejos, el objeto puede salir de la pantalla
-  const reach = Math.min(dShown, 9), span = Math.abs(reach*cam.r[0]) + 2.6, spanV = Math.abs(reach*cam.u[0]) + 2.6;
-  scale = Math.max(34, Math.min((W - 24)/span, avH/spanV, Math.min(W, avH)*0.24));
-  center = [reach*0.5, 0, 0]; ox = W/2; oy = top + avH/2;
+const NN = [0, 0, 1];
+function surf(x, y, z, wantN){
+  const th = Math.acos(Math.max(-1, Math.min(1, y))), ph = Math.atan2(z, x);
+  let fj = th/Math.PI*NLAT - 0.5, fi = (ph < 0 ? ph + 2*Math.PI : ph)/(2*Math.PI)*NLON;
+  fj = Math.max(0, Math.min(NLAT - 1.001, fj));
+  const j0 = fj | 0, tj = fj - j0, i0 = (fi | 0) % NLON, ti = fi - Math.floor(fi), i1 = (i0 + 1) % NLON, j1 = Math.min(NLAT - 1, j0 + 1);
+  const p00 = j0*NLON + i0, p01 = j0*NLON + i1, p10 = j1*NLON + i0, p11 = j1*NLON + i1;
+  const w00 = (1-ti)*(1-tj), w01 = ti*(1-tj), w10 = (1-ti)*tj, w11 = ti*tj;
+  if (wantN){
+    const a = nrm[3*p00]*w00 + nrm[3*p01]*w01 + nrm[3*p10]*w10 + nrm[3*p11]*w11;
+    const b = nrm[3*p00+1]*w00 + nrm[3*p01+1]*w01 + nrm[3*p10+1]*w10 + nrm[3*p11+1]*w11;
+    const c = nrm[3*p00+2]*w00 + nrm[3*p01+2]*w01 + nrm[3*p10+2]*w10 + nrm[3*p11+2]*w11;
+    const L = Math.hypot(a, b, c) || 1; NN[0] = a/L; NN[1] = b/L; NN[2] = c/L;
+  }
+  return eta[p00]*w00 + eta[p01]*w01 + eta[p10]*w10 + eta[p11]*w11;
 }
+
+// ---------- Vista fija: la bola en el centro, vista un poco desde arriba ----------
+// Cámara que gira alrededor de la bola: primero el giro (yaw, eje y) y luego la inclinación (pitch, eje x).
+// La pantalla es (x, y) de la cámara; z de la cámara apunta hacia quien mira.
+let yaw = 0, pitch = 0.32, CY = 1, SY = 0, CP = Math.cos(0.32), SP = Math.sin(0.32), uz = 1;
+function setCam(){ CY = Math.cos(yaw); SY = Math.sin(yaw); CP = Math.cos(pitch); SP = Math.sin(pitch); }
+const toCam = (x, y, z) => { const x1 = x*CY + z*SY, z1 = -x*SY + z*CY; return [x1, y*CP - z1*SP, y*SP + z1*CP]; };
+const fromCam = (x, y, z) => { const y1 = y*CP + z*SP, z1 = -y*SP + z*CP; return [x*CY - z1*SY, y1, x*SY + z1*CY]; };
 function resize(){
   dpr = Math.min(2, window.devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight;
-  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); layout();
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  const top = $("card").offsetTop + $("card").offsetHeight + 8, avH = H - top - 8;
+  R0 = Math.max(36, Math.min(W*0.19, avH*0.17)); R = R0*uz; cx = W/2; cy = top + avH/2;   // vista amplia: cabe la órbita de la masa
 }
 new ResizeObserver(resize).observe(cv);
 
-// ---------- Trazado de rayos: la bola (elipsoide) y el objeto (esfera) ----------
-const offB = document.createElement("canvas"), cB = offB.getContext("2d"), offO = document.createElement("canvas"), cO = offO.getContext("2d");
-let quality = 1;
-const L = (() => { const v = [-0.45, 0.75, 0.5], n = Math.hypot(...v); return v.map(x => x/n); })();   // luz de una estrella lejana
-function sky(dir){                                          // reflejo del cielo: oscuro con un poco de azul arriba
-  const t = 0.5 + 0.5*dir[1]; return [10 + 25*t, 14 + 35*t, 30 + 60*t];
-}
-function rayBox(cxw, rad, offc, c2){
-  const [Xc, Yc] = proj(cxw), R = rad*scale + 3, k = quality*dpr;
-  const size = Math.max(4, Math.ceil(2*R*k));
-  if (offc.width !== size){ offc.width = size; offc.height = size; }
-  return {X0:Xc - R, Y0:Yc - R, R, k, size, img:c2.createImageData(size, size)};
-}
-// Recorre los píxeles del cuadro; devuelve el punto de entrada del rayo en coordenadas de mundo.
-function forPixels(box, hit){
-  const {X0, Y0, k, size, img} = box, data = img.data, V = cam.f.map(x => -x);
-  for (let j = 0; j < size; j++) for (let i = 0; i < size; i++){
-    const sx = X0 + (i + 0.5)/k - ox, sy = -(Y0 + (j + 0.5)/k - oy);
-    const o = [center[0] + cam.r[0]*sx/scale + cam.u[0]*sy/scale - 60*cam.f[0],
-               center[1] + cam.r[1]*sx/scale + cam.u[1]*sy/scale - 60*cam.f[1],
-               center[2] + cam.r[2]*sx/scale + cam.u[2]*sy/scale - 60*cam.f[2]];
-    const c = hit(o, cam.f, V);
-    if (c){ const p = 4*(j*size + i); data[p] = c[0]; data[p+1] = c[1]; data[p+2] = c[2]; data[p+3] = c[3]; }
+// ---------- Pintar la bola al estilo dibujo animado ----------
+// Luz en franjas (tres tonos), contorno grueso donde la superficie se pone de canto, brillo blanco nítido
+// y espuma en las crestas más altas.
+const off = document.createElement("canvas"), oc = off.getContext("2d");
+let capRes = 300, img = null, offSize = 0;
+let LIGHT = [0, 0, 1], VIEW = [0, 0, 1];
+function lightView(){ const v = fromCam(-0.5, 0.7, 0.55), n = Math.hypot(...v); LIGHT = v.map(x => x/n); VIEW = fromCam(0, 0, 1); }   // luz fija respecto de quien mira
+const PAL = {deep:[22, 78, 150], mid:[38, 132, 205], light:[92, 190, 240], foam:[236, 248, 255], line:[12, 32, 60], glint:[255, 255, 255],
+  shallow:[64, 168, 176], rock:[112, 84, 64], rockLight:[156, 118, 86]};
+// Contorno de dibujo animado: la silueta (direcciones de canto) como trazo vectorial grueso y suave.
+function drawOutline(){
+  ctx.beginPath();
+  for (let k = 0; k <= 180; k++){
+    const a = k/180*2*Math.PI, ca = Math.cos(a), sa = Math.sin(a), d = fromCam(ca, sa, 0), r = 1 + surf(d[0], d[1], d[2], false);
+    const X = cx + ca*r*R, Y = cy - sa*r*R; k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
   }
+  ctx.closePath(); ctx.strokeStyle = "#0c203c"; ctx.lineWidth = Math.max(3, R*0.035); ctx.lineJoin = "round"; ctx.stroke();
+}
+function hitWater(o, f){
+  const Rb = 1 + Math.max(0, etaMax) + 0.01, B = o[0]*f[0] + o[1]*f[1] + o[2]*f[2], C = o[0]*o[0] + o[1]*o[1] + o[2]*o[2] - Rb*Rb, D = B*B - C;
+  if (D <= 0) return -1;
+  const sD = Math.sqrt(D), t0 = -B - sD, t1 = -B + sD;
+  // avanza según cuánto falta para llegar a la superficie (como "sphere tracing"), con pasos prudentes
+  let t = t0;
+  for (let it = 0; it < 28; it++){
+    const x = o[0] + f[0]*t, y = o[1] + f[1]*t, z = o[2] + f[2]*t, r = Math.hypot(x, y, z), g = r - 1 - surf(x/r, y/r, z/r, false);
+    if (g < 0.003) return t;
+    t += Math.max(0.004, g*0.7);
+    if (t > t1) return -1;
+  }
+  return -1;
 }
 function renderBall(){
-  const a = 1 + q, b = 1 - q/2, box = rayBox([0, 0, 0], a, offB, cB);
-  forPixels(box, (o, f, V) => {
-    // elipsoide x²/a² + (y² + z²)/b² = 1: se escala a una esfera unitaria
-    const po = [o[0]/a, o[1]/b, o[2]/b], pd = [f[0]/a, f[1]/b, f[2]/b];
-    const A = dot(pd, pd), B = 2*dot(po, pd), C = dot(po, po) - 1, D = B*B - 4*A*C;
-    if (D <= 0) return null;
-    const sD = Math.sqrt(D), t1 = (-B - sD)/(2*A), t2 = (-B + sD)/(2*A);
-    const p = [o[0] + f[0]*t1, o[1] + f[1]*t1, o[2] + f[2]*t1];
-    let n = [p[0]/(a*a), p[1]/(b*b), p[2]/(b*b)]; const nl = Math.hypot(...n); n = n.map(x => x/nl);
-    const nv = Math.max(0, dot(n, V)), fres = 0.02 + 0.98*Math.pow(1 - nv, 5);
-    const thick = t2 - t1;                                   // cuánta agua cruza el rayo
-    const ab = Math.exp(-0.55*thick), wrap = Math.max(0, (dot(n, L) + 0.4)/1.4);
-    const h = [L[0] + V[0], L[1] + V[1], L[2] + V[2]], hl = Math.hypot(...h), sp = Math.pow(Math.max(0, dot(n, h)/hl), 140);
-    const rv = 2*dot(n, V), refl = sky([rv*n[0] - V[0], rv*n[1] - V[1], rv*n[2] - V[2]]);
-    // el agua absorbe primero el rojo: por dentro se ve azul, más oscuro donde es más gruesa
-    let r = 6 + 40*ab*wrap, g = 40 + 120*ab*wrap + 25*(1 - ab), bl = 85 + 150*ab*wrap + 40*(1 - ab);
-    r = r*(1 - fres) + refl[0]*fres + 255*sp; g = g*(1 - fres) + refl[1]*fres + 255*sp; bl = bl*(1 - fres) + refl[2]*fres + 255*sp;
-    return [r, g, bl, 200 + 55*fres];                          // un poco transparente: se ven los ejes adentro
-  });
-  cB.putImageData(box.img, 0, 0);
-  return box;
-}
-function renderObject(){
-  const m = MATS[String(rho)], box = rayBox([dShown, 0, 0], R_OBJ, offO, cO);
-  forPixels(box, (o, f, V) => {
-    const oc = [o[0] - dShown, o[1], o[2]], B = 2*dot(oc, f), C = dot(oc, oc) - R_OBJ*R_OBJ, D = B*B - 4*C;
-    if (D <= 0) return null;
-    const t = (-B - Math.sqrt(D))/2, p = [oc[0] + f[0]*t, oc[1] + f[1]*t, oc[2] + f[2]*t];
-    const n = p.map(x => x/R_OBJ), lam = Math.max(0, dot(n, L)), nv = Math.max(0, dot(n, V));
-    const h = [L[0] + V[0], L[1] + V[1], L[2] + V[2]], hl = Math.hypot(...h), nh = Math.max(0, dot(n, h)/hl);
-    const rv = 2*dot(n, V), R = [rv*n[0] - V[0], rv*n[1] - V[1], rv*n[2] - V[2]], env = sky(R);
-    // el lado que mira a la bola refleja su azul (metales y mercurio)
-    const towardBall = Math.max(0, -R[0])*0.5, envB = [env[0] + 12*towardBall, env[1] + 35*towardBall, env[2] + 60*towardBall];
-    const spec = Math.pow(nh, 8 + 300*(1 - m.rough)), bump = m.metal ? 0 : 0.85 + 0.3*noiseN(n);
-    const out = [0, 1, 2].map(k => {
-      const diff = m.base[k]*(0.06 + 0.94*lam)*bump;
-      const eg = (envB[0] + envB[1] + envB[2])/3, met = m.base[k]/255*(eg*1.6 + (envB[k] - eg)*0.5 + 150*lam + 25);   // reflejo del cielo y de la bola, más la luz directa
-      return diff*(1 - m.metal) + met*m.metal + 255*spec*(0.25 + 0.75*m.metal) + (1 - nv)*(m.metal ? 0 : 6);
-    });
-    return [out[0], out[1], out[2], 255];
-  });
-  cO.putImageData(box.img, 0, 0);
-  return box;
-}
-function noiseN(n){                                          // manchas para la roca y el hielo
-  const s = Math.sin(n[0]*12.9898 + n[1]*78.233 + n[2]*37.719)*43758.5453; const a = s - Math.floor(s);
-  const s2 = Math.sin(n[0]*4.1 + n[1]*7.3 + n[2]*5.7)*0.5 + 0.5; return 0.6*s2 + 0.4*a;
+  const ext = 1 + Math.max(0, etaMax) + 0.06, size = Math.max(16, Math.min(Math.round(capRes), Math.ceil(2*ext*R*dpr)));
+  if (size !== offSize){ offSize = size; off.width = off.height = size; img = oc.createImageData(size, size); }
+  const d = img.data; d.fill(0);
+  const f = fromCam(0, 0, -1), Hs = Math.max(0.05, etaMax), foamAt = 0.62*Hs;
+  for (let j = 0; j < size; j++) for (let i = 0; i < size; i++){
+    const sx = ((i + 0.5)/size*2 - 1)*ext, sy = -((j + 0.5)/size*2 - 1)*ext;
+    if (sx*sx + sy*sy > ext*ext) continue;                                     // fuera del círculo que la envuelve
+    const o = fromCam(sx, sy, 5);
+    const t = hitWater(o, f); if (t < 0) continue;
+    const x = o[0] + f[0]*t, y = o[1] + f[1]*t, z = o[2] + f[2]*t, r = Math.hypot(x, y, z);
+    const h = surf(x/r, y/r, z/r, true), n = NN;
+    const nv = n[0]*VIEW[0] + n[1]*VIEW[1] + n[2]*VIEW[2], lam = n[0]*LIGHT[0] + n[1]*LIGHT[1] + n[2]*LIGHT[2];
+    let c;
+    // ¿bajo esta agua está el fondo de roca cerca? (marea baja: se ve el fondo)
+    const Bc = o[0]*f[0] + o[1]*f[1] + o[2]*f[2], Dc = Bc*Bc - (o[0]*o[0] + o[1]*o[1] + o[2]*o[2] - R_CORE*R_CORE), tc = Dc > 0 ? -Bc - Math.sqrt(Dc) : -1;
+    if (h <= R_CORE - 1 + 0.004) c = lam > 0.3 ? PAL.rockLight : PAL.rock;   // roca al descubierto
+    else {
+      const sx0 = x/r*(1 + h), sy0 = y/r*(1 + h), sz0 = z/r*(1 + h), [dn, df] = nearFar();
+      const k = (Math.hypot(sx0 - P[0], sy0 - P[1], sz0 - P[2]) - dn)/Math.max(0.001, df - dn), L2 = lam > 0.55 ? 1.08 : lam > 0.05 ? 0.92 : 0.7;
+      c = fireRGB(k).map(v => Math.min(255, v*L2*(nv < 0.2 ? 0.6 : 1)));       // color por distancia a la masa
+      const hx = LIGHT[0] + VIEW[0], hy = LIGHT[1] + VIEW[1], hz = LIGHT[2] + VIEW[2], hl = Math.hypot(hx, hy, hz);
+      if ((n[0]*hx + n[1]*hy + n[2]*hz)/hl > 0.985) c = PAL.glint;              // brillo nítido
+    }
+    const p = 4*(j*size + i); d[p] = c[0]; d[p+1] = c[1]; d[p+2] = c[2]; d[p+3] = 255;
+  }
+  oc.putImageData(img, 0, 0);
+  return ext;
 }
 
-// ---------- Gotas cuando la bola se rompe ----------
-function breakBall(){
-  broken = true; drops = [];
-  const a = 1 + q, b = 1 - q/2;
-  while (drops.length < 520){
-    const x = Math.random()*2 - 1, y = Math.random()*2 - 1, z = Math.random()*2 - 1;
-    if (x*x + y*y + z*z > 1) continue;
-    drops.push({x:x*a, y:y*b, z:z*b, vx:0, vy:0, vz:0, r:0.075 + Math.random()*0.05});
-  }
-  toast(`¡La marea rompió la bola! Pasaste el límite de Roche (${fmt(roche(rho), 1)} radios).`, 5000);
+// ---------- Dibujo con la tarjeta gráfica (WebGL2) ----------
+// La altura del agua (200 × 100) se sube como textura y un sombreador traza los rayos por píxel a resolución
+// completa: avance según la distancia a la superficie, normales con dos vecinos, tres franjas de luz, espuma con
+// ruido animado y el fondo de roca a través del agua poco profunda. Si no hay WebGL2, se usa renderBall().
+const glc = document.createElement("canvas");
+const gl = glc.getContext("webgl2", {premultipliedAlpha:false, antialias:false, alpha:true});
+const gpu = gl ? initGPU() : null;
+function initGPU(){
+  const VS = `#version 300 es
+in vec2 p; out vec2 uv;
+void main(){ uv = p; gl_Position = vec4(p, 0.0, 1.0); }`;
+  const FS = `#version 300 es
+precision highp float;
+in vec2 uv; out vec4 o;
+uniform sampler2D E;          // altura del agua por latitud (v) y longitud (u)
+uniform mat3 C;               // de la cámara al mundo
+uniform float ext, emax, emin, foamAt, rc, time, halfTexel;
+uniform vec3 Lw, Vw, Pm;       // Pm: posición de la masa que tira
+uniform float dNear, dFar;    // distancias de la superficie a la masa: la más cercana y la más lejana
+const float PI = 3.14159265;
+// Escala tipo fuego en 7 franjas: rojo (cerca de la masa) → naranjo → amarillo → celeste → azul (lejos)
+vec3 fire(float x){
+  x = floor(clamp(x, 0.0, 0.999)*7.0)/6.0;
+  vec3 c0 = vec3(214, 48, 39)/255.0, c1 = vec3(244, 128, 36)/255.0, c2 = vec3(250, 208, 72)/255.0, c3 = vec3(96, 200, 228)/255.0, c4 = vec3(30, 84, 170)/255.0;
+  return x < 0.25 ? mix(c0, c1, x/0.25) : x < 0.5 ? mix(c1, c2, (x - 0.25)/0.25) : x < 0.75 ? mix(c2, c3, (x - 0.5)/0.25) : mix(c3, c4, (x - 0.75)/0.25);
 }
-function stepDrops(dt){
-  for (const p of drops){
-    if (p.gone) continue;
-    const [ax, ay, az] = tidalAcc(rho, dShown, p.x, p.y, p.z);
-    p.vx += ax*dt; p.vy += ay*dt; p.vz += az*dt; p.x += p.vx*dt; p.y += p.vy*dt; p.z += p.vz*dt;
-    if (Math.hypot(p.x - dShown, p.y, p.z) < R_OBJ || Math.abs(p.x) > 30) p.gone = true;   // cae en el objeto o se aleja
+float eta(vec3 d){
+  float th = acos(clamp(d.y, -1.0, 1.0)), ph = atan(d.z, d.x);
+  if (ph < 0.0) ph += 2.0*PI;
+  return texture(E, vec2(ph/(2.0*PI) + halfTexel, th/PI)).r;
+}
+float hash(vec3 p){ p = fract(p*0.3183099 + 0.1); p *= 17.0; return fract(p.x*p.y*p.z*(p.x + p.y + p.z)); }
+float noise(vec3 x){
+  vec3 i = floor(x), f = fract(x); f = f*f*(3.0 - 2.0*f);
+  return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+             mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
+}
+void main(){
+  vec2 s = uv*ext;
+  if (dot(s, s) > ext*ext) discard;
+  vec3 ro = C*vec3(s, 5.0), rd = C*vec3(0.0, 0.0, -1.0);
+  float Rb = 1.0 + max(0.0, emax) + 0.01, B = dot(ro, rd), D = B*B - (dot(ro, ro) - Rb*Rb);
+  if (D <= 0.0) discard;
+  float t = -B - sqrt(D), tEnd = -B + sqrt(D);
+  bool hit = false;
+  for (int i = 0; i < 56; i++){
+    vec3 q = ro + rd*t; float r = length(q), g = r - 1.0 - eta(q/r);
+    if (g < 0.0015){ hit = true; break; }
+    t += max(0.002, g*0.7);
+    if (t > tEnd) break;
+  }
+  if (!hit) discard;
+  vec3 d = normalize(ro + rd*t); float h = eta(d);
+  // normal: superficie en la dirección d y en dos vecinas
+  vec3 a1 = normalize(cross(d, abs(d.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0))), a2 = cross(d, a1);
+  vec3 d1 = normalize(d + a1*0.012), d2 = normalize(d + a2*0.012);
+  vec3 p0 = d*(1.0 + h), p1 = d1*(1.0 + eta(d1)), p2 = d2*(1.0 + eta(d2));
+  vec3 n = normalize(cross(p1 - p0, p2 - p0)); if (dot(n, d) < 0.0) n = -n;
+  float nv = dot(n, Vw), lam = dot(n, Lw);
+  vec3 deep = vec3(22, 78, 150)/255.0, mid = vec3(38, 132, 205)/255.0, light = vec3(92, 190, 240)/255.0;
+  vec3 foam = vec3(236, 248, 255)/255.0, shallow = vec3(64, 168, 176)/255.0, rock = vec3(112, 84, 64)/255.0, rockL = vec3(156, 118, 86)/255.0;
+  float near01 = (distance(p0, Pm) - dNear)/max(0.001, dFar - dNear);              // 0 = lo más cercano a la masa
+  vec3 c = fire(near01)*(lam > 0.55 ? 1.08 : (lam > 0.05 ? 0.92 : 0.7));         // color por distancia, luz en franjas
+  float Bc = dot(ro, rd), Dc = Bc*Bc - (dot(ro, ro) - rc*rc);                     // ¿fondo de roca cerca?
+  if (Dc > 0.0){ float depth = (-Bc - sqrt(Dc)) - t; if (depth < 0.08) c = mix(c, rock, 0.35); }
+  if (h <= rc - 1.0 + 0.004) c = lam > 0.3 ? rockL : rock;                        // roca al descubierto
+  if (dot(n, normalize(Lw + Vw)) > 0.985) c = vec3(1.0);                          // brillo nítido
+  if (nv < 0.2) c *= 0.6;                                                          // borde (el contorno es vectorial)
+  o = vec4(c, 1.0);
+}`;
+  const sh = (type, src) => { const x = gl.createShader(type); gl.shaderSource(x, src); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
+  try {
+    const prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    gl.useProgram(prog);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, NLON, NLAT, 0, gl.RED, gl.FLOAT, eta);
+    const U = {}; for (const n of ["C", "ext", "emax", "emin", "foamAt", "rc", "time", "halfTexel", "Lw", "Vw", "Pm", "dNear", "dFar"]) U[n] = gl.getUniformLocation(prog, n);
+    gl.uniform1i(gl.getUniformLocation(prog, "E"), 0);
+    return {U};
+  } catch (err){ console.warn("WebGL2 no disponible para la bola:", err); return null; }
+}
+// Distancias de la superficie a la masa: la más cercana y la más lejana (para estirar la escala de colores).
+function nearFar(){ const r = Math.hypot(...P); return [Math.max(0, r - 1 - Math.max(0, etaMax)), r + 1 + Math.max(0, etaMax)]; }
+// La misma escala en el procesador (para equipos sin WebGL2).
+const FIRE = [[214, 48, 39], [244, 128, 36], [250, 208, 72], [96, 200, 228], [30, 84, 170]];
+function fireRGB(x){
+  x = Math.floor(Math.max(0, Math.min(0.999, x))*7)/6;
+  const k = Math.min(3, Math.floor(x/0.25)), f = (x - 0.25*k)/0.25, a = FIRE[k], b = FIRE[k+1];
+  return [a[0] + (b[0] - a[0])*f, a[1] + (b[1] - a[1])*f, a[2] + (b[2] - a[2])*f];
+}
+function renderGPU(now){
+  const ext = 1 + Math.max(0, etaMax) + 0.06, size = Math.max(16, Math.min(1400, Math.ceil(2*ext*R*dpr)));
+  if (glc.width !== size){ glc.width = glc.height = size; }
+  gl.viewport(0, 0, size, size); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, NLON, NLAT, gl.RED, gl.FLOAT, eta);
+  const cx_ = fromCam(1, 0, 0), cy_ = fromCam(0, 1, 0), cz_ = fromCam(0, 0, 1), U = gpu.U;
+  gl.uniformMatrix3fv(U.C, false, [...cx_, ...cy_, ...cz_]);
+  gl.uniform1f(U.ext, ext); gl.uniform1f(U.emax, etaMax); gl.uniform1f(U.emin, etaMin);
+  gl.uniform1f(U.foamAt, 0.62*Math.max(0.05, etaMax)); gl.uniform1f(U.rc, R_CORE); gl.uniform1f(U.time, now/1000);
+  gl.uniform1f(U.halfTexel, 0.5/NLON); gl.uniform3fv(U.Lw, LIGHT); gl.uniform3fv(U.Vw, VIEW);
+  const [dn, df] = nearFar(); gl.uniform3fv(U.Pm, P); gl.uniform1f(U.dNear, dn); gl.uniform1f(U.dFar, df);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  return ext;
+}
+
+// ---------- Salpicaduras ----------
+const spray = [];
+function burst(ux, uy, r, n, speed, rock){                      // n gotas que salen desde (ux, uy)·r
+  for (let k = 0; k < n && spray.length < 420; k++){
+    const sp = speed*(0.5 + Math.random()), jx = (Math.random() - 0.5)*1.4, jy = (Math.random() - 0.5)*1.4;
+    spray.push({x:ux*r, y:uy*r, vx:(ux + jx)*sp, vy:(uy + jy)*sp, r:0.025 + Math.random()*0.035, life:0, rock:rock && Math.random() < 0.5});
   }
 }
-let dropSprite = null;
-function sprite(){
-  const s = document.createElement("canvas"); s.width = s.height = 64; const c = s.getContext("2d");
-  const g = c.createRadialGradient(24, 22, 2, 32, 32, 31);
-  g.addColorStop(0, "#e8f6ff"); g.addColorStop(0.25, "#5ab8f0"); g.addColorStop(0.8, "#0f4c8a"); g.addColorStop(1, "rgba(10,40,90,0)");
-  c.fillStyle = g; c.beginPath(); c.arc(32, 32, 31, 0, Math.PI*2); c.fill(); return s;
+function emitSpray(T){
+  if (sPull <= 0 || spray.length > 260) return;
+  const dd = Math.hypot(mx, my); if (dd > 1.75 || dd < 0.05) return;
+  const u = fromCam(mx/dd, my/dd, 0), h = surf(u[0], u[1], u[2], false); if (h < 0.3) return;
+  burst(mx/dd, my/dd, 1 + h, Math.round((1.75 - dd)*40*T*mass), 1.5, false);
+}
+function stepSpray(T){
+  for (const s of spray){
+    const r = Math.hypot(s.x, s.y), g = 2.4/(r*r);                      // vuelve hacia la bola
+    let ax = -g*s.x/r, ay = -g*s.y/r;
+    const dx = mx - s.x, dy = my - s.y, dm = Math.hypot(dx, dy) + 0.15, gm = sPull*mass*0.9/(dm*dm);   // y la masa la tira
+    ax += gm*dx/dm; ay += gm*dy/dm;
+    s.vx += ax*T; s.vy += ay*T; s.x += s.vx*T; s.y += s.vy*T; s.life += T;
+    if ((r < 1.0 && s.life > 0.1) || s.life > 6 || r > 8) s.dead = true;
+  }
+  for (let k = spray.length - 1; k >= 0; k--) if (spray[k].dead) spray.splice(k, 1);
+}
+// Golpe en el agua en la dirección u: un empujón en todos los modos (más suave en los finos).
+function hitImpulse(u, strength){
+  const Y = shAll(u[0], u[1], u[2]);
+  for (let k = 4; k < NK; k++){ const l = lOf(k); vel[k] -= strength*Math.exp(-(l/8)*(l/8))*Y[k]; }
 }
 
 // ---------- Dibujo ----------
-const STARS = Array.from({length:220}, () => [Math.random(), Math.random(), Math.random()*1.2 + 0.3, Math.random()*6.3]);
+const STARS = Array.from({length:120}, () => [Math.random(), Math.random(), Math.random()*1.4 + 0.6, Math.random()*6.3]);
 function drawAxes(front){
   if (!showAxes) return;
-  const a = 1 + q, b = 1 - q/2, AX = [[[1, 0, 0], "#ff6b6b", "x", a], [[0, 1, 0], "#6bdc8b", "y", b], [[0, 0, 1], "#6bb5ff", "z", b]];
-  for (const [u, col, name, semi] of AX){
-    for (const sg of [1, -1]){
-      // tramo dentro del agua (tenue) y tramo afuera (firme); "front" dibuja solo lo que está hacia la cámara
-      const p0 = proj([0, 0, 0]), p1 = proj(u.map(v => v*semi*sg)), p2 = proj(u.map(v => v*1.7*sg));
-      const nearCam = p2[2] > 0;
-      if (nearCam !== front) continue;
-      ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.globalAlpha = 0.55; ctx.setLineDash([3, 4]);
-      ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.stroke(); ctx.setLineDash([]);
-      ctx.globalAlpha = 1; ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
-      if (sg > 0){ ctx.fillStyle = col; ctx.font = "800 13px Inter, sans-serif"; ctx.fillText(name, p2[0] + 4, p2[1] - 4); }
-    }
+  const AX = [[[1, 0, 0], "#ff6b6b", "x"], [[0, 1, 0], "#6bdc8b", "y"], [[0, 0, 1], "#6bb5ff", "z"]];
+  for (const [u, col, name] of AX) for (const sg of [1, -1]){
+    const dir = u.map(v => v*sg), semi = 1 + surf(dir[0], dir[1], dir[2], false);
+    const P1 = toCam(...dir.map(v => v*semi)), P2 = toCam(...dir.map(v => v*1.6));
+    if ((P2[2] > 0) !== front) continue;
+    ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(cx + P1[0]*R, cy - P1[1]*R); ctx.lineTo(cx + P2[0]*R, cy - P2[1]*R); ctx.stroke();
+    if (sg > 0){ ctx.fillStyle = col; ctx.font = "800 14px Inter, sans-serif"; ctx.fillText(name, cx + P2[0]*R + 5, cy - P2[1]*R - 5); }
   }
-  ctx.globalAlpha = 1;
 }
-function drawRoche(){                                         // anillo de peligro alrededor del objeto (plano x-z)
-  const dr = roche(rho); if (dr <= 2.05) return;
-  ctx.strokeStyle = broken ? "rgba(255,110,110,0.5)" : "rgba(255,201,74,0.4)"; ctx.lineWidth = 1.4; ctx.setLineDash([5, 6]); ctx.beginPath();
-  for (let k = 0; k <= 96; k++){ const t = k/96*2*Math.PI, P = proj([dShown + dr*Math.cos(t), 0, dr*Math.sin(t)]); k ? ctx.lineTo(P[0], P[1]) : ctx.moveTo(P[0], P[1]); }
-  ctx.stroke(); ctx.setLineDash([]);
-  const P = proj([dShown - dr, 0, 0]); ctx.fillStyle = "rgba(255,201,74,0.8)"; ctx.font = "800 11px Inter, sans-serif"; ctx.fillText("Roche", P[0] - 16, P[1] + 16);
+function drawMass(time){
+  if (stuck) return;
+  const X = cx + mx*R, Y = cy - my*R, rr = Math.max(12, R*(0.16 + 0.1*mass));
+  // anillos de gravedad que se encogen hacia la masa
+  for (let k = 0; k < 3; k++){
+    const ph = ((time/900 + k/3) % 1), rad = rr*(1.4 + 2.2*(1 - ph));
+    ctx.strokeStyle = `rgba(230,182,106,${(0.45*ph).toFixed(3)})`; ctx.lineWidth = 2; ctx.setLineDash([5, 6]);
+    ctx.beginPath(); ctx.arc(X, Y, rad, 0, Math.PI*2); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  const col = mass < 0.5 ? "#c9ccd6" : mass < 1 ? "#e0613a" : "#ffc94a";
+  ctx.fillStyle = col; ctx.strokeStyle = "#0c203c"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(X, Y, rr, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "rgba(255,255,255,0.75)"; ctx.beginPath(); ctx.ellipse(X - rr*0.35, Y - rr*0.38, rr*0.28, rr*0.18, -0.5, 0, Math.PI*2); ctx.fill();
+  if (mass < 0.5){ ctx.fillStyle = "rgba(120,125,140,0.6)"; ctx.beginPath(); ctx.arc(X + rr*0.25, Y + rr*0.2, rr*0.22, 0, Math.PI*2); ctx.fill(); }
 }
-function drawArrows(){                                        // flechas de la marea: estira en x, aprieta en y y z
-  if (broken || q < 0.004) return;
-  const s = Math.min(0.9, 0.35 + q*3), a = 1 + q, b = 1 - q/2;
-  const arrow = (from, to) => {
-    const [x1, y1] = proj(from), [x2, y2] = proj(to), ang = Math.atan2(y2 - y1, x2 - x1);
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
-    ctx.moveTo(x2, y2); ctx.lineTo(x2 - 7*Math.cos(ang - 0.5), y2 - 7*Math.sin(ang - 0.5));
-    ctx.moveTo(x2, y2); ctx.lineTo(x2 - 7*Math.cos(ang + 0.5), y2 - 7*Math.sin(ang + 0.5)); ctx.stroke();
-  };
-  ctx.strokeStyle = "rgba(255,255,255,0.75)"; ctx.lineWidth = 2;
-  arrow([a + 0.08, 0, 0], [a + 0.08 + s, 0, 0]); arrow([-a - 0.08, 0, 0], [-a - 0.08 - s, 0, 0]);
-  arrow([0, b + 0.08 + s*0.5, 0], [0, b + 0.08, 0]); arrow([0, -b - 0.08 - s*0.5, 0], [0, -b - 0.08, 0]);
+// Leyenda de la escala: el color dice qué tan cerca está esa parte del agua de la masa que tira.
+function drawLegend(){
+  const w = Math.min(170, W*0.42), h = 10, x = 14, y = H - 40;
+  for (let k = 0; k < 7; k++){ const c = fireRGB(k/6 + 0.001); ctx.fillStyle = `rgb(${c.map(Math.round).join(",")})`; ctx.fillRect(x + k*w/7, y, w/7 + 0.5, h); }
+  ctx.strokeStyle = "#0c203c"; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h);
+  ctx.fillStyle = "#e8f0fb"; ctx.font = "600 12px Inter, sans-serif";
+  ctx.fillText("cerca de la masa", x, y - 6); ctx.textAlign = "right"; ctx.fillText("lejos", x + w, y - 6); ctx.textAlign = "start";
 }
-
-// ---------- Bucle ----------
+function drawSpray(){
+  for (const s of spray){
+    const X = cx + s.x*R, Y = cy - s.y*R, r = Math.max(2.5, s.r*R);
+    ctx.fillStyle = s.rock ? "#9c7656" : "#5cbef0"; ctx.strokeStyle = "#0c203c"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(X - r*0.35, Y - r*0.35, r*0.3, 0, Math.PI*2); ctx.fill();
+  }
+}
 let last = 0, textT = 0, perf = [];
 function frame(now){
   const dt = last ? Math.min(50, now - last)/1000 : 1/60; last = now;
-  if (autoSpin && !drag) yaw += dt*0.25;
-  dShown += (d - dShown)*Math.min(1, dt*3);
-  const T = dt*1.0;                                          // 1 unidad de tiempo (≈ 1,07 h) por segundo
-  if (!broken){
-    // oscilación de la bola hacia su forma de equilibrio (modo de Kelvin, con un poco de roce)
-    const qe = qEq(rho, dShown), steps = 8, h = T/steps;
-    for (let s = 0; s < steps; s++){ qv += (-W2*(q - qe) - 0.6*qv)*h; q += qv*h; }
-    if (dShown < roche(rho) && roche(rho) > D_MIN + 0.02) breakBall();
-  } else stepDrops(T);
-  layout();
+  if (cv.clientWidth !== W || cv.clientHeight !== H) resize();   // por si el tamaño cambió sin aviso
+  const T = running ? dt : 0;
+  // la masa: sigue al puntero (si nadie la mueve por 3 s, da vueltas sola) o, suelta, se mueve con la gravedad
+  idleT += dt;
+  const rMass = 0.16 + 0.1*mass;
+  if (!free){
+    if (!pointerOn && idleT > 6){ autoA += dt*0.7; tx = 2.3*Math.cos(autoA); ty = 2.3*Math.sin(autoA)*0.85; }
+    const k = Math.min(1, dt*14), ox0 = px, oy0 = py; px += (tx - px)*k; py += (ty - py)*k;
+    let d0 = Math.hypot(px, py); if (d0 < D_MIN){ px *= D_MIN/d0; py *= D_MIN/d0; }
+    vpx = 0.8*vpx + 0.2*(px - ox0)/dt; vpy = 0.8*vpy + 0.2*(py - oy0)/dt;   // velocidad del puntero, para lanzarla
+    P = fromCam(px, py, 0); V = fromCam(vpx, vpy, 0);
+  } else if (T > 0 && !stuck){
+    const n = Math.max(2, Math.ceil(T/0.003)), h = T/n;
+    for (let s = 0; s < n && !stuck; s++){                      // leapfrog de dos cuerpos
+      let a = relAcc(mass, P[0], P[1], P[2]);
+      for (let i = 0; i < 3; i++){ V[i] += a[i]*h/2; P[i] += V[i]*h; }
+      a = relAcc(mass, P[0], P[1], P[2]);
+      for (let i = 0; i < 3; i++) V[i] += a[i]*h/2;
+      const r = Math.hypot(...P), u = P.map(v => v/r), rs = 1 + surf(u[0], u[1], u[2], false);
+      if (r < rs + rMass*0.5){
+        if (!inWater){                                           // ¡al agua! gran salpicadura y olas
+          inWater = true; const sp = Math.hypot(...V), uc = toCam(...u), L2 = Math.hypot(uc[0], uc[1]) || 1;
+          hitImpulse(u, Math.min(4, 0.6*sp*mass)); burst(uc[0]/L2, uc[1]/L2, rs, Math.round(60*mass*Math.min(2, sp/2)), 1.2 + 0.3*sp, false);
+        }
+        for (let i = 0; i < 3; i++) V[i] *= 1 - Math.min(0.5, 3*h);   // el agua la frena
+      } else inWater = false;
+      if (r < R_CORE + rMass){                                   // choca con el núcleo de roca
+        stuck = true; const uc = toCam(...u), L2 = Math.hypot(uc[0], uc[1]) || 1;
+        hitImpulse(u, 3.5*mass); burst(uc[0]/L2, uc[1]/L2, 1, Math.round(150*mass), 2.6, true);
+        toast("¡Chocaron! La masa golpeó el núcleo de roca: el agua y la roca salpican por todos lados.", 5000);
+      }
+    }
+    if (Math.hypot(...P) > 14){ free = false; syncFree(); toast("Se escapó: iba más rápido que la velocidad de escape"); }
+  }
+  const Pc = toCam(...P); mx = Pc[0]; my = Pc[1]; mz = Pc[2];
+  if (free && !stuck && T > 0){ trail.push(P.slice()); if (trail.length > 600) trail.shift(); }
+  let dm = Math.max(D_MIN, Math.hypot(...P));
+  sPull += ((stuck ? 0 : 1) - sPull)*Math.min(1, dt*3);   // la masa siempre tira (también cuando queda quieta)
+  if (T > 0){
+    const r0 = Math.hypot(...P) || 1, u = P.map(v => v/r0);
+    tideCoefs(mass*sPull, dm, u, aEq);
+    const n = Math.max(4, Math.ceil(T*Math.sqrt(omega2(LMAX))/0.15)), h = T/n;
+    for (let s = 0; s < n; s++) stepModes(amp, vel, aEq, h, GAMMA);
+    emitSpray(T); stepSpray(T);
+  }
+  updateSurface(); setCam(); lightView();
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = "#03050c"; ctx.fillRect(0, 0, W, H);
-  for (const [x, y, r, p] of STARS){ ctx.globalAlpha = 0.25 + 0.3*Math.sin(now/1500 + p); ctx.fillStyle = "#fff"; ctx.fillRect(x*W, y*H, r, r); }
+  ctx.fillStyle = "#0a1a33"; ctx.fillRect(0, 0, W, H);
+  for (const [x, y, r, p] of STARS){ ctx.globalAlpha = 0.35 + 0.35*Math.sin(now/1300 + p); ctx.fillStyle = "#cfe3ff"; ctx.beginPath(); ctx.arc(x*W, y*H, r, 0, Math.PI*2); ctx.fill(); }
   ctx.globalAlpha = 1;
+  // sombra suave de la bola (plana, de dibujo)
   const t0 = performance.now();
-  const oBox = renderObject(), bBox = broken ? null : renderBall();
+  const ext = gpu ? renderGPU(now) : renderBall();
   const ms = performance.now() - t0;
-  drawRoche();
-  const zO = proj([dShown, 0, 0])[2], zB = proj([0, 0, 0])[2];
-  const drawObj = () => ctx.drawImage(offO, oBox.X0, oBox.Y0, 2*oBox.R, 2*oBox.R);
-  if (zO < zB) drawObj();
+  if (free && trail.length > 1){                               // camino de la masa suelta, punteado
+    ctx.strokeStyle = "rgba(230,182,106,0.6)"; ctx.lineWidth = 2; ctx.setLineDash([4, 6]); ctx.beginPath();
+    trail.forEach((q, k) => { const c = toCam(...q), X = cx + c[0]*R, Y = cy - c[1]*R; k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+    ctx.stroke(); ctx.setLineDash([]);
+  }
   drawAxes(false);
-  if (bBox){ ctx.imageSmoothingEnabled = true; ctx.drawImage(offB, bBox.X0, bBox.Y0, 2*bBox.R, 2*bBox.R); }
-  else {
-    if (!dropSprite) dropSprite = sprite();
-    const list = drops.filter(p => !p.gone).map(p => [proj([p.x, p.y, p.z]), p.r]).sort((A, B) => A[0][2] - B[0][2]);
-    for (const [[X, Y], r] of list){ const s = r*scale*2.2; ctx.drawImage(dropSprite, X - s/2, Y - s/2, s, s); }
-  }
-  drawAxes(true); drawArrows();
-  if (zO >= zB) drawObj();
-  // si el objeto quedó fuera de la pantalla, una flecha indica dónde está
-  const [Xo, Yo] = proj([dShown, 0, 0]);
-  if (Xo > W - 10 || Xo < 10){
-    const Xe = Math.min(W - 18, Math.max(18, Xo)); ctx.fillStyle = "#ffc94a"; ctx.font = "800 12px Inter, sans-serif"; ctx.textAlign = Xo > W ? "right" : "left";
-    ctx.fillText(`${Xo > W ? "" : "← "}${MATS[String(rho)].name} a ${fmt(dShown, 1)} radios${Xo > W ? " →" : ""}`, Xe, Math.min(H - 14, Math.max(90, Yo))); ctx.textAlign = "start";
-  }
-  if (now - textT > 200){ textT = now; updateText(); }
-  // la calidad del trazado de rayos se ajusta sola para no pasar de 10 ms por cuadro
-  perf.push(ms); if (perf.length >= 30){ const avg = perf.reduce((x, y) => x + y)/perf.length; perf = [];
-    if (avg > 10 && quality > 0.35) quality *= 0.8; else if (avg < 4 && quality < 1) quality = Math.min(1, quality*1.15); }
+  if (mz < 0) drawMass(now);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(gpu ? glc : off, cx - ext*R, cy - ext*R, 2*ext*R, 2*ext*R);
+  drawOutline();
+  drawAxes(true); drawSpray(); if (mz >= 0) drawMass(now);
+  drawLegend();
+  if (now - textT > 200){ textT = now; updateText(dm); }
+  perf.push(ms); if (perf.length >= 8){ const avg = perf.reduce((a, b) => a + b)/perf.length; perf = [];
+    if (avg > 11 && capRes > 160) capRes *= 0.85; else if (avg < 6 && capRes < 640) capRes *= 1.1; }   // resolución según lo que alcanza el equipo
   requestAnimationFrame(frame);
 }
-function updateText(){
-  const m = MATS[String(rho)], dr = roche(rho);
-  let s = `${m.name[0].toUpperCase() + m.name.slice(1)} ${fmt(rho, rho < 10 ? 2 : 1)} g/cm³ · a ${fmt(dShown, 1)} radios`;
-  s += broken ? " · la bola se rompió" : ` · se estira ${fmt(150*q, 1)} %`;
-  s += dr > D_MIN ? ` · Roche ${fmt(dr, 1)} radios` : " · nunca la rompe";
-  $("data").textContent = s;
+function updateText(dm){
+  let waves = 0; for (let k = 4; k < NK; k++) waves += vel[k]*vel[k];
+  const w = waves < 0.002 ? "tranquila" : waves < 0.03 ? "con olas" : "muy agitada";
+  const state = stuck ? "chocó con la bola" : free ? `suelta, a ${fmt(Math.hypot(...P), 1)} radios, ${fmt(Math.hypot(...V), 2)} radios/s` : `a ${fmt(dm, 1)} radios`;
+  $("data").textContent = `${NAMES[String(mass)]} ${state} · el agua sube ${fmt(100*Math.max(0, etaMax), 0)} % del radio · ${w}${spray.length ? " · salpica" : ""}`;
 }
 
 // ---------- Controles ----------
 let toastT = 0;
-function toast(msg, ms = 3500){ const el = $("toast"); el.textContent = msg; el.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add("off"), ms); }
-function setD(v){
-  const contact = 1 + q + R_OBJ + 0.06;
-  d = Math.max(Math.max(D_MIN, contact), Math.min(D_MAX, v));
-  if (v < contact && !broken) toast("¡Se tocan! El objeto no puede acercarse más.");
-}
-$("close").addEventListener("click", () => setD(d*0.85));
-$("far").addEventListener("click", () => setD(d/0.85));
-$("reset").addEventListener("click", () => {
-  broken = false; drops = []; q = 0; qv = 0;
-  if (d < roche(rho)) d = dShown = Math.min(D_MAX, roche(rho) + 1.5);
-  toast("Una bola de agua nueva, quieta y redonda");
+function toast(msg, ms = 3200){ const el = $("toast"); el.textContent = msg; el.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add("off"), ms); }
+const PLAY = '<path d="M8 5v14l11-7z" fill="currentColor"/>', PAUSE = '<path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/>';
+function syncPlay(){ $("playIco").innerHTML = running ? PAUSE : PLAY; $("playLbl").textContent = running ? "Pausa" : "Seguir"; }
+$("play").addEventListener("click", () => { running = !running; syncPlay(); });
+$("rot").addEventListener("click", () => { rotMode = !rotMode; $("rot").setAttribute("aria-pressed", rotMode);
+  toast(rotMode ? "Arrastra para girar la vista alrededor de la bola" : "Arrastra para mover la masa"); });
+function setZoom(z){ uz = Math.max(0.35, Math.min(2.2, z)); R = R0*uz; $("zin").disabled = uz >= 2.2; $("zout").disabled = uz <= 0.35; }
+$("zin").addEventListener("click", () => setZoom(uz*1.25));
+$("zout").addEventListener("click", () => setZoom(uz/1.25));
+cv.addEventListener("wheel", e => { e.preventDefault(); setZoom(uz*Math.exp(-e.deltaY*0.0015)); }, {passive:false});
+cv.addEventListener("contextmenu", e => e.preventDefault());
+function syncFree(){ $("free").setAttribute("aria-pressed", free); $("freeLbl").textContent = free ? "Atrapar" : "Soltar"; }
+$("free").addEventListener("click", () => {
+  if (!free){
+    free = true; stuck = false; inWater = false;
+    // sale en órbita circular, en el plano de la pantalla: v = √(G(M + m)/r)
+    const r = Math.hypot(...P), vc = Math.sqrt(M_BALL*(1 + mass)/r), t = fromCam(-my/r, mx/r, 0);
+    V = t.map(v => v*vc); trail.length = 0;
+    toast("¡Suelta! Ahora orbita sola con la gravedad. Cambia su masa o la vista y mira qué pasa.", 4000);
+  } else { free = false; stuck = false; toast("Atrapada: vuelve a seguir tu dedo o tu mouse"); }
+  syncFree();
 });
-document.querySelectorAll("[data-rho]").forEach(b => b.addEventListener("click", () => {
-  rho = +b.dataset.rho; document.querySelectorAll("[data-rho]").forEach(x => x.setAttribute("aria-pressed", x === b));
-  const dr = roche(rho);
-  toast(dr > D_MIN ? `${MATS[b.dataset.rho].name}: rompe la bola si se acerca a menos de ${fmt(dr, 1)} radios` : `${MATS[b.dataset.rho].name}: es tan liviano que nunca puede romperla`, 4000);
-}));
-$("more").addEventListener("click", () => { const open = $("sheet").hidden; $("sheet").hidden = !open; $("more").setAttribute("aria-pressed", open); });
+$("calm").addEventListener("click", () => { amp.fill(0); vel.fill(0); spray.length = 0; if (stuck){ free = false; stuck = false; syncFree(); } toast("El agua vuelve a quedar redonda y quieta"); });
 $("axesBtn").addEventListener("click", () => { showAxes = !showAxes; $("axesBtn").setAttribute("aria-pressed", showAxes); });
-$("spinBtn").addEventListener("click", () => { autoSpin = !autoSpin; $("spinBtn").setAttribute("aria-pressed", autoSpin); });
-// arrastrar gira la vista
-let drag = null;
-cv.addEventListener("pointerdown", e => { try { cv.setPointerCapture(e.pointerId); } catch (err) {} drag = {x:e.clientX, y:e.clientY}; });
+$("more").addEventListener("click", () => { const open = $("sheet").hidden; $("sheet").hidden = !open; $("more").setAttribute("aria-pressed", open); });
+document.querySelectorAll("[data-mass]").forEach(b => b.addEventListener("click", () => {
+  mass = +b.dataset.mass; document.querySelectorAll("[data-mass]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  toast(mass < 0.5 ? "Una luna liviana: mareas suaves" : mass < 1 ? "Un planeta: mareas y olas grandes" : "¡Una estrella! Tira tan fuerte que el agua salpica");
+}));
+// el puntero es la masa: con mouse basta moverlo; con el dedo, tocar y arrastrar
+function setPointer(e){ const rc = cv.getBoundingClientRect(); tx = (e.clientX - rc.left - cx)/R; ty = -(e.clientY - rc.top - cy)/R; idleT = 0; }
+// girar la vista: con "Girar vista" activo, o con el botón derecho del mouse
+let turn = null;
 cv.addEventListener("pointermove", e => {
-  if (!drag) return;
-  yaw += (e.clientX - drag.x)*0.008; pitch = Math.max(-1.35, Math.min(1.35, pitch + (e.clientY - drag.y)*0.008));
-  drag = {x:e.clientX, y:e.clientY};
+  if (turn){ yaw += (e.clientX - turn.x)*0.008; pitch = Math.max(-1.4, Math.min(1.4, pitch + (e.clientY - turn.y)*0.008)); turn.x = e.clientX; turn.y = e.clientY; return; }
+  if (!free && (e.pointerType === "mouse" || pointerOn)){ pointerOn = true; setPointer(e); }
 });
-const end = () => drag = null;
-cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
-resize();
+cv.addEventListener("pointerdown", e => {
+  try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+  // mouse: moverlo lleva la masa y arrastrarlo gira la vista; dedo: arrastrar lleva la masa (o gira con «Girar vista»)
+  if (rotMode || e.pointerType === "mouse"){ turn = {x:e.clientX, y:e.clientY}; return; }
+  if (!free){ pointerOn = true; setPointer(e); }
+});
+cv.addEventListener("pointerup", e => { turn = null; if (e.pointerType !== "mouse") pointerOn = false; });
+cv.addEventListener("pointercancel", () => { pointerOn = false; });
+cv.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") pointerOn = false; });
+syncPlay(); resize();
 requestAnimationFrame(frame);
 })();
 </script>
