@@ -53,6 +53,11 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   de la malla para que Reynolds no dependa de la resolución.
 - `flujo-tactil.html`: piscina a pantalla completa, LBM, el dedo agita el agua y genera ondas.
 - `lanzamiento.html`: lanzamiento vertical a escala real con cámara que se aleja y marcas cada 0,1 s.
+- `mareas.html`: marea de equilibrio h = A·(3/2·cos²ψ − 1/2) de la Luna (A = 0,358 m) y el Sol (0,164 m) sobre
+  un planeta inventado con ruido fractal (tabla 1024 × 512, 30 % de tierra, se genera por partes). Vista 3D
+  píxel a píxel con eje inclinado 23,44°, Luna inclinada 5,14°, día sidéreo; costas que se inundan con la marea
+  exagerada ×1/×100/×400, jorobas dibujadas en el contorno, puerto tocando la costa y gráfico de ±24 h.
+  Resolución adaptativa (≤ 9 ms por cuadro). Física entre `// @fisica` y `// @fin-fisica`; prueba en `pruebas/mareas.js`.
 - `nave.html` (Beta, oculto: no aparece en `index.html` por decisión de Sebas; solo se abre por su URL): nave que planea viajes por órbitas en 5 sistemas (Sol, Dos soles, Tres soles,
   Cinco cuerpos y Agujero negro con potencial de Paczyński–Wiita, r_g = 0,08, c reducida). Las estrellas
   y gigantes se mueven en N cuerpos y se calculan una vez (efemérides: leapfrog h = 0,0005, tabla cada

@@ -35,7 +35,7 @@ main canvas{width:100%;height:auto;border-radius:6px;background:#fff;box-shadow:
 // PDF dentro del navegador). El botón PDF descarga el archivo original.
 (function(){
   const NAMES = {"gravitacion":"Planetas y gravedad", "ondas-sonoras":"Sonido en una sala", "flujo-tubo":"Flujo en un tubo",
-                 "flujo-tactil":"Flujo táctil", "lanzamiento":"Lanzamiento vertical", "nave":"Nave espacial"};
+                 "flujo-tactil":"Flujo táctil", "lanzamiento":"Lanzamiento vertical", "nave":"Nave espacial", "mareas":"Mareas"};
   const f = new URLSearchParams(location.search).get("f"), msg = document.getElementById("msg");
   if (!NAMES[f]){ msg.innerHTML = 'No encontré esa ficha. <a href="../index.html">Volver al inicio</a>.'; return; }
   const url = f + ".pdf";
