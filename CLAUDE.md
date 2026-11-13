@@ -99,7 +99,8 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   la figura se repite cada 1/(a|Δ|) s. Sonido estéreo real con Web Audio. Prueba en `pruebas/lissajous.js`.
 - `radio.html`: AM y FM a escala de audio (fs = 48 kHz, portadora 12 kHz, mensaje 3,5 kHz): mensaje de 2 s (melodía o
   micrófono), ruido gaussiano ("Ruido en el camino" → SNR = 40 − 0,45·r dB), receptor I/Q con FIR Blackman (envolvente
-  en AM, discriminador de fase en FM). Muestra la calidad recibida en dB y en palabras. Prueba en `pruebas/radio.js`.
+  en AM, discriminador de fase en FM). Muestra la calidad recibida en dB y en palabras. La franja 2 alinea el mensaje con la onda (AM: envolvente; FM: onda
+  apretada o suelta) con etiquetas. Prueba en `pruebas/radio.js`.
 
 ## Fichas de fórmulas (PDF)
 - `docs/<simulador>.pdf`: máximo 3 hojas por simulador: una portada para niños curiosos (qué pasa, un poco de

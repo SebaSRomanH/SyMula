@@ -325,26 +325,57 @@ function strip(y, h, title, col, x, upto){
   for (let c = 0; c < lim; c++){ const a = Math.max(-1.2, lo[c]), b = Math.min(1.2, hi[c]); ctx.fillRect(L + 10 + c, mid - b*hh/2.4, 1, Math.max(1, (b - a)*hh/2.4)); }
   if (upto != null && upto < 1){ ctx.fillStyle = muted; ctx.fillRect(L + 10 + lim, top, 1.5, hh); }
 }
-function radioWave(X, Y, w, h, col){               // dibujo de la onda alrededor del instante actual, más lento que la realidad
-  const k = Math.round(playhead*(N - 1)), span = 0.008*FS, cyc = Math.max(18, w/9), mid = Y + h/2, A = h/2.6;
-  const amp = Math.sqrt(0.5/Math.pow(10, snrOf(noise)/10))*1.2, u = rng(((performance.now()/120) | 0));
-  ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.beginPath();
+// Franja 2: arriba el mensaje en este instante y abajo la onda que lo lleva, alineados en el tiempo (en cámara lenta).
+// AM: la amplitud de la onda sigue al mensaje (envolvente punteada). FM: la frecuencia de la onda sigue al mensaje.
+function radioWave(X, Y, w, h, col){
+  const k = Math.round(playhead*(N - 1)), span = 0.008*FS, msgCol = SyMulaColor("sem-1") || "#6CB4F0", muted = SyMulaColor("text-muted") || "#B8C6D3";
+  const mAt = c => msg[Math.max(0, Math.min(N - 1, Math.round(k - span/2 + span*c/w)))];
+  const hm = Math.max(20, h*0.28), my = Y + hm*0.62, top = Y + hm + 8, hw = h - hm - 8, mid = top + hw/2, A = hw/2.3;
+  // fila del mensaje
+  ctx.strokeStyle = "rgba(160,180,200,0.25)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X, my); ctx.lineTo(X + w, my); ctx.stroke();
+  ctx.strokeStyle = msgCol; ctx.lineWidth = 2; ctx.beginPath();
+  for (let c = 0; c <= w; c += 2){ const yy = my - mAt(c)*hm*0.36; c ? ctx.lineTo(X + c, yy) : ctx.moveTo(X + c, yy); }
+  ctx.stroke();
+  ctx.fillStyle = muted; ctx.font = "600 11px Inter, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText("mensaje (en cámara lenta)", X, Y - 2);
+  // dónde el mensaje está más alto y más bajo (lejos de los bordes)
+  let cHi = -1, cLo = -1, vHi = -9, vLo = 9;
+  for (let c = Math.round(w*0.08); c < w*0.92; c++){ const m = mAt(c); if (m > vHi){ vHi = m; cHi = c; } if (m < vLo){ vLo = m; cLo = c; } }
+  const strong = vHi - vLo > 0.3;
+  if (strong){
+    ctx.strokeStyle = "rgba(200,215,230,0.35)"; ctx.setLineDash([2, 4]); ctx.lineWidth = 1; ctx.beginPath();
+    for (const c of [cHi, cLo]){ ctx.moveTo(X + c, my); ctx.lineTo(X + c, top + hw); }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+  // la onda de radio
+  const cyc = Math.max(14, w/12), amp = 0.6*Math.sqrt(0.5/Math.pow(10, snrOf(noise)/10)), u = rng(((performance.now()/120) | 0));
+  ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.beginPath();
   let ph = 0;
   for (let c = 0; c <= w; c++){
-    const m = msg[Math.max(0, Math.min(N - 1, Math.round(k - span/2 + span*c/w)))];
-    let v;
-    if (mode === "am") v = (1 + p.mu*m)*Math.cos(ph)/(1 + p.mu);
-    else v = Math.cos(ph);
-    ph += 2*Math.PI*cyc/w*(mode === "fm" ? 1 + 0.55*m*p.dev/5000 : 1);
+    const m = mAt(c);
+    let v = mode === "am" ? (1 + p.mu*m)*Math.cos(ph)/(1 + p.mu) : Math.cos(ph);
+    ph += 2*Math.PI*cyc/w*(mode === "fm" ? Math.max(0.25, Math.min(1.9, 1 + 0.6*m*p.dev/5000)) : 1);
     v += amp*(u()*2 - 1);
-    const yy = mid - A*Math.max(-1.5, Math.min(1.5, v));
+    const yy = mid - A*Math.max(-1.4, Math.min(1.4, v));
     c ? ctx.lineTo(X + c, yy) : ctx.moveTo(X + c, yy);
   }
   ctx.stroke();
-  if (mode === "am"){                               // envolvente: el mensaje que lleva la onda
-    ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.setLineDash([3, 4]); ctx.beginPath();
-    for (let c = 0; c <= w; c += 3){ const m = msg[Math.max(0, Math.min(N - 1, Math.round(k - span/2 + span*c/w)))]; const yy = mid - A*(1 + p.mu*m)/(1 + p.mu); c ? ctx.lineTo(X + c, yy) : ctx.moveTo(X + c, yy); }
-    ctx.stroke(); ctx.setLineDash([]);
+  if (mode === "am"){                               // envolvente arriba y abajo: es el mensaje
+    ctx.strokeStyle = msgCol; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+    for (const sg of [1, -1]){
+      ctx.beginPath();
+      for (let c = 0; c <= w; c += 2){ const yy = mid - sg*A*(1 + p.mu*mAt(c))/(1 + p.mu); c ? ctx.lineTo(X + c, yy) : ctx.moveTo(X + c, yy); }
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+  if (strong){                                      // etiquetas: qué le pasa a la onda donde el mensaje sube o baja
+    const lab = mode === "am" ? ["onda más grande", "onda más chica"] : ["apretada: frecuencia alta", "suelta: frecuencia baja"];
+    ctx.font = "600 11px Inter, sans-serif"; ctx.textBaseline = "bottom";
+    for (const [c, t, y0] of [[cHi, lab[0], top + 6], [cLo, lab[1], top + hw + 2]]){   // una arriba y otra abajo: no se tapan
+      const tw = ctx.measureText(t).width + 8, x0 = Math.max(X, Math.min(X + w - tw, X + c - tw/2));
+      ctx.fillStyle = SyMulaColor("surface") || "#15253A"; ctx.fillRect(x0, y0 - 14, tw, 15);
+      ctx.fillStyle = SyMulaColor("text") || "#fff"; ctx.textAlign = "left"; ctx.fillText(t, x0 + 4, y0);
+    }
   }
 }
 function scene(y0, h){
@@ -369,7 +400,7 @@ function scene(y0, h){
   const lab = "#e8eef6"; ctx.fillStyle = lab; ctx.font = "600 12px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "top";
   ctx.fillText("Emisor", ex, gy + 3); ctx.fillText("Receptor", rx, gy + 3);
   // ondas que viajan del emisor al receptor (más tenues con la distancia; el ruido se ve como chispas)
-  const t = (performance.now() - t0)/1000, on = sending ? 1 : 0.35, dist = rx - ex;
+  const t = (performance.now() - t0)/1000, on = sending ? 1 : 0.35, dist = Math.max(40, rx - ex);
   ctx.lineWidth = 2;
   for (let k = 0; k < 7; k++){
     const r = ((t*70 + k*dist/7) % dist) + 6, a = on*(1 - r/dist)*0.8;
@@ -383,20 +414,21 @@ function scene(y0, h){
 function draw(){
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = SyMulaColor("background") || "#0B1526"; ctx.fillRect(0, 0, W, H);
-  const sh = Math.max(60, Math.min(84, (H - 72)/5.2)), gap = 8, sceneH = Math.max(110, H - 72 - 3*(sh + gap) - 8);
+  const sh = Math.max(56, Math.min(80, (H - 72)/6)), sh2 = Math.round(sh*2), gap = 8, sceneH = Math.max(90, H - 72 - 2*sh - sh2 - 3*gap - 8);
   scene(68, sceneH);
   let y = 68 + sceneH + gap;
   const c1 = SyMulaColor("sem-1") || "#6CB4F0", c2 = SyMulaColor("sem-2") || "#F29C6B", c3 = SyMulaColor("sem-3") || "#6FCF97";
   strip(y, sh, recording ? `1. Mensaje: grabando ${fmt(recording.got/recording.need*2, 1)} s` : "1. Mensaje (2 segundos)", c1, recording ? null : msg, sending ? playhead : null); y += sh + gap;
-  strip(y, sh, `2. Onda de radio ${mode.toUpperCase()}, dibujada en cámara lenta`, c2, radioWave); y += sh + gap;
+  strip(y, sh2, mode === "am" ? "2. AM: la amplitud de la onda sigue al mensaje" : "2. FM: la frecuencia de la onda sigue al mensaje", c2, radioWave); y += sh2 + gap;
   strip(y, sh, "3. Lo que oye el receptor", c3, recv, sending ? playhead : null);
 }
 function frame(now){
   if (sending){ playhead = Math.min(1, (now - sending.t)/(SECONDS*1000)); if (playhead >= 1){ sending = null; playhead = 0.15; } }
-  draw();
+  if (W > 60 && H > 200) draw();                   // aún sin tamaño: no dibuja
   requestAnimationFrame(frame);
 }
-requestAnimationFrame(frame);
+// arranca cuando ya existe SyMulaColor (lo define el script del tema, más abajo)
+if (window.SyMulaColor) requestAnimationFrame(frame); else addEventListener("DOMContentLoaded", () => requestAnimationFrame(frame));
 })();
 </script>
 <dialog class="kids" id="kids" aria-labelledby="kidsT"><div><h2 id="kidsT">¿Cómo viaja tu voz por la radio?</h2><p>La radio no manda tu voz por el aire tal como es. Usa una onda invisible que vibra muy, muy rápido, como una cuerda que alguien sacude todo el tiempo. Esa onda se llama portadora.</p><p>En la radio AM, la voz cambia qué tan grande es la onda: más fuerte, más chica, más fuerte. En la radio FM, la voz cambia qué tan rápido vibra: más apretada, más suelta.</p><p>El receptor atrapa la onda con su antena y la vuelve a convertir en sonido. En el camino se mete ruido, como un chisporroteo. La FM se defiende mejor del ruido porque al ruido le cuesta cambiar el ritmo de la onda.</p><p class="try">Prueba: graba tu voz diciendo "hola", sube el ruido y envíala por AM y después por FM. ¿Por cuál se escucha mejor?</p><button type="button" data-learn-close>Entendido</button></div></dialog>

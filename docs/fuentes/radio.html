@@ -97,7 +97,7 @@ $$\text{AM:}\quad \hat m=\frac{\sqrt{I^2+Q^2}-\overline{\sqrt{I^2+Q^2}}}{\mu},\q
 <li>Es <b>un solo archivo</b> con HTML, CSS y JavaScript. El micrófono y el sonido usan las funciones del navegador (Web Audio).</li>
 <li><b>El mensaje:</b> <code>melody()</code> crea tres notas cantadas; "Grabar 2 s" toma el micrófono y lo lleva a 48 000 muestras por segundo. <code>prepare()</code> lo filtra y normaliza.</li>
 <li><b>La radio:</b> <code>modulate()</code>, <code>channel()</code> y <code>demodulate()</code> hacen las fórmulas de arriba muestra por muestra; <code>quality()</code> mide cuánto se parece lo recibido al original.</li>
-<li><b>El dibujo:</b> la torre y el receptor con ondas que viajan y chispas de ruido; abajo, el mensaje, la onda de radio en cámara lenta alrededor del instante que suena, y lo que oye el receptor.</li>
+<li><b>El dibujo:</b> la torre y el receptor con ondas que viajan y chispas de ruido; abajo, el mensaje completo, lo que oye el receptor y, entre ellos, <code>radioWave()</code>: el mensaje de unos milisegundos alineado con la onda que lo lleva, en cámara lenta. En AM se marca la envolvente $\pm(1+\mu m)$ (la amplitud sigue al mensaje); en FM la onda se aprieta donde el mensaje sube y se suelta donde baja (la frecuencia sigue al mensaje).</li>
 </ul>
 <div class="code">for (let k = 1; k &lt; n; k++){               // FM: cuánto giró la fase
   const re = i2[k]*i2[k-1] + q2[k]*q2[k-1],

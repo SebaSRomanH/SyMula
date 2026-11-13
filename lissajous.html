@@ -266,7 +266,8 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 pill();
-requestAnimationFrame(frame);
+// arranca cuando ya existe SyMulaColor (lo define el script del tema, más abajo)
+if (window.SyMulaColor) requestAnimationFrame(frame); else addEventListener("DOMContentLoaded", () => requestAnimationFrame(frame));
 })();
 </script>
 <dialog class="kids" id="kids" aria-labelledby="kidsT"><div><h2 id="kidsT">¿Cómo se dibuja con sonido?</h2><p>Un sonido es algo que se mueve muy rápido de ida y vuelta, como un columpio. Aquí hay dos sonidos: el del parlante izquierdo mueve un puntito de lado a lado, y el del derecho lo mueve de arriba abajo.</p><p>Si los dos sonidos se llevan bien, por ejemplo cuando uno va justo el doble de rápido que el otro, el puntito dibuja siempre la misma figura: un ocho, un pez o un lazo.</p><p>Si uno está un poquito desafinado, la figura empieza a girar lentamente. Así los músicos pueden ver si dos notas están afinadas.</p><p class="try">Prueba: elige 1:2 y mueve Desafinar. ¿La figura gira más rápido o más lento cuando lo mueves más? Con Escuchar, usa audífonos para oír un sonido en cada oído.</p><button type="button" data-learn-close>Entendido</button></div></dialog>
