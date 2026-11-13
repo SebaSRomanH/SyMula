@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Radio AM y FM: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:14mm 15mm}
+body{font:10pt/1.45 Inter,sans-serif;color:#102A43;margin:0}
+header{border-bottom:3px solid #087481;padding-bottom:6px;margin-bottom:8px}
+h1{font-size:20pt;margin:0;color:#102A43;font-weight:800}
+.sub{color:#526779;font-size:9.5pt;margin:2px 0 0}
+h2{font-size:11.5pt;margin:10px 0 3px;color:#102A43;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#087481;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:3px 0 5px}
+ul{margin:3px 0 5px;padding-left:18px}
+.katex-display{margin:5px 0}
+.katex{font-size:1.05em}
+table{border-collapse:collapse;width:100%;font-size:9pt;margin:4px 0}
+td,th{border-bottom:1px solid #DCE5EB;padding:2px 6px;text-align:left}
+th{color:#526779;font-weight:700}
+.note{background:#F1F5F8;border-left:3px solid #087481;padding:4px 9px;font-size:9pt;margin:6px 0}
+.cols{columns:2;column-gap:18px}
+section{break-inside:avoid}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#087481;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#102A43}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#EEF6F7;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #D9A15B;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#526779}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#F1F5F8;border:1px solid #DCE5EB;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
+</style>
+</head>
+<body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Ondas</p>
+<h1>¿Cómo viaja tu voz por la radio?</h1>
+<svg class="art" viewBox="0 0 400 150"><path d="M10 40q5-25 10 0t10 0 10 0 10 0 10 0 10 0 10 0 10 0 10 0 10 0 10 0 10 0" fill="none" stroke="#526779" stroke-width="2"/>
+  <text x="140" y="45" font-size="12" fill="#526779">portadora</text>
+  <path d="M10 110q5-10 10 0t10 0q5-25 10 0t10 0q5-35 10 0t10 0q5-25 10 0t10 0q5-10 10 0t10 0q5-25 10 0t10 0" fill="none" stroke="#B4532A" stroke-width="2"/><text x="10" y="145" font-size="12" fill="#B4532A">AM: cambia el tamaño</text>
+  <path d="M220 110q3-25 6 0t6 0 6 0 6 0q8-25 16 0t16 0 16 0q4-25 8 0t8 0 8 0 8 0 8 0" fill="none" stroke="#1F6FB2" stroke-width="2"/><text x="220" y="145" font-size="12" fill="#1F6FB2">FM: cambia el ritmo</text></svg>
+<p>La radio no manda tu voz tal cual. Usa una onda invisible que vibra muchísimo más rápido, la <b>portadora</b>, y le "pega" tu voz encima.</p>
+<p>En la radio <b>AM</b> tu voz cambia qué tan grande es la onda. En la <b>FM</b> tu voz cambia qué tan rápido vibra. El receptor atrapa la onda con su antena y la convierte de nuevo en sonido. En el camino se mete ruido, y la FM se defiende mejor porque al ruido le cuesta cambiar el ritmo de la onda.</p>
+<div class="math"><b>Un poco de matemática.</b> Una radio FM en 100 MHz vibra 100 000 000 de veces por segundo. Tu voz, unas 300 veces por segundo. ¡La portadora da más de 300 000 vueltas por cada vibración de tu voz!</div>
+<div class="reto"><b>Desafío.</b> Si una radio AM transmite en 1000 kHz, ¿cuántas veces por segundo vibra su onda?</div>
+<p class="ans">Respuesta: 1000 kHz = 1 000 000 de veces por segundo.</p>
+<p class="try"><b>Pruébalo:</b> graba "hola", sube el ruido y envíalo por AM y por FM. ¿Por cuál se entiende mejor?</p>
+</section>
+<!-- @fin-portada -->
+<header>
+<h1>Radio AM y FM</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (radio.html)</p>
+</header>
+
+<section>
+<h2>Escala</h2>
+<p>Las radios reales usan portadoras de 0,5 a 1,7 MHz (AM) o de 88 a 108 MHz (FM). Aquí todo está a escala de audio, pero con las mismas fórmulas: $f_s = 48\,000$ muestras por segundo, portadora $f_c=f_s/4=12$ kHz y mensaje $m(t)$ de 2 s, filtrado hasta $W=3{,}5$ kHz, sin componente continua y con pico 1.</p>
+</section>
+
+<section>
+<h2>Emisor</h2>
+$$\text{AM:}\quad s(t)=\bigl(1+\mu\,m(t)\bigr)\cos(2\pi f_c t),\qquad \mu=0{,}2\ldots1,$$
+$$\text{FM:}\quad s(t)=\cos\!\Bigl(2\pi f_c t+2\pi\,\Delta f\!\int_0^t m(\tau)\,d\tau\Bigr),\qquad \Delta f=1\ldots8\ \text{kHz}.$$
+<p>La AM cambia la amplitud (llega a $1+\mu$); la FM tiene amplitud 1 y cambia la frecuencia instantánea $f_c+\Delta f\,m(t)$. Su ancho de banda (regla de Carson) es $2(\Delta f+W)$: 17 kHz con $\Delta f=5$ kHz.</p>
+</section>
+
+<section>
+<h2>El camino</h2>
+<p>Se suma ruido blanco gaussiano $n(t)$ de varianza $\sigma^2=\dfrac{1/2}{10^{\text{SNR}/10}}$ (la misma potencia de referencia para AM y FM). El control "Ruido en el camino" $r = 0\ldots100$ da $\text{SNR}=40-0{,}45\,r$ dB.</p>
+</section>
+
+<section>
+<h2>Receptor</h2>
+<p>Se baja la señal a banda base y se filtra (FIR de 101 coeficientes, ventana de Blackman, fase cero):</p>
+$$I=\text{LP}\bigl[2r\cos 2\pi f_c t\bigr],\qquad Q=\text{LP}\bigl[-2r\sin 2\pi f_c t\bigr].$$
+$$\text{AM:}\quad \hat m=\frac{\sqrt{I^2+Q^2}-\overline{\sqrt{I^2+Q^2}}}{\mu},\qquad
+\text{FM:}\quad \hat m_n=\frac{f_s}{2\pi\Delta f}\arg\!\bigl(z_n\,z_{n-1}^{*}\bigr),\ z=I+iQ.$$
+<p>Al final se vuelve a filtrar a 3,5 kHz. La calidad que se muestra es $10\log_{10}\dfrac{\sum m^2}{\sum(\hat m-m)^2}$ dB.</p>
+<p><b>Por qué gana la FM.</b> El ruido mueve sobre todo la amplitud, y la FM no usa la amplitud. Sobre su umbral, la FM mejora la señal/ruido en un factor del orden de $3\beta^2$, con $\beta=\Delta f/W$. Con 20 dB en el aire, la AM llega con unos 21 dB y la FM con unos 32 dB. Con muchísimo ruido, la FM cae de golpe (efecto umbral) y ninguna se entiende.</p>
+</section>
+
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b> con HTML, CSS y JavaScript. El micrófono y el sonido usan las funciones del navegador (Web Audio).</li>
+<li><b>El mensaje:</b> <code>melody()</code> crea tres notas cantadas; "Grabar 2 s" toma el micrófono y lo lleva a 48 000 muestras por segundo. <code>prepare()</code> lo filtra y normaliza.</li>
+<li><b>La radio:</b> <code>modulate()</code>, <code>channel()</code> y <code>demodulate()</code> hacen las fórmulas de arriba muestra por muestra; <code>quality()</code> mide cuánto se parece lo recibido al original.</li>
+<li><b>El dibujo:</b> la torre y el receptor con ondas que viajan y chispas de ruido; abajo, el mensaje, la onda de radio en cámara lenta alrededor del instante que suena, y lo que oye el receptor.</li>
+</ul>
+<div class="code">for (let k = 1; k &lt; n; k++){               // FM: cuánto giró la fase
+  const re = i2[k]*i2[k-1] + q2[k]*q2[k-1],
+        im = q2[k]*i2[k-1] - i2[k]*q2[k-1];
+  y[k-1] = Math.atan2(im, re)*FS/(2*Math.PI*p.dev);
+}</div>
+</section>
+<!-- @fin-html -->
+<p class="note">Comprobado en <code>pruebas/radio.js</code>: sin ruido ambos devuelven el mensaje con más de 30 dB, y con 20 dB en el aire la FM supera a la AM en más de 6 dB.</p>
+</body>
+</html>

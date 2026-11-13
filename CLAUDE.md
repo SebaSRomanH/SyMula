@@ -25,8 +25,12 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
 - WCAG AA: texto ≥ 4,5:1 y componentes ≥ 3:1; `node pruebas/contraste.js` lo verifica con los tokens reales.
 - No comunicar resultados solo con color: etiquetas, leyendas o símbolos. Las escenas de espacio se dibujan oscuras
   en todos los temas; en el nocturno el lienzo pasa a verde suave (sin fluorescencia).
-- Estructura: botón de inicio arriba a la izquierda, tarjeta con título, una frase y una línea de datos reales;
-  controles abajo en `.dock`; lo avanzado y el selector de tema en el panel "Más".
+- Estructura: botón de inicio arriba a la izquierda y a su lado "Saber más" (`data-learn`), que abre el diálogo `#kids`
+  con una explicación para niños de 5 a 10 años; arriba a la derecha el botón de pantalla completa (`data-full`), que
+  oculta el menú (`body.nodock`) y pide pantalla completa al navegador. Ambos van en el bloque "SyMula: botones comunes"
+  (script tras el selector de tema, idéntico en todas). La tarjeta `.card` de cada simulador está oculta (`hidden`) a
+  pedido de Sebas; el código que la llena sigue. Controles abajo en `.dock`; lo avanzado y el tema en el panel "Más".
+- Las páginas nuevas se arman copiando el `<head>`, el estilo común y los bloques del final desde una existente.
 - Simulación ligada al tiempo real (pasos según dt, igual a 60 y 120 Hz) con un tope de ms por cuadro;
   los LBM ajustan solos la resolución de la malla según lo que el equipo alcanza.
 
@@ -86,6 +90,16 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   La masa queda fija en el espacio donde se deja (gira sola solo al comienzo) y se mueve paralela a la pantalla
   a su propia profundidad: girando la vista se la puede llevar a cualquier punto. Contorno = silueta real.
   Física entre `// @fisica` y `// @fin-fisica`; prueba en `pruebas/mareas.js` (14 comprobaciones).
+- `fractales.html`: Mandelbrot y Julia (z^d + c, d = 2, 3, 4) con zoom hasta ~10^280 por perturbación: órbita de referencia
+  del centro en BigInt (punto fijo, P ≈ −log2(píxel) + 48 bits) y δ por píxel en números normales; cambio de referencia
+  (a la órbita que parte de 0) cuando |Z+δ| < |δ| o se acaba la referencia. Cálculo repartido en Web Workers (blob con
+  `kernel`), primero a baja resolución adaptativa y al soltar a resolución completa; color suave log(1+ν−ν_mín) con
+  4 paletas. "Zoom solo" se acerca al centro; Julia toma como c el centro que se miraba. Prueba en `pruebas/fractales.js`.
+- `lissajous.html`: osciloscopio X-Y, izquierdo = x (f0), derecho = y (f0·b/a + Δ), razones 1:1…4:5, desfase y desafinado;
+  la figura se repite cada 1/(a|Δ|) s. Sonido estéreo real con Web Audio. Prueba en `pruebas/lissajous.js`.
+- `radio.html`: AM y FM a escala de audio (fs = 48 kHz, portadora 12 kHz, mensaje 3,5 kHz): mensaje de 2 s (melodía o
+  micrófono), ruido gaussiano ("Ruido en el camino" → SNR = 40 − 0,45·r dB), receptor I/Q con FIR Blackman (envolvente
+  en AM, discriminador de fase en FM). Muestra la calidad recibida en dB y en palabras. Prueba en `pruebas/radio.js`.
 
 ## Fichas de fórmulas (PDF)
 - `docs/<simulador>.pdf`: máximo 3 hojas por simulador: una portada para niños curiosos (qué pasa, un poco de

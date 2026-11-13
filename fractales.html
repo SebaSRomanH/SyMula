@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1226">
+<!-- SyMula: tema (va antes del estilo para no parpadear) -->
+<script>(function(){var t=null;try{t=localStorage.getItem("symula-tema");if(!t&&localStorage.getItem("symula-noche")==="1")t="night";}catch(e){}
+if(t!=="light"&&t!=="dark"&&t!=="night")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";
+document.documentElement.setAttribute("data-theme",t);})();</script>
+<!-- fin SyMula: tema -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Fractales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== SyMula: estilo común (sistema de diseño v1.0, igual en todas las páginas) ===== */
+:root,:root[data-theme="dark"]{
+  --background:#0B1526;--surface:#15253A;--surface-2:#1B2E47;--text:#F0F6FC;--text-muted:#B8C6D3;
+  --primary:#42C7CF;--primary-text:#0B1526;--accent:#E6B66A;--border:#30445B;--control-border:#5D7590;
+  --sem-1:#6CB4F0;--sem-2:#F29C6B;--sem-3:#6FCF97;--sem-4:#C49BEA;--sem-5:#E6C15A;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --background:#F8FAFC;--surface:#FFFFFF;--surface-2:#F1F5F8;--text:#102A43;--text-muted:#526779;
+  --primary:#087481;--primary-text:#FFFFFF;--accent:#D9A15B;--border:#DCE5EB;--control-border:#7B8FA1;
+  --sem-1:#1F6FB2;--sem-2:#B4532A;--sem-3:#2E7D4F;--sem-4:#7E4AB0;--sem-5:#8A6400;
+  color-scheme:light;
+}
+:root[data-theme="night"]{
+  --background:#09221D;--surface:#12382F;--surface-2:#174238;--text:#E7F8F2;--text-muted:#C1F4DD;
+  --primary:#21B68B;--primary-text:#09221D;--accent:#C1F4DD;--border:#286052;--control-border:#4E8A78;
+  --sem-1:#8FD3FF;--sem-2:#F5B38A;--sem-3:#9BE8C0;--sem-4:#D5B8F2;--sem-5:#F0D58A;
+  color-scheme:dark;
+}
+:root{
+  /* nombres antiguos que usa el código de cada página */
+  --bg:var(--background);--panel:var(--surface);--btn:var(--surface-2);--line:var(--border);--ink:var(--text);
+  --soft:var(--text-muted);--acc:var(--primary);--acc-ink:var(--primary-text);--cyan:var(--primary);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;background:var(--background)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;background:var(--background);color:var(--text);
+  font:500 15px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden;background:var(--background)}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+:root[data-theme="night"] .stage canvas{filter:grayscale(1) sepia(.8) hue-rotate(92deg) saturate(.85) brightness(.88)}   /* verde suave, sin fluorescencia */
+.home{position:absolute;top:12px;left:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text)}
+.card{position:absolute;top:12px;left:72px;right:12px;max-width:480px;min-height:48px;padding:10px 16px;border-radius:12px;z-index:2;pointer-events:none;
+  background:var(--surface);background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--border)}
+.card h1{font:700 17px/1.2 Inter,sans-serif;margin:0;color:var(--text);letter-spacing:-.01em}
+.card p{margin:3px 0 0;font-size:14px;color:var(--text-muted)}
+.card .data{font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+.card p:empty{display:none}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:max-content;max-width:92%;padding:10px 16px;border-radius:12px;z-index:3;
+  background:var(--surface);color:var(--text);border:1px solid var(--primary);font-weight:600;text-align:center;pointer-events:none;transition:opacity .3s}
+.toast.off{opacity:0}
+.dock{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px 14px;display:flex;flex-direction:column;gap:10px}
+.dock>*{width:100%;max-width:760px;margin:0 auto}
+.row{display:flex;gap:8px}
+.tile{flex:1 1 0;min-width:0;min-height:56px;padding:6px 4px;border-radius:12px;border:1px solid var(--control-border);background:var(--surface-2);color:var(--text);
+  font:600 13px/1.15 Inter,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;
+  touch-action:manipulation;transition:border-color .15s,background-color .15s}
+.tile svg{width:24px;height:24px;flex:none}
+.tile small{font-size:11px;font-weight:500;opacity:.85}
+@media (hover:hover){.tile:hover:not(:disabled),.home:hover{border-color:var(--primary)}}
+.tile[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+.tile:disabled{opacity:.45;cursor:not-allowed}
+.tile[aria-busy="true"]{position:relative;color:transparent}
+.tile[aria-busy="true"]::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;border:2px solid var(--text-muted);border-top-color:var(--primary);animation:sy-spin .8s linear infinite}
+@keyframes sy-spin{to{transform:rotate(360deg)}}
+.lbl{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:-4px;padding:0 2px;letter-spacing:.02em}
+.themes{display:flex;gap:4px;padding:4px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.themes button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--text);font:600 13px Inter,sans-serif;cursor:pointer}
+.themes button[aria-pressed="true"]{background:var(--primary);color:var(--primary-text)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+[hidden]{display:none!important}
+.learn{position:absolute;top:12px;left:72px;height:48px;padding:0 16px 0 12px;border-radius:12px;display:flex;align-items:center;gap:8px;z-index:3;cursor:pointer;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);font:600 14px Inter,sans-serif;touch-action:manipulation}
+.learn svg{width:22px;height:22px;flex:none;color:var(--primary)}
+@media (hover:hover){.learn:hover{border-color:var(--primary)}}
+.kids{width:min(560px,calc(100% - 32px));max-height:calc(100% - 48px);padding:0;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.kids::backdrop{background:rgba(5,10,20,.55)}
+.kids>div{padding:20px;display:flex;flex-direction:column;gap:12px}
+.kids h2{margin:0;font:700 20px/1.25 Inter,sans-serif;letter-spacing:-.01em}
+.kids p{margin:0;font-size:16px;line-height:1.5;color:var(--text)}
+.kids p.try{padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border)}
+.kids button{align-self:flex-end;min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--primary);background:var(--primary);color:var(--primary-text);font:600 15px Inter,sans-serif;cursor:pointer}
+.full{position:absolute;top:12px;right:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;cursor:pointer;padding:0;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);touch-action:manipulation}
+.full svg{width:24px;height:24px}
+@media (hover:hover){.full:hover{border-color:var(--primary)}}
+body.nodock .dock{display:none!important}
+/* ===== fin del estilo común ===== */
+.pill{position:absolute;left:12px;bottom:12px;max-width:calc(100% - 96px);padding:8px 12px;border-radius:12px;z-index:2;pointer-events:none;
+  background:color-mix(in srgb,var(--surface) 80%,transparent);border:1px solid var(--border);font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+.zoom{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:8px;z-index:3}
+.zoom button{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--control-border);color:var(--text);cursor:pointer}
+@media (hover:hover){.zoom button:hover{border-color:var(--primary)}}
+.sheet{display:flex;flex-direction:column;gap:8px;max-height:38vh;overflow-y:auto;padding:2px 0 8px;border-bottom:1px solid var(--line)}
+.rng{display:flex;align-items:center;gap:10px;min-height:44px;font-size:13px;color:var(--soft)}
+.rng span{width:96px;flex:none}
+.rng input{flex:1;height:32px;accent-color:var(--acc)}
+.rng output{width:64px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.stage canvas{cursor:grab}
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="cv" aria-label="Fractal: arrastra para moverte, pellizca o usa la rueda para acercarte; toca dos veces para acercar"></canvas>
+  <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
+  <button class="learn" type="button" data-learn aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>Saber más</button>
+  <button class="full" type="button" data-full aria-pressed="false" aria-label="Pantalla completa: ocultar el menú"></button>
+  <div class="pill" id="pill"></div>
+  <div class="zoom">
+    <button type="button" id="zin" aria-label="Acercar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button type="button" id="zout" aria-label="Alejar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+  </div>
+  <div class="toast off" id="toast"></div>
+</div>
+<nav class="dock" aria-label="Controles">
+  <div class="sheet" id="sheet" hidden>
+    <div class="lbl">Tema</div>
+    <div class="themes" role="group" aria-label="Tema"><button type="button" data-theme-set="light">Claro</button><button type="button" data-theme-set="dark">Oscuro</button><button type="button" data-theme-set="night">Nocturno</button></div>
+    <div class="lbl">Regla: z se cambia por</div>
+    <div class="row" role="group" aria-label="Potencia">
+      <button class="tile" type="button" data-pow="2" aria-pressed="true">z² + c</button>
+      <button class="tile" type="button" data-pow="3" aria-pressed="false">z³ + c</button>
+      <button class="tile" type="button" data-pow="4" aria-pressed="false">z⁴ + c</button>
+    </div>
+    <div class="lbl">Colores</div>
+    <div class="row" role="group" aria-label="Colores">
+      <button class="tile" type="button" data-pal="0" aria-pressed="true">Fuego</button>
+      <button class="tile" type="button" data-pal="1" aria-pressed="false">Océano</button>
+      <button class="tile" type="button" data-pal="2" aria-pressed="false">Bosque</button>
+      <button class="tile" type="button" data-pal="3" aria-pressed="false">Tinta</button>
+    </div>
+    <div class="row"><button class="tile" type="button" id="anim" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg>Colores que se mueven</button></div>
+    <label class="rng"><span>Ritmo de color</span><input id="dens" type="range" min="0.3" max="4" step="0.05" value="1"><output id="densOut">1,0</output></label>
+    <label class="rng"><span>Iteraciones</span><input id="iter" type="range" min="-1" max="2" step="0.25" value="0"><output id="iterOut">× 1</output></label>
+    <div id="juliaBox" hidden style="display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Número c del conjunto de Julia</div>
+      <label class="rng"><span>c real</span><input id="cre" type="range" min="-2" max="1" step="0.001" value="-0.8"><output id="creOut"></output></label>
+      <label class="rng"><span>c imaginario</span><input id="cim" type="range" min="-1.2" max="1.2" step="0.001" value="0.156"><output id="cimOut"></output></label>
+    </div>
+  </div>
+  <div class="row">
+    <button class="tile" type="button" data-type="mandel" aria-pressed="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="12" r="2.6"/><path d="M11 12c0-4 3-6.5 5.5-6.5S21 8 21 12s-2 6.5-4.5 6.5S11 16 11 12z"/></svg>Mandelbrot</button>
+    <button class="tile" type="button" data-type="julia" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 12a2 2 0 1 1 2-2 4 4 0 1 1-4-4 6 6 0 1 1-6 6"/></svg>Julia</button>
+    <button class="tile" type="button" id="auto" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/><path d="M9 8l4 2.5L9 13z" fill="currentColor"/></svg><span id="autoLbl">Zoom solo</span></button>
+    <button class="tile" type="button" id="home2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5"/></svg>Volver</button>
+    <button class="tile" type="button" id="more" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
+  </div>
+</nav>
+<script>
+(function(){
+"use strict";
+// @fisica
+// Cada punto c del plano juega a iterar z → z^d + c (Mandelbrot: z0 = 0; Julia: z0 = el punto, c fijo).
+// Para acercarse sin límite práctico se usa perturbación: una sola órbita de referencia Z_n en el centro,
+// calculada con enteros grandes (BigInt, punto fijo con P bits), y para cada píxel solo la diferencia δ_n,
+// que cabe en un número normal: δ_{n+1} = (Z_n + δ_n)^d − Z_n^d + δc. Cuando |Z_n + δ_n| < |δ_n| (o se acaba
+// la referencia) se cambia de referencia a la órbita que parte de 0 (rebase), lo que evita los errores ("glitches").
+const scale2 = (x, k) => { while (k > 900){ x *= 2**900; k -= 900; } while (k < -900){ x *= 2**-900; k += 900; } return x*2**k; };
+function fixOf(x, Pb){                               // número → entero con Pb bits de fracción
+  if (!x) return 0n;
+  const e = Math.floor(Math.log2(Math.abs(x))) - 52, h = Math.trunc(-e/2);
+  const M = BigInt(Math.round(x*2**h*2**(-e - h))), s = Pb + e;
+  return s >= 0 ? M << BigInt(s) : M >> BigInt(-s);
+}
+function bigToNum(v, Pb){                            // entero con Pb bits de fracción → número
+  if (v === 0n) return 0;
+  const neg = v < 0n; if (neg) v = -v;
+  const s = Math.max(0, v.toString(16).length*4 - 60), r = scale2(Number(v >> BigInt(s)), s - Pb);
+  return neg ? -r : r;
+}
+function orbit(zr, zi, cr, ci, Pb, d, maxIt){        // órbita de referencia en alta precisión
+  const out = new Float64Array(2*maxIt + 4), Pn = BigInt(Pb), P1 = Pn - 1n, SH = BigInt(Pb - 60), K = 2**-60;
+  let n = 0;
+  for (;;){
+    const r = Number(zr >> SH)*K, i = Number(zi >> SH)*K;
+    out[2*n] = r; out[2*n + 1] = i; n++;
+    if (r*r + i*i > 1e8 || n > maxIt) break;
+    if (d === 2){ const a = (zr*zr - zi*zi) >> Pn; zi = ((zr*zi) >> P1) + ci; zr = a + cr; }
+    else { let pr = zr, pi = zi; for (let k = 1; k < d; k++){ const a = (pr*zr - pi*zi) >> Pn; pi = (pr*zi + pi*zr) >> Pn; pr = a; } zr = pr + cr; zi = pi + ci; }
+  }
+  return {ref: out.slice(0, 2*n), len: n};
+}
+// Filas y0..y1 de una imagen w × h con ps unidades por píxel, centrada en la referencia A.
+// Devuelve el conteo suave de iteraciones de escape (−1 si no escapa).
+function kernel(q){
+  const {A, lenA, B, lenB, julia, d, w, h, y0, y1, ps, maxIt} = q;
+  const out = new Float32Array((y1 - y0)*w), ld = Math.log(d), R_ESC = 65536;
+  const bin = [1]; for (let k = 1; k <= d; k++) bin[k] = bin[k - 1]*(d - k + 1)/k;
+  for (let y = y0; y < y1; y++){
+    const im = (h/2 - y - 0.5)*ps;
+    for (let x = 0; x < w; x++){
+      const re = (x + 0.5 - w/2)*ps;
+      let dr, di, cr, ci;
+      if (julia){ dr = re; di = im; cr = 0; ci = 0; } else { dr = 0; di = 0; cr = re; ci = im; }
+      let ref = A, len = lenA, m = 0, it = 0, v = -1;
+      for (;;){
+        let Zr = ref[2*m], Zi = ref[2*m + 1];
+        const zr = Zr + dr, zi = Zi + di, r2 = zr*zr + zi*zi;
+        if (r2 > R_ESC){ v = Math.max(0, it + 1 - Math.log(0.5*Math.log(r2))/ld); break; }
+        if (it >= maxIt) break;
+        if (r2 < dr*dr + di*di || m >= len - 1){ dr = zr; di = zi; ref = B; len = lenB; m = 0; Zr = 0; Zi = 0; }
+        let nr, ni;
+        if (d === 2){ nr = 2*(Zr*dr - Zi*di) + dr*dr - di*di + cr; ni = 2*(Zr*di + Zi*dr) + 2*dr*di + ci; }
+        else {                                       // (Z+δ)^d − Z^d = δ·Σ C(d,k) Z^(d−k) δ^(k−1), por Horner
+          let sr = 0, si = 0;
+          for (let k = d; k >= 1; k--){
+            let pr = bin[k], pi = 0;
+            for (let j = 0; j < d - k; j++){ const t = pr*Zr - pi*Zi; pi = pr*Zi + pi*Zr; pr = t; }
+            const t = sr*dr - si*di + pr; si = sr*di + si*dr + pi; sr = t;
+          }
+          nr = sr*dr - si*di + cr; ni = sr*di + si*dr + ci;
+        }
+        dr = nr; di = ni; m++; it++;
+      }
+      out[(y - y0)*w + x] = v;
+    }
+  }
+  return out;
+}
+// @fin-fisica
+
+const $ = id => document.getElementById(id), cv = $("cv"), ctx = cv.getContext("2d");
+let W = 1, H = 1, dpr = 1;
+const fmt = (v, d) => v.toFixed(d).replace(".", ",").replace("-", "−");
+const PS_MIN = 1e-285;
+// Vista: centro en punto fijo (cx, cy con P bits) y ps = unidades del plano por píxel de pantalla
+const view = {cx: 0n, cy: 0n, P: 64, ps: 0.01};
+let type = "mandel", power = 2, jc = [-0.8, 0.156], iterK = 1, pal = 0, dens = 1, shift = 0, anim = false, auto = false;
+let psHome = 0.01;
+
+function setPs(v){
+  view.ps = v;
+  const need = Math.max(64, Math.ceil(-Math.log2(v)) + 48);
+  if (need > view.P){ const s = BigInt(need - view.P); view.cx <<= s; view.cy <<= s; view.P = need; }
+  else if (need < view.P - 32){ const s = BigInt(view.P - need); view.cx >>= s; view.cy >>= s; view.P = need; }
+}
+const homePs = () => Math.max((type === "mandel" && power === 2 ? 3.2 : 3.4)/W, 2.8/H);
+function goHome(){
+  psHome = homePs();
+  view.P = 64; setPs(psHome);
+  view.cx = fixOf(type === "mandel" && power === 2 ? -0.65 : 0, view.P); view.cy = 0n;
+  dirty = true;
+}
+function pan(dx, dy){ view.cx -= fixOf(dx*view.ps, view.P); view.cy += fixOf(dy*view.ps, view.P); dirty = true; }
+function zoomAt(X, Y, f){
+  const old = view.ps, nps = Math.min(psHome*2.5, Math.max(PS_MIN, old/f));
+  if (nps === PS_MIN && old === PS_MIN) return false;
+  setPs(nps);
+  view.cx += fixOf((X - W/2)*(old - nps), view.P); view.cy += fixOf((H/2 - Y)*(old - nps), view.P);
+  dirty = true;
+  if (nps === PS_MIN){ toast("Llegaste al límite de precisión de este simulador"); return false; }
+  return true;
+}
+const iterations = () => Math.min(50000, Math.round(Math.pow(2, iterK)*(100 + 50*Math.max(0, Math.log2(psHome/view.ps)))));
+
+// ---------- Órbitas de referencia (se reutilizan si no cambió nada) ----------
+let refCache = {key: "", maxIt: 0};
+function refs(maxIt){
+  const key = [type, power, jc[0], jc[1], view.cx, view.cy, view.P].join("|");
+  if (refCache.key === key && refCache.maxIt >= maxIt) return refCache;
+  let A, B;
+  if (type === "mandel"){ A = B = orbit(0n, 0n, view.cx, view.cy, view.P, power, maxIt); }
+  else {
+    const jr = fixOf(jc[0], view.P), ji = fixOf(jc[1], view.P);
+    A = orbit(view.cx, view.cy, jr, ji, view.P, power, maxIt); B = orbit(0n, 0n, jr, ji, view.P, power, maxIt);
+  }
+  return refCache = {key, maxIt, A, B};
+}
+
+// ---------- Trabajadores: el cálculo se reparte entre los núcleos del equipo ----------
+let workers = [];
+try {
+  const src = `"use strict";const kernel=${kernel.toString()};let R=null;
+onmessage=e=>{const m=e.data;if(m.ref){R=m;return;}const o=kernel(Object.assign({},R,m));postMessage({id:m.id,y0:m.y0,y1:m.y1,out:o},[o.buffer]);};`;
+  const url = URL.createObjectURL(new Blob([src], {type: "text/javascript"}));
+  const n = Math.max(1, Math.min(6, (navigator.hardwareConcurrency || 4) - 1));
+  for (let k = 0; k < n; k++){ const w = new Worker(url); w.onmessage = e => done(w, e.data); workers.push(w); }
+} catch (err){ workers = []; }
+
+let job = null, jobId = 0, shown = null, dirty = true, idleAt = 0, fastQ = 0.34, needFull = false, needDraw = true;
+function startJob(full){
+  const q = full ? Math.min(2, dpr) : fastQ;
+  const w = Math.max(16, Math.round(W*q)), h = Math.max(16, Math.round(H*q));
+  const maxIt = iterations(), r = refs(maxIt);
+  job = {id: ++jobId, full, w, h, psr: view.ps*W/w, maxIt, cx: view.cx, cy: view.cy, P: view.P,
+         vals: new Float32Array(w*h), next: 0, out: 0, cancel: false, t0: performance.now()};
+  const base = {ref: true, A: r.A.ref, lenA: r.A.len, B: r.B.ref, lenB: r.B.len, julia: type === "julia", d: power, w, h, ps: job.psr, maxIt};
+  if (workers.length){ for (const wk of workers){ wk.postMessage(base); send(wk); } }
+  else job.base = base;
+}
+const CH = 8;
+function send(wk){
+  if (!job || job.cancel || job.next >= job.h) return;
+  const y0 = job.next, y1 = Math.min(job.h, y0 + CH); job.next = y1; job.out++;
+  wk.postMessage({id: job.id, y0, y1});
+}
+function done(wk, m){
+  if (!job || m.id !== job.id) return;
+  job.out--;
+  if (!job.cancel) job.vals.set(m.out, m.y0*job.w);
+  send(wk);
+  if (job.out === 0 && (job.cancel || job.next >= job.h)) finish();
+}
+function finish(){
+  const j = job; job = null;
+  if (j.cancel) return;
+  if (!j.full){                                     // ajusta la resolución rápida a lo que alcanza el equipo
+    const ms = performance.now() - j.t0;
+    fastQ = Math.max(0.12, Math.min(0.6, fastQ*Math.sqrt(70/Math.max(8, ms))));
+  }
+  show(j);
+}
+function syncStep(){                                 // sin trabajadores: un trozo por cuadro
+  const t0 = performance.now();
+  while (job && job.next < job.h && performance.now() - t0 < 30){
+    const y0 = job.next, y1 = Math.min(job.h, y0 + CH); job.next = y1;
+    job.vals.set(kernel(Object.assign({}, job.base, {y0, y1})), y0*job.w);
+  }
+  if (job && job.next >= job.h) finish();
+}
+
+// ---------- Colores ----------
+const PALS = [
+  ["#0b0620", "#5a1236", "#c0392b", "#f39c12", "#fff3c4", "#2a7ab0", "#0b0620"],
+  ["#020b1c", "#0b3d6b", "#1aa7c9", "#d8f6ff", "#f2c879", "#7a3b1d", "#020b1c"],
+  ["#06140c", "#1d5b33", "#8bc34a", "#f4f1bb", "#c97b2c", "#4a1f12", "#06140c"],
+  ["#0a0a0a", "#5a5a5a", "#f0f0f0", "#7a7a7a", "#0a0a0a"]
+];
+const INSIDE = 0xff0d0705;                           // #05070d en ABGR
+let LUT = new Uint32Array(1024);
+function buildLut(){
+  const st = PALS[pal].map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)));
+  for (let i = 0; i < 1024; i++){
+    const t = i/1024*(st.length - 1), k = Math.floor(t), f = t - k, a = st[k], b = st[k + 1];
+    const c = a.map((v, j) => Math.round(v + (b[j] - v)*f));
+    LUT[i] = 0xff000000 | (c[2] << 16) | (c[1] << 8) | c[0];
+  }
+}
+function show(j){
+  const n = j.w*j.h, lg = new Float32Array(n);
+  let vmin = Infinity;
+  for (let i = 0; i < n; i++){ const v = j.vals[i]; if (v >= 0 && v < vmin) vmin = v; }
+  for (let i = 0; i < n; i++){ const v = j.vals[i]; lg[i] = v < 0 ? -1 : Math.log1p(v - vmin); }
+  const c = document.createElement("canvas"); c.width = j.w; c.height = j.h;
+  shown = {c, cx: j.cx, cy: j.cy, P: j.P, psr: j.psr, w: j.w, h: j.h, lg, maxIt: j.maxIt, ictx: c.getContext("2d")};
+  shown.img = shown.ictx.createImageData(j.w, j.h);
+  paint();
+}
+function paint(){
+  if (!shown) return;
+  const u = new Uint32Array(shown.img.data.buffer), lg = shown.lg, k = dens*0.32;
+  for (let i = 0; i < lg.length; i++){
+    const v = lg[i];
+    if (v < 0){ u[i] = INSIDE; continue; }
+    const t = v*k + shift;
+    u[i] = LUT[((t - Math.floor(t))*1023) | 0];
+  }
+  shown.ictx.putImageData(shown.img, 0, 0);
+  needDraw = true;
+}
+function align(v, from, to){ return to > from ? v << BigInt(to - from) : v; }
+function draw(){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#05070d"; ctx.fillRect(0, 0, W, H);
+  if (!shown) return;
+  const P = Math.max(view.P, shown.P);
+  const dx = bigToNum(align(shown.cx, shown.P, P) - align(view.cx, view.P, P), P)/view.ps;
+  const dy = bigToNum(align(shown.cy, shown.P, P) - align(view.cy, view.P, P), P)/view.ps;
+  const sw = shown.w*shown.psr/view.ps, sh = shown.h*shown.psr/view.ps;
+  if (!isFinite(dx + dy + sw) || sw > W*400) return;
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(shown.c, W/2 + dx - sw/2, H/2 - dy - sh/2, sw, sh);
+}
+const SUP = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+function zoomText(z){
+  if (z < 1e5) return "× " + Math.round(z).toLocaleString("es");
+  const e = Math.floor(Math.log10(z)), m = z/10**e;
+  return "× " + fmt(m, 1) + " · 10" + String(e).split("").map(c => SUP[+c]).join("");
+}
+function pill(){ $("pill").textContent = `Zoom ${zoomText(psHome/view.ps)} · ${iterations().toLocaleString("es")} iteraciones`; }
+
+// ---------- Tamaño ----------
+function resize(){
+  const ow = W;
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight);
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  if (ow === 1) goHome(); else { psHome = homePs(); dirty = true; }
+  needDraw = true;
+}
+new ResizeObserver(resize).observe(cv);
+
+// ---------- Gestos ----------
+const ptrs = new Map();
+let lastTap = {t: 0, x: 0, y: 0}, down = null;
+const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+cv.addEventListener("pointerdown", e => {
+  try { cv.setPointerCapture(e.pointerId); } catch (err){}
+  const [x, y] = pos(e); ptrs.set(e.pointerId, {x, y});
+  down = ptrs.size === 1 ? {t: performance.now(), x, y, moved: false} : null;
+});
+cv.addEventListener("pointermove", e => {
+  const p = ptrs.get(e.pointerId); if (!p) return;
+  const [x, y] = pos(e);
+  if (ptrs.size === 1){
+    pan(x - p.x, y - p.y);
+    if (down && Math.hypot(x - down.x, y - down.y) > 8) down.moved = true;
+  } else if (ptrs.size === 2){
+    const [a, b] = [...ptrs.values()], o = a === p ? b : a;
+    const d0 = Math.hypot(p.x - o.x, p.y - o.y), d1 = Math.hypot(x - o.x, y - o.y);
+    const mx0 = (p.x + o.x)/2, my0 = (p.y + o.y)/2, mx1 = (x + o.x)/2, my1 = (y + o.y)/2;
+    pan(mx1 - mx0, my1 - my0);
+    if (d0 > 4) zoomAt(mx1, my1, d1/d0);
+  }
+  p.x = x; p.y = y;
+});
+function up(e){
+  if (!ptrs.delete(e.pointerId)) return;
+  if (down && !down.moved && performance.now() - down.t < 300){
+    const now = performance.now();
+    if (now - lastTap.t < 320 && Math.hypot(down.x - lastTap.x, down.y - lastTap.y) < 30){ zoomAt(down.x, down.y, 2.5); lastTap.t = 0; }
+    else lastTap = {t: now, x: down.x, y: down.y};
+  }
+  down = null;
+}
+cv.addEventListener("pointerup", up);
+cv.addEventListener("pointercancel", up);
+cv.addEventListener("dblclick", e => e.preventDefault());
+cv.addEventListener("wheel", e => { e.preventDefault(); const [x, y] = pos(e); zoomAt(x, y, Math.exp(-e.deltaY*0.0015)); }, {passive: false});
+$("zin").addEventListener("click", () => zoomAt(W/2, H/2, 2));
+$("zout").addEventListener("click", () => zoomAt(W/2, H/2, 0.5));
+
+// ---------- Botones ----------
+let toastT = 0;
+function toast(msg, ms = 2600){ const t = $("toast"); t.textContent = msg; t.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.add("off"), ms); }
+function setType(t, keepC){
+  if (t === "julia" && type === "mandel" && !keepC && view.ps < psHome*0.5){   // Julia del punto que estabas mirando
+    jc = [bigToNum(view.cx, view.P), bigToNum(view.cy, view.P)];
+    toast("Julia con c = " + fmt(jc[0], 4) + (jc[1] < 0 ? " − " : " + ") + fmt(Math.abs(jc[1]), 4) + " i, el centro que mirabas");
+  }
+  type = t;
+  document.querySelectorAll("[data-type]").forEach(b => b.setAttribute("aria-pressed", b.dataset.type === t));
+  $("juliaBox").hidden = t !== "julia";
+  syncC(); goHome();
+}
+document.querySelectorAll("[data-type]").forEach(b => b.addEventListener("click", () => setType(b.dataset.type)));
+document.querySelectorAll("[data-pow]").forEach(b => b.addEventListener("click", () => {
+  power = +b.dataset.pow;
+  document.querySelectorAll("[data-pow]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  goHome();
+}));
+document.querySelectorAll("[data-pal]").forEach(b => b.addEventListener("click", () => {
+  pal = +b.dataset.pal; buildLut(); paint();
+  document.querySelectorAll("[data-pal]").forEach(x => x.setAttribute("aria-pressed", x === b));
+}));
+$("anim").addEventListener("click", () => { anim = !anim; $("anim").setAttribute("aria-pressed", anim); });
+$("dens").addEventListener("input", () => { dens = +$("dens").value; $("densOut").textContent = fmt(dens, 1); paint(); });
+$("iter").addEventListener("input", () => { iterK = +$("iter").value; $("iterOut").textContent = "× " + fmt(Math.pow(2, iterK), 2).replace(/,?0+$/, ""); dirty = true; });
+function syncC(){ $("cre").value = jc[0]; $("cim").value = jc[1]; $("creOut").textContent = fmt(jc[0], 3); $("cimOut").textContent = fmt(jc[1], 3); }
+for (const id of ["cre", "cim"]) $(id).addEventListener("input", () => { jc = [+$("cre").value, +$("cim").value]; syncC(); dirty = true; });
+$("auto").addEventListener("click", () => {
+  auto = !auto; $("auto").setAttribute("aria-pressed", auto); $("autoLbl").textContent = auto ? "Detener" : "Zoom solo";
+  if (auto) toast("Se acerca solo al centro. Arrastra para elegir hacia dónde.");
+});
+$("home2").addEventListener("click", () => { auto = false; $("auto").setAttribute("aria-pressed", false); $("autoLbl").textContent = "Zoom solo"; goHome(); });
+$("more").addEventListener("click", () => {
+  const open = $("sheet").hidden; $("sheet").hidden = !open; $("more").setAttribute("aria-pressed", open);
+});
+
+// ---------- Bucle ----------
+let last = 0;
+function frame(now){
+  const dt = last ? Math.min(0.1, (now - last)/1000) : 0; last = now;
+  if (auto && !zoomAt(W/2, H/2, Math.exp(0.7*dt))){ auto = false; $("auto").setAttribute("aria-pressed", false); $("autoLbl").textContent = "Zoom solo"; }
+  if (dirty){
+    idleAt = now; needFull = true; needDraw = true; pill();
+    if (job && job.full) job.cancel = true;
+    if (!job){ dirty = false; startJob(false); }
+  } else if (!job && needFull && !auto && ptrs.size === 0 && now - idleAt > 160){ needFull = false; startJob(true); }
+  if (job && !workers.length) syncStep();
+  if (anim){ shift = (shift + dt*0.08) % 1; paint(); }
+  if (needDraw){ needDraw = false; draw(); }
+  requestAnimationFrame(frame);
+}
+buildLut(); syncC();
+requestAnimationFrame(frame);
+})();
+</script>
+<dialog class="kids" id="kids" aria-labelledby="kidsT"><div><h2 id="kidsT">¿Qué es un fractal?</h2><p>Un fractal es un dibujo que, cuando te acercas, sigue mostrando más y más detalles. Nunca se termina: siempre hay algo nuevo escondido.</p><p>Cada puntito de la pantalla juega un juego: toma un número, lo multiplica por sí mismo y le suma otro, una y otra vez. Si el número se queda chiquito, el punto se pinta negro. Si crece y se escapa, se pinta de un color que dice qué tan rápido se fue.</p><p>En el borde entre lo negro y los colores aparecen espirales, caballitos de mar y copias pequeñitas de la figura grande.</p><p class="try">Prueba: acércate al borde de la figura negra con dos dedos o con el botón Zoom solo. ¿Encuentras una figura chiquita igual a la grande?</p><button type="button" data-learn-close>Entendido</button></div></dialog>
+<!-- SyMula: selector de tema (botones con data-theme-set) -->
+<script>(function(){
+function sync(){var t=document.documentElement.getAttribute("data-theme");
+  document.querySelectorAll("[data-theme-set]").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-theme-set")===t);});
+  var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",getComputedStyle(document.documentElement).getPropertyValue("--background").trim());}
+window.SyMulaTheme=function(t){document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("symula-tema",t);}catch(e){}sync();
+  window.dispatchEvent(new Event("symula-tema"));};
+// colores del tema para dibujar en el lienzo: SyMulaColor("sem-1"), SyMulaColor("primary")...
+window.SyMulaColor=function(name){return getComputedStyle(document.documentElement).getPropertyValue("--"+name).trim();};
+document.querySelectorAll("[data-theme-set]").forEach(function(b){b.addEventListener("click",function(){SyMulaTheme(b.getAttribute("data-theme-set"));});});
+try{if(!localStorage.getItem("symula-tema")&&window.matchMedia)matchMedia("(prefers-color-scheme: light)").addEventListener("change",function(e){document.documentElement.setAttribute("data-theme",e.matches?"light":"dark");sync();window.dispatchEvent(new Event("symula-tema"));});}catch(e){}
+sync();})();</script>
+<!-- fin SyMula: selector de tema -->
+<!-- SyMula: botones comunes ("Saber más" abre #kids; data-full oculta el menú y pide pantalla completa) -->
+<script>(function(){var d=document.getElementById("kids"),b=document.querySelector("[data-learn]");
+if(d&&b){var shut=function(){if(d.close)d.close();else d.removeAttribute("open");};
+  b.addEventListener("click",function(){if(d.showModal)d.showModal();else d.setAttribute("open","");});
+  d.addEventListener("click",function(e){if(e.target===d||e.target.closest("[data-learn-close]"))shut();});}
+var f=document.querySelector("[data-full]");if(!f)return;
+var root=document.documentElement,req=root.requestFullscreen||root.webkitRequestFullscreen,
+  sv='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">',
+  ON=sv+'<path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/></svg>',OFF=sv+'<path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+function isFs(){return document.fullscreenElement||document.webkitFullscreenElement;}
+function set(on){document.body.classList.toggle("nodock",on);f.setAttribute("aria-pressed",on);f.innerHTML=on?OFF:ON;
+  f.setAttribute("aria-label",on?"Mostrar el menú":"Pantalla completa: ocultar el menú");
+  try{if(on&&req&&!isFs()){var p=req.call(root);if(p&&p.catch)p.catch(function(){});}
+    else if(!on&&isFs())(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}
+  setTimeout(function(){window.dispatchEvent(new Event("resize"));},60);}
+f.addEventListener("click",function(){set(!document.body.classList.contains("nodock"));});
+function left(){if(!isFs()&&document.body.classList.contains("nodock"))set(false);}
+document.addEventListener("fullscreenchange",left);document.addEventListener("webkitfullscreenchange",left);
+set(false);})();</script>
+<!-- fin SyMula: botones comunes -->
+</body>
+</html>

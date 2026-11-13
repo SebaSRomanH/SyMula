@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Figuras de Lissajous: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:14mm 15mm}
+body{font:10pt/1.45 Inter,sans-serif;color:#102A43;margin:0}
+header{border-bottom:3px solid #087481;padding-bottom:6px;margin-bottom:8px}
+h1{font-size:20pt;margin:0;color:#102A43;font-weight:800}
+.sub{color:#526779;font-size:9.5pt;margin:2px 0 0}
+h2{font-size:11.5pt;margin:10px 0 3px;color:#102A43;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#087481;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:3px 0 5px}
+ul{margin:3px 0 5px;padding-left:18px}
+.katex-display{margin:5px 0}
+.katex{font-size:1.05em}
+table{border-collapse:collapse;width:100%;font-size:9pt;margin:4px 0}
+td,th{border-bottom:1px solid #DCE5EB;padding:2px 6px;text-align:left}
+th{color:#526779;font-weight:700}
+.note{background:#F1F5F8;border-left:3px solid #087481;padding:4px 9px;font-size:9pt;margin:6px 0}
+.cols{columns:2;column-gap:18px}
+section{break-inside:avoid}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#087481;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#102A43}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#EEF6F7;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #D9A15B;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#526779}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#F1F5F8;border:1px solid #DCE5EB;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
+</style>
+</head>
+<body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Sonido</p>
+<h1>¿Se puede dibujar con dos sonidos?</h1>
+<svg class="art" viewBox="0 0 400 150"><rect x="130" y="5" width="140" height="140" rx="12" fill="#06120f"/>
+  <path d="M200 25C240 25 250 75 200 75S160 125 200 125 240 75 200 75 160 25 200 25" fill="none" stroke="#6fe3b0" stroke-width="3"/>
+  <path d="M40 75q10-30 20 0t20 0 20 0" fill="none" stroke="#1F6FB2" stroke-width="3"/><text x="20" y="110" font-size="12" fill="#1F6FB2">izquierdo</text>
+  <path d="M300 75q7-30 14 0t14 0 14 0 14 0" fill="none" stroke="#B4532A" stroke-width="3"/><text x="305" y="110" font-size="12" fill="#B4532A">derecho</text></svg>
+<p>Un sonido es algo que vibra muy rápido, de ida y vuelta. Aquí hay dos: el del parlante <b>izquierdo</b> mueve un puntito de lado a lado y el del <b>derecho</b> lo mueve de arriba abajo.</p>
+<p>Cuando las dos notas se llevan bien, por ejemplo cuando una vibra justo el doble de veces que la otra, el puntito repite siempre el mismo camino y dibuja una figura quieta. Si una está un poquito desafinada, la figura gira despacio.</p>
+<div class="math"><b>Un poco de matemática.</b> Con la razón 2 : 3 el punto va de lado a lado 2 veces mientras sube y baja 3 veces. Por eso la figura toca el borde de los lados 2 veces y el de arriba 3 veces.<br>
+Si el derecho está desafinado 0,5 Hz con la razón 1 : 2, la figura vuelve a verse igual cada $1 \div (1 \times 0{,}5) = 2$ segundos.</div>
+<div class="reto"><b>Desafío.</b> Con la razón 3 : 4, ¿cuántas veces toca la figura el borde de arriba?</div>
+<p class="ans">Respuesta: 4 veces (y 3 veces los bordes de los lados).</p>
+<p class="try"><b>Pruébalo:</b> elige una razón, mueve "Desafinar" y cuenta cuánto tarda en repetirse la figura. Con audífonos, oirás una nota en cada oído.</p>
+</section>
+<!-- @fin-portada -->
+<header>
+<h1>Figuras de Lissajous</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (lissajous.html)</p>
+</header>
+
+<section>
+<h2>Las dos señales</h2>
+<p>Cada parlante toca una onda senoidal pura. Como en un osciloscopio en modo X-Y, el canal izquierdo mueve el punto en horizontal y el derecho en vertical:</p>
+$$x(t)=\sin(2\pi f_x t+\varphi),\qquad y(t)=\sin(2\pi f_y t),$$
+$$f_x=f_0,\qquad f_y=f_0\,\frac{b}{a}+\Delta,$$
+<p>donde $a:b$ es la razón elegida (1:1, 1:2, 2:3, 3:4, 3:5 o 4:5), $f_0$ la nota del izquierdo (110 a 440 Hz), $\varphi$ el desfase y $\Delta$ el desafinado del derecho (±2 Hz).</p>
+</section>
+
+<section>
+<h2>La figura</h2>
+<p>Con el ángulo $\theta = 2\pi\,(f_0/a)\,t$ las dos señales quedan</p>
+$$x=\sin(a\theta+\varphi),\qquad y=\sin(b\theta+\psi),\qquad \psi=2\pi\Delta\,t.$$
+<p>Si $\Delta=0$, la curva se cierra en $\theta=2\pi$. En ese recorrido $x$ llega a su máximo $a$ veces e $y$ llega $b$ veces: la figura toca $a$ veces cada borde lateral y $b$ veces cada borde de arriba y de abajo.</p>
+</section>
+
+<section>
+<h2>Por qué gira cuando está desafinada</h2>
+<p>Si se corre $\theta$ en $2\pi/a$, $x$ no cambia y la fase de $y$ aumenta en $2\pi b/a$. Como $a$ y $b$ no tienen divisores comunes, esos saltos recorren todos los múltiplos de $2\pi/a$. Por eso la figura se ve igual cada vez que $\psi$ avanza $2\pi/a$:</p>
+$$T_\text{figura}=\frac{1}{a\,|\Delta|}.$$
+<p>El punto brillante recorre la curva en cámara lenta ("Velocidad del punto"). El giro de la figura, en cambio, va a la velocidad real: es el mismo batido que se oye entre las dos notas.</p>
+</section>
+
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b> con HTML, CSS y JavaScript, sin programas externos.</li>
+<li><b>La física:</b> <code>freqs()</code> calcula las dos frecuencias, <code>point()</code> el punto de la figura y <code>turnPeriod()</code> cada cuánto se repite.</li>
+<li><b>El sonido:</b> con Web Audio, dos osciladores senoidales entran a un mezclador de 2 canales: uno al oído izquierdo y otro al derecho.</li>
+<li><b>El dibujo:</b> <code>draw()</code> pinta la pantalla del osciloscopio con su cuadrícula, la curva completa con resplandor (tres trazos de distinto grosor), el punto con una estela corta y las ondas de cada parlante a los lados.</li>
+<li><b>El bucle:</b> <code>frame()</code> avanza $\theta$ y $\psi$ con el tiempo real y dibuja. Arrastrar el dedo de lado a lado cambia el desfase.</li>
+</ul>
+<div class="code">function freqs(base, a, b, det){ return [base, base*b/a + det]; }
+function point(a, b, phi, psi, th){
+  return [Math.sin(a*th + phi), Math.sin(b*th + psi)];
+}
+th  += 2*Math.PI*spd*dt;     // el punto, en cámara lenta
+psi += 2*Math.PI*det*dt;     // el desafinado, en tiempo real</div>
+</section>
+<!-- @fin-html -->
+<p class="note">Comprobado en <code>pruebas/lissajous.js</code>: el punto coincide con las señales reales, la cantidad de toques con los bordes es $a$ y $b$ en las seis razones, y la figura se repite al avanzar el desfase $2\pi/a$.</p>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Fractales: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:14mm 15mm}
+body{font:10pt/1.45 Inter,sans-serif;color:#102A43;margin:0}
+header{border-bottom:3px solid #087481;padding-bottom:6px;margin-bottom:8px}
+h1{font-size:20pt;margin:0;color:#102A43;font-weight:800}
+.sub{color:#526779;font-size:9.5pt;margin:2px 0 0}
+h2{font-size:11.5pt;margin:10px 0 3px;color:#102A43;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#087481;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:3px 0 5px}
+ul{margin:3px 0 5px;padding-left:18px}
+.katex-display{margin:5px 0}
+.katex{font-size:1.05em}
+table{border-collapse:collapse;width:100%;font-size:9pt;margin:4px 0}
+td,th{border-bottom:1px solid #DCE5EB;padding:2px 6px;text-align:left}
+th{color:#526779;font-weight:700}
+.note{background:#F1F5F8;border-left:3px solid #087481;padding:4px 9px;font-size:9pt;margin:6px 0}
+.cols{columns:2;column-gap:18px}
+section{break-inside:avoid}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#087481;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#102A43}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#EEF6F7;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #D9A15B;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#526779}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#F1F5F8;border:1px solid #DCE5EB;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
+</style>
+</head>
+<body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Matemática</p>
+<h1>¿Un dibujo que nunca se termina?</h1>
+<svg class="art" viewBox="0 0 400 150"><g fill="#087481"><circle cx="150" cy="75" r="16"/><path d="M168 75c0-38 26-58 52-58s52 22 52 58-26 58-52 58-52-20-52-58z"/><circle cx="118" cy="75" r="7"/><circle cx="104" cy="75" r="3"/><circle cx="220" cy="10" r="5"/><circle cx="220" cy="140" r="5"/></g>
+  <circle cx="300" cy="40" r="24" fill="none" stroke="#e05a7a" stroke-width="3"/><path d="M190 60L280 30" stroke="#e05a7a" stroke-width="2" stroke-dasharray="4 4"/><text x="290" y="88" font-size="12" fill="#e05a7a">te acercas y</text><text x="290" y="102" font-size="12" fill="#e05a7a">aparece más</text></svg>
+<p>Cada punto de la pantalla juega un juego: toma un número $z$ que empieza en cero, lo <b>multiplica por sí mismo</b> y le suma el número $c$ del punto. Luego lo repite, una y otra vez.</p>
+<p>Si $z$ se queda chiquito para siempre, el punto se pinta negro: es parte del conjunto de Mandelbrot. Si crece y se escapa, se pinta de un color que dice cuántas vueltas tardó en escaparse.</p>
+<div class="math"><b>Un poco de matemática.</b> Con $c = 1$: $0 \to 0\cdot0+1 = 1 \to 1\cdot1+1 = 2 \to 2\cdot2+1 = 5 \to 26 \to 677\ldots$ ¡se escapa!<br>
+Con $c = -1$: $0 \to -1 \to 0 \to -1 \to 0\ldots$ se queda dando vueltas para siempre: ese punto es negro.</div>
+<div class="reto"><b>Desafío.</b> Con $c = -2$, ¿el número se escapa o se queda?</div>
+<p class="ans">Respuesta: 0 → −2 → 2 → 2 → 2… se queda en 2 para siempre: el punto −2 es negro (es la punta de la figura).</p>
+<p class="try"><b>Pruébalo:</b> acércate al borde de la figura negra. ¿Encuentras una figura pequeñita igual a la grande?</p>
+</section>
+<!-- @fin-portada -->
+<header>
+<h1>Fractales</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (fractales.html)</p>
+</header>
+
+<section>
+<h2>La regla</h2>
+<p>Para cada número complejo $c$ del plano se itera</p>
+$$z_{n+1}=z_n^{\,d}+c,\qquad d\in\{2,3,4\}.$$
+<p><b>Mandelbrot:</b> $z_0=0$ y $c$ es el punto de la pantalla. <b>Julia:</b> $c$ es fijo (se elige con los controles o es el centro que se estaba mirando) y $z_0$ es el punto de la pantalla. Un punto escapa cuando $|z_n|^2 > 2^{16}$; si en $N$ iteraciones no escapa, se pinta negro.</p>
+</section>
+
+<section>
+<h2>Color suave</h2>
+<p>Para que no se vean escalones se usa el conteo fraccionario</p>
+$$\nu = n + 1 - \frac{\ln\!\left(\ln|z_n|\right)}{\ln d},$$
+<p>y el color sale de una paleta cíclica en la posición $t=\rho\,0{,}32\,\ln(1+\nu-\nu_\text{mín})+\text{giro}$, donde $\rho$ es el "ritmo de color" y $\nu_\text{mín}$ el menor valor de la imagen (así hay contraste a cualquier zoom).</p>
+</section>
+
+<section>
+<h2>Zoom sin límite práctico: perturbación</h2>
+<p>Un número normal tiene unas 16 cifras, así que pasado un zoom de $10^{14}$ todos los píxeles serían el mismo número. Por eso solo el <b>centro</b> se calcula con enteros grandes (punto fijo con $P$ bits, $P\approx-\log_2(\text{tamaño del píxel})+48$): es la órbita de referencia $Z_n$. Cada píxel guarda solo su diferencia $\delta_n=z_n-Z_n$, que sí cabe en un número normal:</p>
+$$\delta_{n+1}=(Z_n+\delta_n)^d-Z_n^{\,d}+\delta c
+=\delta_n\sum_{k=1}^{d}\binom{d}{k}Z_n^{\,d-k}\delta_n^{\,k-1}+\delta c .$$
+<p>Para $d=2$: $\delta_{n+1}=2Z_n\delta_n+\delta_n^2+\delta c$. En Julia $\delta c=0$ y $\delta_0$ es la distancia al centro.</p>
+<p><b>Cambio de referencia.</b> Si $|Z_n+\delta_n|&lt;|\delta_n|$, o si se acaba la referencia, se continúa con la órbita que parte de 0 ($W_0=0$, $W_{m+1}=W_m^{\,d}+c$) tomando $\delta=z$ y $m=0$. Así se evitan los errores ("glitches") del método. El tope es un zoom de unas $10^{280}$ veces, cerca del número más chico que se puede guardar.</p>
+<p>Las iteraciones crecen con el zoom: $N=2^{k}\,(100+50\log_2 \text{zoom})$, con $k$ el control "Iteraciones" (hasta 50 000).</p>
+</section>
+
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b> con HTML, CSS y JavaScript. El navegador lo ejecuta tal cual.</li>
+<li><b>La vista</b> guarda el centro como dos enteros grandes (<code>BigInt</code>) y el tamaño del píxel. <code>pan()</code> y <code>zoomAt()</code> los cambian al arrastrar, pellizcar o usar la rueda.</li>
+<li><b>La referencia:</b> <code>orbit()</code> itera el centro con enteros grandes; <code>refs()</code> la reutiliza si nada cambió.</li>
+<li><b>El cálculo:</b> <code>kernel()</code> recorre filas de píxeles con la fórmula de perturbación. Se reparte entre varios núcleos del equipo con <i>Web Workers</i>, de 8 filas a la vez.</li>
+<li><b>Primero rápido, después nítido:</b> mientras te mueves se calcula una imagen chica (su tamaño se ajusta a lo que alcanza el equipo) y la última imagen se estira; al soltar se calcula la imagen a resolución completa.</li>
+<li><b>El color:</b> <code>paint()</code> convierte cada conteo en color con la paleta, sin recalcular el fractal.</li>
+</ul>
+<div class="code">if (d === 2){                               // δ' = 2Zδ + δ² + δc
+  nr = 2*(Zr*dr - Zi*di) + dr*dr - di*di + cr;
+  ni = 2*(Zr*di + Zi*dr) + 2*dr*di + ci;
+}
+if (r2 &lt; dr*dr + di*di || m &gt;= len - 1){   // cambio de referencia
+  dr = zr; di = zi; ref = B; len = lenB; m = 0;
+}</div>
+</section>
+<!-- @fin-html -->
+<p class="note">Comprobado en <code>pruebas/fractales.js</code>: los píxeles coinciden con la iteración directa a zoom 1, $10^7$, $10^9$ y $10^{31}$ (esta última contra enteros grandes, punto por punto).</p>
+</body>
+</html>

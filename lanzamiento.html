@@ -79,6 +79,22 @@ body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;ove
 .themes button[aria-pressed="true"]{background:var(--primary);color:var(--primary-text)}
 button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 [hidden]{display:none!important}
+.learn{position:absolute;top:12px;left:72px;height:48px;padding:0 16px 0 12px;border-radius:12px;display:flex;align-items:center;gap:8px;z-index:3;cursor:pointer;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);font:600 14px Inter,sans-serif;touch-action:manipulation}
+.learn svg{width:22px;height:22px;flex:none;color:var(--primary)}
+@media (hover:hover){.learn:hover{border-color:var(--primary)}}
+.kids{width:min(560px,calc(100% - 32px));max-height:calc(100% - 48px);padding:0;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.kids::backdrop{background:rgba(5,10,20,.55)}
+.kids>div{padding:20px;display:flex;flex-direction:column;gap:12px}
+.kids h2{margin:0;font:700 20px/1.25 Inter,sans-serif;letter-spacing:-.01em}
+.kids p{margin:0;font-size:16px;line-height:1.5;color:var(--text)}
+.kids p.try{padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border)}
+.kids button{align-self:flex-end;min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--primary);background:var(--primary);color:var(--primary-text);font:600 15px Inter,sans-serif;cursor:pointer}
+.full{position:absolute;top:12px;right:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;cursor:pointer;padding:0;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);touch-action:manipulation}
+.full svg{width:24px;height:24px}
+@media (hover:hover){.full:hover{border-color:var(--primary)}}
+body.nodock .dock{display:none!important}
 /* ===== fin del estilo común ===== */
 .hud{position:absolute;left:56px;right:12px;pointer-events:none}
 .alt{font:800 clamp(32px,9vw,46px)/1 Inter,sans-serif;font-variant-numeric:tabular-nums}
@@ -91,7 +107,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-of
 <div class="stage">
   <canvas id="cv" aria-label="Lanzamiento vertical: toma la pelota y lánzala hacia arriba"></canvas>
   <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
-  <div class="card" id="card" aria-live="polite"><h1>Lanzamiento vertical</h1><p id="say">Toma la pelota y lánzala hacia arriba.</p><p class="data" id="pred"></p></div>
+  <button class="learn" type="button" data-learn aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>Saber más</button>
+  <button class="full" type="button" data-full aria-pressed="false" aria-label="Pantalla completa: ocultar el menú"></button>
+  <div class="card" id="card" aria-live="polite" hidden><h1>Lanzamiento vertical</h1><p id="say">Toma la pelota y lánzala hacia arriba.</p><p class="data" id="pred"></p></div>
   <div class="hud" id="hud">
     <div class="alt" id="alt">0,00<small>m</small></div>
     <div class="stats">
@@ -112,7 +130,6 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-of
   <div class="row">
     <button class="tile" type="button" id="slow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V8.5M12 3v2"/></svg><span id="slowLbl">Normal</span></button>
     <button class="tile" type="button" id="reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5"/></svg>Otra vez</button>
-    <button class="tile" type="button" id="fs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" id="fsIco"><path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/></svg><span id="fsLbl">Pantalla</span></button>
   </div>
 </nav>
 <script>
@@ -139,8 +156,8 @@ const fmt = (v, d) => v.toFixed(d).replace(".", ",");
 function resize(){
   dpr = Math.min(2.5, window.devicePixelRatio || 1);
   Wp = cv.clientWidth; Hp = cv.clientHeight;
-  const card = $("card"), hud = $("hud");
-  hud.style.top = (card.offsetTop + card.offsetHeight + 8) + "px";
+  const hud = $("hud");
+  hud.style.top = "72px";                         // bajo el inicio y "Saber más"
   TOP = hud.offsetTop + hud.offsetHeight + 14;
   cv.width = Math.round(Wp*dpr); cv.height = Math.round(Hp*dpr);
   XW = (Wp/2) / ((Hp-GROUND-TOP)/BASE_VIEW);    // medio ancho de la "habitación" en metros
@@ -206,21 +223,6 @@ $("reset").addEventListener("click", () => {
   maxY = 0; tFlight = 0; viewTarget = BASE_VIEW; $("pred").textContent = "";
 });
 
-// Pantalla completa (oculto donde el navegador no lo permite, como Safari en iPhone)
-const fsBtn = $("fs"), root = document.documentElement;
-const reqFs = root.requestFullscreen || root.webkitRequestFullscreen;
-const isFs = () => document.fullscreenElement || document.webkitFullscreenElement;
-if (!reqFs) fsBtn.hidden = true;
-fsBtn.addEventListener("click", () => {
-  try {
-    const p = isFs() ? (document.exitFullscreen || document.webkitExitFullscreen).call(document) : reqFs.call(root);
-    if (p && p.catch) p.catch(() => { fsBtn.hidden = true; });
-  } catch (err) { fsBtn.hidden = true; }
-});
-const ENTER = '<path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/>', EXIT = '<path d="M8 3v5H3M21 8h-5V3M16 21v-5h5M3 16h5v5"/>';
-const syncFs = () => { const on = !!isFs(); $("fsIco").innerHTML = on ? EXIT : ENTER; $("fsLbl").textContent = on ? "Salir" : "Pantalla"; setTimeout(resize, 200); };
-document.addEventListener("fullscreenchange", syncFs);
-document.addEventListener("webkitfullscreenchange", syncFs);
 
 // ---------- Física (solución exacta con g constante) ----------
 function physics(dt){
@@ -366,6 +368,7 @@ setG("9.81"); resize();
 requestAnimationFrame(frame);
 })();
 </script>
+<dialog class="kids" id="kids" aria-labelledby="kidsT"><div><h2 id="kidsT">¿Por qué la pelota vuelve a bajar?</h2><p>Cuando lanzas una pelota hacia arriba, la gravedad la tira hacia abajo todo el tiempo. Por eso sube cada vez más lento, se queda quieta un instante arriba y vuelve a caer.</p><p>En la Luna la gravedad es más débil, así que la pelota sube mucho más alto. En Júpiter es mucho más fuerte y casi no sube.</p><p>Las pelotas transparentes muestran dónde estaba la pelota cada décima de segundo. Arriba quedan más juntas porque ahí va más lenta.</p><p class="try">Prueba: lanza la pelota con la misma fuerza en la Tierra y en la Luna. ¿Cuántas veces más alto sube en la Luna?</p><button type="button" data-learn-close>Entendido</button></div></dialog>
 <!-- SyMula: selector de tema (botones con data-theme-set) -->
 <script>(function(){
 function sync(){var t=document.documentElement.getAttribute("data-theme");
@@ -379,5 +382,25 @@ document.querySelectorAll("[data-theme-set]").forEach(function(b){b.addEventList
 try{if(!localStorage.getItem("symula-tema")&&window.matchMedia)matchMedia("(prefers-color-scheme: light)").addEventListener("change",function(e){document.documentElement.setAttribute("data-theme",e.matches?"light":"dark");sync();window.dispatchEvent(new Event("symula-tema"));});}catch(e){}
 sync();})();</script>
 <!-- fin SyMula: selector de tema -->
+<!-- SyMula: botones comunes ("Saber más" abre #kids; data-full oculta el menú y pide pantalla completa) -->
+<script>(function(){var d=document.getElementById("kids"),b=document.querySelector("[data-learn]");
+if(d&&b){var shut=function(){if(d.close)d.close();else d.removeAttribute("open");};
+  b.addEventListener("click",function(){if(d.showModal)d.showModal();else d.setAttribute("open","");});
+  d.addEventListener("click",function(e){if(e.target===d||e.target.closest("[data-learn-close]"))shut();});}
+var f=document.querySelector("[data-full]");if(!f)return;
+var root=document.documentElement,req=root.requestFullscreen||root.webkitRequestFullscreen,
+  sv='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">',
+  ON=sv+'<path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/></svg>',OFF=sv+'<path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+function isFs(){return document.fullscreenElement||document.webkitFullscreenElement;}
+function set(on){document.body.classList.toggle("nodock",on);f.setAttribute("aria-pressed",on);f.innerHTML=on?OFF:ON;
+  f.setAttribute("aria-label",on?"Mostrar el menú":"Pantalla completa: ocultar el menú");
+  try{if(on&&req&&!isFs()){var p=req.call(root);if(p&&p.catch)p.catch(function(){});}
+    else if(!on&&isFs())(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}
+  setTimeout(function(){window.dispatchEvent(new Event("resize"));},60);}
+f.addEventListener("click",function(){set(!document.body.classList.contains("nodock"));});
+function left(){if(!isFs()&&document.body.classList.contains("nodock"))set(false);}
+document.addEventListener("fullscreenchange",left);document.addEventListener("webkitfullscreenchange",left);
+set(false);})();</script>
+<!-- fin SyMula: botones comunes -->
 </body>
 </html>

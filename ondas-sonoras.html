@@ -77,6 +77,22 @@ body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;ove
 .themes button[aria-pressed="true"]{background:var(--primary);color:var(--primary-text)}
 button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 [hidden]{display:none!important}
+.learn{position:absolute;top:12px;left:72px;height:48px;padding:0 16px 0 12px;border-radius:12px;display:flex;align-items:center;gap:8px;z-index:3;cursor:pointer;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);font:600 14px Inter,sans-serif;touch-action:manipulation}
+.learn svg{width:22px;height:22px;flex:none;color:var(--primary)}
+@media (hover:hover){.learn:hover{border-color:var(--primary)}}
+.kids{width:min(560px,calc(100% - 32px));max-height:calc(100% - 48px);padding:0;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.kids::backdrop{background:rgba(5,10,20,.55)}
+.kids>div{padding:20px;display:flex;flex-direction:column;gap:12px}
+.kids h2{margin:0;font:700 20px/1.25 Inter,sans-serif;letter-spacing:-.01em}
+.kids p{margin:0;font-size:16px;line-height:1.5;color:var(--text)}
+.kids p.try{padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border)}
+.kids button{align-self:flex-end;min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--primary);background:var(--primary);color:var(--primary-text);font:600 15px Inter,sans-serif;cursor:pointer}
+.full{position:absolute;top:12px;right:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;cursor:pointer;padding:0;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);touch-action:manipulation}
+.full svg{width:24px;height:24px}
+@media (hover:hover){.full:hover{border-color:var(--primary)}}
+body.nodock .dock{display:none!important}
 /* ===== fin del estilo común ===== */
 .tile.s{font-size:11.5px}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
@@ -99,7 +115,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-of
 <div class="stage">
   <canvas id="room" aria-label="Sala vista desde arriba: arrastra el parlante o el oyente"></canvas>
   <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
-  <div class="card" id="card" aria-live="polite"><h1>Sonido en una sala</h1><p id="say">Toca una nota y arrastra el parlante o el oyente.</p><p class="data" id="data">0 Hz · λ = 0 m · oyente 0 dB</p></div>
+  <button class="learn" type="button" data-learn aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>Saber más</button>
+  <button class="full" type="button" data-full aria-pressed="false" aria-label="Pantalla completa: ocultar el menú"></button>
+  <div class="card" id="card" aria-live="polite" hidden><h1>Sonido en una sala</h1><p id="say">Toca una nota y arrastra el parlante o el oyente.</p><p class="data" id="data">0 Hz · λ = 0 m · oyente 0 dB</p></div>
   <div class="toast off" id="toast"></div>
 </div>
 <nav class="dock" aria-label="Controles">
@@ -249,7 +267,7 @@ function setup(keepFreq){
   area = K*dx*dx;
   p0 = new Float32Array(N); p1 = new Float32Array(N); p2 = new Float32Array(N); en = new Float32Array(N);
   off.width = NX; off.height = NY; img = octx.createImageData(NX, NY); px32 = new Uint32Array(img.data.buffer);
-  const top = $("card").offsetTop + $("card").offsetHeight + 10, pad = 14;
+  const top = 72, pad = 14;   // bajo el inicio y "Saber más"
   const s = Math.min((cw-2*pad)/Wb, (ch-top-pad-14)/Hb);
   rect = {w:Wb*s, h:Hb*s, x:(cw-Wb*s)/2, y:top+(ch-top-14-Hb*s)/2};
   const ensure = p => { if (!mask[p.y*NX+p.x]){ const i = fl[(K*0.5)|0]; p.x = i%NX; p.y = (i/NX)|0; } };
@@ -834,6 +852,7 @@ setup(false); syncSrcUI(); lastW = room.clientWidth; lastH = room.clientHeight;
 requestAnimationFrame(frame);
 })();
 </script>
+<dialog class="kids" id="kids" aria-labelledby="kidsT"><div><h2 id="kidsT">¿Qué es el sonido?</h2><p>El sonido es aire que se aprieta y se suelta muy rápido, como una ola que no se ve. Esas olas viajan por la sala y rebotan en las paredes, como una pelota.</p><p>Cuando dos olas llegan juntas, el sonido se hace más fuerte. Cuando una sube mientras la otra baja, se borran y casi no se oye nada.</p><p>Las notas graves hacen olas largas y las agudas hacen olas cortitas.</p><p class="try">Prueba: toca una nota y mueve al oyente por la sala. ¿Dónde suena más fuerte? ¿Dónde casi no se oye?</p><button type="button" data-learn-close>Entendido</button></div></dialog>
 <!-- SyMula: selector de tema (botones con data-theme-set) -->
 <script>(function(){
 function sync(){var t=document.documentElement.getAttribute("data-theme");
@@ -847,5 +866,25 @@ document.querySelectorAll("[data-theme-set]").forEach(function(b){b.addEventList
 try{if(!localStorage.getItem("symula-tema")&&window.matchMedia)matchMedia("(prefers-color-scheme: light)").addEventListener("change",function(e){document.documentElement.setAttribute("data-theme",e.matches?"light":"dark");sync();window.dispatchEvent(new Event("symula-tema"));});}catch(e){}
 sync();})();</script>
 <!-- fin SyMula: selector de tema -->
+<!-- SyMula: botones comunes ("Saber más" abre #kids; data-full oculta el menú y pide pantalla completa) -->
+<script>(function(){var d=document.getElementById("kids"),b=document.querySelector("[data-learn]");
+if(d&&b){var shut=function(){if(d.close)d.close();else d.removeAttribute("open");};
+  b.addEventListener("click",function(){if(d.showModal)d.showModal();else d.setAttribute("open","");});
+  d.addEventListener("click",function(e){if(e.target===d||e.target.closest("[data-learn-close]"))shut();});}
+var f=document.querySelector("[data-full]");if(!f)return;
+var root=document.documentElement,req=root.requestFullscreen||root.webkitRequestFullscreen,
+  sv='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">',
+  ON=sv+'<path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/></svg>',OFF=sv+'<path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+function isFs(){return document.fullscreenElement||document.webkitFullscreenElement;}
+function set(on){document.body.classList.toggle("nodock",on);f.setAttribute("aria-pressed",on);f.innerHTML=on?OFF:ON;
+  f.setAttribute("aria-label",on?"Mostrar el menú":"Pantalla completa: ocultar el menú");
+  try{if(on&&req&&!isFs()){var p=req.call(root);if(p&&p.catch)p.catch(function(){});}
+    else if(!on&&isFs())(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}
+  setTimeout(function(){window.dispatchEvent(new Event("resize"));},60);}
+f.addEventListener("click",function(){set(!document.body.classList.contains("nodock"));});
+function left(){if(!isFs()&&document.body.classList.contains("nodock"))set(false);}
+document.addEventListener("fullscreenchange",left);document.addEventListener("webkitfullscreenchange",left);
+set(false);})();</script>
+<!-- fin SyMula: botones comunes -->
 </body>
 </html>

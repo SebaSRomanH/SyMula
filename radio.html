@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1226">
+<!-- SyMula: tema (va antes del estilo para no parpadear) -->
+<script>(function(){var t=null;try{t=localStorage.getItem("symula-tema");if(!t&&localStorage.getItem("symula-noche")==="1")t="night";}catch(e){}
+if(t!=="light"&&t!=="dark"&&t!=="night")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";
+document.documentElement.setAttribute("data-theme",t);})();</script>
+<!-- fin SyMula: tema -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Radio AM y FM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== SyMula: estilo común (sistema de diseño v1.0, igual en todas las páginas) ===== */
+:root,:root[data-theme="dark"]{
+  --background:#0B1526;--surface:#15253A;--surface-2:#1B2E47;--text:#F0F6FC;--text-muted:#B8C6D3;
+  --primary:#42C7CF;--primary-text:#0B1526;--accent:#E6B66A;--border:#30445B;--control-border:#5D7590;
+  --sem-1:#6CB4F0;--sem-2:#F29C6B;--sem-3:#6FCF97;--sem-4:#C49BEA;--sem-5:#E6C15A;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --background:#F8FAFC;--surface:#FFFFFF;--surface-2:#F1F5F8;--text:#102A43;--text-muted:#526779;
+  --primary:#087481;--primary-text:#FFFFFF;--accent:#D9A15B;--border:#DCE5EB;--control-border:#7B8FA1;
+  --sem-1:#1F6FB2;--sem-2:#B4532A;--sem-3:#2E7D4F;--sem-4:#7E4AB0;--sem-5:#8A6400;
+  color-scheme:light;
+}
+:root[data-theme="night"]{
+  --background:#09221D;--surface:#12382F;--surface-2:#174238;--text:#E7F8F2;--text-muted:#C1F4DD;
+  --primary:#21B68B;--primary-text:#09221D;--accent:#C1F4DD;--border:#286052;--control-border:#4E8A78;
+  --sem-1:#8FD3FF;--sem-2:#F5B38A;--sem-3:#9BE8C0;--sem-4:#D5B8F2;--sem-5:#F0D58A;
+  color-scheme:dark;
+}
+:root{
+  /* nombres antiguos que usa el código de cada página */
+  --bg:var(--background);--panel:var(--surface);--btn:var(--surface-2);--line:var(--border);--ink:var(--text);
+  --soft:var(--text-muted);--acc:var(--primary);--acc-ink:var(--primary-text);--cyan:var(--primary);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;background:var(--background)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;background:var(--background);color:var(--text);
+  font:500 15px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden;background:var(--background)}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+:root[data-theme="night"] .stage canvas{filter:grayscale(1) sepia(.8) hue-rotate(92deg) saturate(.85) brightness(.88)}   /* verde suave, sin fluorescencia */
+.home{position:absolute;top:12px;left:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text)}
+.card{position:absolute;top:12px;left:72px;right:12px;max-width:480px;min-height:48px;padding:10px 16px;border-radius:12px;z-index:2;pointer-events:none;
+  background:var(--surface);background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--border)}
+.card h1{font:700 17px/1.2 Inter,sans-serif;margin:0;color:var(--text);letter-spacing:-.01em}
+.card p{margin:3px 0 0;font-size:14px;color:var(--text-muted)}
+.card .data{font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+.card p:empty{display:none}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:max-content;max-width:92%;padding:10px 16px;border-radius:12px;z-index:3;
+  background:var(--surface);color:var(--text);border:1px solid var(--primary);font-weight:600;text-align:center;pointer-events:none;transition:opacity .3s}
+.toast.off{opacity:0}
+.dock{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px 14px;display:flex;flex-direction:column;gap:10px}
+.dock>*{width:100%;max-width:760px;margin:0 auto}
+.row{display:flex;gap:8px}
+.tile{flex:1 1 0;min-width:0;min-height:56px;padding:6px 4px;border-radius:12px;border:1px solid var(--control-border);background:var(--surface-2);color:var(--text);
+  font:600 13px/1.15 Inter,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;
+  touch-action:manipulation;transition:border-color .15s,background-color .15s}
+.tile svg{width:24px;height:24px;flex:none}
+.tile small{font-size:11px;font-weight:500;opacity:.85}
+@media (hover:hover){.tile:hover:not(:disabled),.home:hover{border-color:var(--primary)}}
+.tile[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+.tile:disabled{opacity:.45;cursor:not-allowed}
+.tile[aria-busy="true"]{position:relative;color:transparent}
+.tile[aria-busy="true"]::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;border:2px solid var(--text-muted);border-top-color:var(--primary);animation:sy-spin .8s linear infinite}
+@keyframes sy-spin{to{transform:rotate(360deg)}}
+.lbl{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:-4px;padding:0 2px;letter-spacing:.02em}
+.themes{display:flex;gap:4px;padding:4px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.themes button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--text);font:600 13px Inter,sans-serif;cursor:pointer}
+.themes button[aria-pressed="true"]{background:var(--primary);color:var(--primary-text)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+[hidden]{display:none!important}
+.learn{position:absolute;top:12px;left:72px;height:48px;padding:0 16px 0 12px;border-radius:12px;display:flex;align-items:center;gap:8px;z-index:3;cursor:pointer;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);font:600 14px Inter,sans-serif;touch-action:manipulation}
+.learn svg{width:22px;height:22px;flex:none;color:var(--primary)}
+@media (hover:hover){.learn:hover{border-color:var(--primary)}}
+.kids{width:min(560px,calc(100% - 32px));max-height:calc(100% - 48px);padding:0;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.kids::backdrop{background:rgba(5,10,20,.55)}
+.kids>div{padding:20px;display:flex;flex-direction:column;gap:12px}
+.kids h2{margin:0;font:700 20px/1.25 Inter,sans-serif;letter-spacing:-.01em}
+.kids p{margin:0;font-size:16px;line-height:1.5;color:var(--text)}
+.kids p.try{padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border)}
+.kids button{align-self:flex-end;min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--primary);background:var(--primary);color:var(--primary-text);font:600 15px Inter,sans-serif;cursor:pointer}
+.full{position:absolute;top:12px;right:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;cursor:pointer;padding:0;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);touch-action:manipulation}
+.full svg{width:24px;height:24px}
+@media (hover:hover){.full:hover{border-color:var(--primary)}}
+body.nodock .dock{display:none!important}
+/* ===== fin del estilo común ===== */
+.sheet{display:flex;flex-direction:column;gap:8px;max-height:30vh;overflow-y:auto;padding:2px 0 8px;border-bottom:1px solid var(--line)}
+.rng{display:flex;align-items:center;gap:10px;min-height:44px;font-size:13px;color:var(--soft)}
+.rng span{width:96px;flex:none}
+.rng input{flex:1;height:32px;accent-color:var(--acc)}
+.rng output{width:76px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.quality{min-height:20px;font-size:13px;color:var(--text);text-align:center;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="cv" aria-label="Un emisor de radio envía el mensaje por el aire a un receptor; abajo, el mensaje, la onda de radio y lo que oye el receptor"></canvas>
+  <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
+  <button class="learn" type="button" data-learn aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>Saber más</button>
+  <button class="full" type="button" data-full aria-pressed="false" aria-label="Pantalla completa: ocultar el menú"></button>
+  <div class="toast off" id="toast"></div>
+</div>
+<nav class="dock" aria-label="Controles">
+  <div class="sheet" id="sheet" hidden>
+    <div class="lbl">Tema</div>
+    <div class="themes" role="group" aria-label="Tema"><button type="button" data-theme-set="light">Claro</button><button type="button" data-theme-set="dark">Oscuro</button><button type="button" data-theme-set="night">Nocturno</button></div>
+    <label class="rng"><span>Profundidad AM</span><input id="mu" type="range" min="0.2" max="1" step="0.05" value="0.8"><output id="muOut"></output></label>
+    <label class="rng"><span>Desvío FM</span><input id="dev" type="range" min="1000" max="8000" step="250" value="5000"><output id="devOut"></output></label>
+  </div>
+  <div class="row" role="group" aria-label="Tipo de radio">
+    <button class="tile" type="button" data-mode="am" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12h1l1-5 1 10 1-8 1 6 1-4 1 2h1M13 12h1l1-2 1 4 1-6 1 8 1-10 1 5h1"/></svg>AM: cambia la fuerza</button>
+    <button class="tile" type="button" data-mode="fm" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12c1-5 2-5 3 0s2 5 3 0 1.5-4 2 0 1 4 1.5 0 .7-3 1 0 .7 3 1 0 1.5-4 2 0 2 5 3 0 2-5 3 0"/></svg>FM: cambia el ritmo</button>
+  </div>
+  <div class="row">
+    <button class="tile" type="button" id="rec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg><span id="recLbl">Grabar 2 s</span></button>
+    <button class="tile" type="button" id="sample"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>Melodía</button>
+    <button class="tile" type="button" id="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13v8M9 21h6M12 13l-3-9h6z"/><path d="M5 5a9 9 0 0 0 0 9M19 5a9 9 0 0 1 0 9"/></svg>Enviar</button>
+  </div>
+  <label class="rng"><span>Ruido en el camino</span><input id="noise" type="range" min="0" max="100" step="1" value="30"><output id="noiseOut"></output></label>
+  <div class="quality" id="quality" aria-live="polite"></div>
+  <div class="row">
+    <button class="tile" type="button" id="playIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg>Oír el mensaje</button>
+    <button class="tile" type="button" id="playOut" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg>Oír lo recibido</button>
+    <button class="tile" type="button" id="more" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
+  </div>
+</nav>
+<script>
+(function(){
+"use strict";
+// @fisica
+// La radio de verdad usa portadoras de 0,5–1,7 MHz (AM) o 88–108 MHz (FM). Aquí todo va a escala de audio,
+// con la misma matemática: fs = 48 000 muestras por segundo, portadora fc = fs/4 = 12 kHz y mensaje hasta 3,5 kHz.
+//   AM: s(t) = (1 + μ·m(t))·cos(2π fc t)              (la fuerza de la onda sigue al mensaje)
+//   FM: s(t) = cos(2π fc t + 2π Δf ∫ m dt)             (el ritmo de la onda sigue al mensaje)
+// En el camino se suma ruido blanco gaussiano. El receptor baja la señal a banda base (I/Q) y la filtra:
+//   AM: |I + iQ| (envolvente) − su promedio, dividido por μ.
+//   FM: arg(z_n · conj z_{n−1}) · fs/(2π Δf) (cuánto giró la fase en cada muestra).
+const FS = 48000, FC = FS/4, BAND = 3500, SECONDS = 2;
+function lowpass(cut, fs, taps = 101){              // filtro FIR de fase cero (sinc con ventana de Blackman)
+  const h = new Float64Array(taps), M = taps - 1; let s = 0;
+  for (let i = 0; i < taps; i++){
+    const n = i - M/2, x = 2*cut/fs, sinc = n === 0 ? x : Math.sin(Math.PI*x*n)/(Math.PI*n);
+    h[i] = sinc*(0.42 - 0.5*Math.cos(2*Math.PI*i/M) + 0.08*Math.cos(4*Math.PI*i/M)); s += h[i];
+  }
+  for (let i = 0; i < taps; i++) h[i] /= s;
+  return h;
+}
+function fir(x, h){
+  const n = x.length, m = h.length, c = (m - 1) >> 1, y = new Float64Array(n);
+  for (let i = 0; i < n; i++){
+    let a = 0; const k0 = Math.max(0, c - i), k1 = Math.min(m, n + c - i);
+    for (let k = k0; k < k1; k++) a += h[k]*x[i + k - c];
+    y[i] = a;
+  }
+  return y;
+}
+function prepare(raw){                              // mensaje limitado a 3,5 kHz, sin componente continua, pico 1
+  let y = fir(raw, lowpass(BAND, FS)), mean = 0, peak = 1e-9;
+  for (const v of y) mean += v/y.length;
+  for (let i = 0; i < y.length; i++){ y[i] -= mean; peak = Math.max(peak, Math.abs(y[i])); }
+  for (let i = 0; i < y.length; i++) y[i] /= peak;
+  return y;
+}
+function modulate(m, mode, p){
+  const s = new Float64Array(m.length), w = 2*Math.PI*FC/FS;
+  let ph = 0;
+  for (let n = 0; n < m.length; n++){
+    if (mode === "am") s[n] = (1 + p.mu*m[n])*Math.cos(w*n);
+    else { s[n] = Math.cos(w*n + ph); ph += 2*Math.PI*p.dev*m[n]/FS; }
+  }
+  return s;
+}
+function rng(seed){ return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t ^= t + Math.imul(t ^ t >>> 7, 61 | t); return ((t ^ t >>> 14) >>> 0)/4294967296; }; }
+function channel(s, snrDb, seed = 7){               // ruido con la misma potencia para AM y FM (portadora de potencia 1/2)
+  const r = new Float64Array(s.length), sig = Math.sqrt(0.5/Math.pow(10, snrDb/10)), u = rng(seed);
+  for (let n = 0; n < s.length; n++){ const g = Math.sqrt(-2*Math.log(1 - u()))*Math.cos(2*Math.PI*u()); r[n] = s[n] + sig*g; }
+  return r;
+}
+function demodulate(r, mode, p){
+  const n = r.length, w = 2*Math.PI*FC/FS, I = new Float64Array(n), Q = new Float64Array(n);
+  for (let k = 0; k < n; k++){ I[k] = 2*r[k]*Math.cos(w*k); Q[k] = -2*r[k]*Math.sin(w*k); }
+  const h = lowpass(mode === "am" ? BAND + 500 : p.dev + BAND + 1000, FS), i2 = fir(I, h), q2 = fir(Q, h), y = new Float64Array(n);
+  if (mode === "am"){
+    let mean = 0;
+    for (let k = 0; k < n; k++){ y[k] = Math.hypot(i2[k], q2[k]); mean += y[k]/n; }
+    for (let k = 0; k < n; k++) y[k] = (y[k] - mean)/p.mu;
+  } else {
+    for (let k = 1; k < n; k++){
+      const re = i2[k]*i2[k - 1] + q2[k]*q2[k - 1], im = q2[k]*i2[k - 1] - i2[k]*q2[k - 1];
+      y[k - 1] = Math.atan2(im, re)*FS/(2*Math.PI*p.dev);   // la fase de s[n] lleva m hasta n − 1
+    }
+  }
+  return fir(y, lowpass(BAND, FS));
+}
+function quality(m, y){                             // señal/ruido del mensaje recibido, en dB
+  let a = 0, b = 0;
+  for (let k = 400; k < m.length - 400; k++){ a += m[k]*m[k]; b += (y[k] - m[k])*(y[k] - m[k]); }
+  return 10*Math.log10(a/Math.max(b, 1e-12));
+}
+const snrOf = noise => 40 - 0.45*noise;             // control "Ruido en el camino" (0–100) → señal/ruido en el aire
+// Mensaje de ejemplo: tres notas cantadas (con armónicos, vibrato y ataque suave), 2 s.
+function melody(){
+  const n = FS*SECONDS, x = new Float64Array(n), notes = [[392, 0, 0.62], [330, 0.66, 1.28], [262, 1.32, 1.95]];
+  for (const [f, t0, t1] of notes){
+    let ph = 0;
+    for (let k = Math.round(t0*FS); k < Math.min(n, Math.round(t1*FS)); k++){
+      const t = k/FS - t0, d = t1 - t0, env = Math.min(1, t/0.04)*Math.min(1, (d - t)/0.12);
+      ph += 2*Math.PI*f*(1 + 0.012*Math.sin(2*Math.PI*5.5*t))/FS;
+      x[k] += env*(Math.sin(ph) + 0.5*Math.sin(2*ph) + 0.3*Math.sin(3*ph) + 0.15*Math.sin(5*ph));
+    }
+  }
+  return x;
+}
+// @fin-fisica
+
+const $ = id => document.getElementById(id), cv = $("cv"), ctx = cv.getContext("2d");
+const fmt = (v, d) => v.toFixed(d).replace(".", ",").replace("-", "−");
+let W = 1, H = 1, dpr = 1, mode = "am", noise = 30, p = {mu: 0.8, dev: 5000};
+let msg = prepare(melody()), recv = null, sending = null, playhead = 0.15, recording = null, t0 = performance.now();
+const N = FS*SECONDS;
+
+let toastT = 0;
+function toast(m, ms = 2800){ const t = $("toast"); t.textContent = m; t.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.add("off"), ms); }
+
+// ---------- Sonido ----------
+let ac = null;
+function audio(){ if (!ac){ const AC = window.AudioContext || window.webkitAudioContext; if (AC) ac = new AC(); } if (ac && ac.state === "suspended") ac.resume(); return ac; }
+let src = null;
+function play(x){
+  const a = audio(); if (!a) return;
+  if (src){ try { src.stop(); } catch (e){} }
+  const b = a.createBuffer(1, x.length, FS), d = b.getChannelData(0);
+  for (let i = 0; i < x.length; i++) d[i] = Math.max(-1, Math.min(1, 0.6*x[i]));
+  src = a.createBufferSource(); src.buffer = b; src.connect(a.destination); src.start();
+}
+
+// ---------- Botones ----------
+function setMode(m){ mode = m; recv = null; $("playOut").disabled = true; $("quality").textContent = "";
+  document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m)); }
+document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+function noiseText(){ $("noiseOut").textContent = "señal/ruido " + fmt(snrOf(noise), 0) + " dB"; }
+$("noise").addEventListener("input", () => { noise = +$("noise").value; noiseText(); });
+$("mu").addEventListener("input", () => { p.mu = +$("mu").value; $("muOut").textContent = Math.round(p.mu*100) + " %"; });
+$("dev").addEventListener("input", () => { p.dev = +$("dev").value; $("devOut").textContent = fmt(p.dev/1000, 2).replace(/,?0+$/, "") + " kHz"; });
+$("mu").dispatchEvent(new Event("input")); $("dev").dispatchEvent(new Event("input")); noiseText();
+$("more").addEventListener("click", () => { const o = $("sheet").hidden; $("sheet").hidden = !o; $("more").setAttribute("aria-pressed", o); });
+$("sample").addEventListener("click", () => { msg = prepare(melody()); recv = null; $("playOut").disabled = true; $("quality").textContent = ""; play(msg); });
+$("playIn").addEventListener("click", () => play(msg));
+$("playOut").addEventListener("click", () => { if (recv) play(recv); });
+const WORDS = q => q > 25 ? "se oye muy clara" : q > 15 ? "se oye clara" : q > 6 ? "se oye con ruido" : q > 0 ? "cuesta entenderla" : "casi no se entiende";
+$("send").addEventListener("click", () => {
+  if (sending || recording) return;
+  $("send").setAttribute("aria-busy", "true");
+  setTimeout(() => {                                 // deja que se dibuje el estado "cargando"
+    const s = modulate(msg, mode, p), r = channel(s, snrOf(noise), (Math.random()*1e9) | 0);
+    recv = demodulate(r, mode, p);
+    const q = quality(msg, recv);
+    $("send").removeAttribute("aria-busy"); $("playOut").disabled = false;
+    $("quality").textContent = `${mode.toUpperCase()}: llegó con señal/ruido de ${fmt(q, 0)} dB, ${WORDS(q)}.`;
+    sending = {t: performance.now()}; play(recv);
+  }, 30);
+});
+// Grabar 2 s con el micrófono (se pide permiso al tocar)
+$("rec").addEventListener("click", async () => {
+  if (recording || sending) return;
+  const a = audio();
+  if (!a || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ toast("Este navegador no permite grabar. Usa la melodía."); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: false, noiseSuppression: false, autoGainControl: true}}); }
+  catch (e){ toast("No se pudo usar el micrófono. Revisa el permiso o usa la melodía."); return; }
+  const sr = a.sampleRate, need = Math.round(sr*SECONDS), buf = new Float32Array(need);
+  const node = a.createMediaStreamSource(stream), proc = a.createScriptProcessor(4096, 1, 1), mute = a.createGain();
+  mute.gain.value = 0; let got = 0;
+  recording = {got: 0, need};
+  $("rec").setAttribute("aria-pressed", "true"); $("recLbl").textContent = "Grabando…";
+  proc.onaudioprocess = e => {
+    const d = e.inputBuffer.getChannelData(0), k = Math.min(d.length, need - got);
+    buf.set(d.subarray(0, k), got); got += k; recording.got = got;
+    if (got >= need){
+      proc.disconnect(); node.disconnect(); stream.getTracks().forEach(t => t.stop());
+      const raw = new Float64Array(N);                 // a 48 000 muestras por segundo
+      for (let i = 0; i < N; i++){ const x = i*sr/FS, j = Math.floor(x), f = x - j; raw[i] = (buf[j] || 0)*(1 - f) + (buf[j + 1] || 0)*f; }
+      msg = prepare(raw); recv = null; recording = null; $("playOut").disabled = true; $("quality").textContent = "";
+      $("rec").setAttribute("aria-pressed", "false"); $("recLbl").textContent = "Grabar 2 s";
+      toast("Listo. Ahora toca Enviar.");
+    }
+  };
+  node.connect(proc); proc.connect(mute); mute.connect(a.destination);
+});
+
+// ---------- Dibujo ----------
+function resize(){ dpr = Math.min(2.5, window.devicePixelRatio || 1); W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight); cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+new ResizeObserver(resize).observe(cv);
+function envelope(x, k0, k1, w){                    // máximos y mínimos por columna, para dibujar 2 s de audio
+  const lo = new Float32Array(w), hi = new Float32Array(w);
+  for (let c = 0; c < w; c++){
+    const a = Math.floor(k0 + (k1 - k0)*c/w), b = Math.max(a + 1, Math.floor(k0 + (k1 - k0)*(c + 1)/w));
+    let mn = 1e9, mx = -1e9; for (let k = a; k < b; k += 2){ const v = x[k] || 0; if (v < mn) mn = v; if (v > mx) mx = v; }
+    lo[c] = mn; hi[c] = mx;
+  }
+  return [lo, hi];
+}
+function strip(y, h, title, col, x, upto){
+  const L = 16, w = W - 2*L, text = SyMulaColor("text") || "#fff", muted = SyMulaColor("text-muted") || "#bbb", border = SyMulaColor("border") || "#345";
+  ctx.fillStyle = SyMulaColor("surface") || "#15253A"; ctx.strokeStyle = border; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(L, y, w, h, 10) : ctx.rect(L, y, w, h); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = text; ctx.font = "600 12px Inter, sans-serif"; ctx.textBaseline = "top"; ctx.textAlign = "left"; ctx.fillText(title, L + 10, y + 6);
+  if (!x) return;
+  const top = y + 22, hh = h - 28, mid = top + hh/2, cw = Math.max(1, Math.floor(w - 20));
+  if (typeof x === "function"){ x(L + 10, top, cw, hh, col); return; }
+  const [lo, hi] = envelope(x, 0, N, cw), lim = upto == null ? cw : Math.floor(upto*cw);
+  ctx.fillStyle = col;
+  for (let c = 0; c < lim; c++){ const a = Math.max(-1.2, lo[c]), b = Math.min(1.2, hi[c]); ctx.fillRect(L + 10 + c, mid - b*hh/2.4, 1, Math.max(1, (b - a)*hh/2.4)); }
+  if (upto != null && upto < 1){ ctx.fillStyle = muted; ctx.fillRect(L + 10 + lim, top, 1.5, hh); }
+}
+function radioWave(X, Y, w, h, col){               // dibujo de la onda alrededor del instante actual, más lento que la realidad
+  const k = Math.round(playhead*(N - 1)), span = 0.008*FS, cyc = Math.max(18, w/9), mid = Y + h/2, A = h/2.6;
+  const amp = Math.sqrt(0.5/Math.pow(10, snrOf(noise)/10))*1.2, u = rng(((performance.now()/120) | 0));
+  ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.beginPath();
+  let ph = 0;
+  for (let c = 0; c <= w; c++){
+    const m = msg[Math.max(0, Math.min(N - 1, Math.round(k - span/2 + span*c/w)))];
+    let v;
+    if (mode === "am") v = (1 + p.mu*m)*Math.cos(ph)/(1 + p.mu);
+    else v = Math.cos(ph);
+    ph += 2*Math.PI*cyc/w*(mode === "fm" ? 1 + 0.55*m*p.dev/5000 : 1);
+    v += amp*(u()*2 - 1);
+    const yy = mid - A*Math.max(-1.5, Math.min(1.5, v));
+    c ? ctx.lineTo(X + c, yy) : ctx.moveTo(X + c, yy);
+  }
+  ctx.stroke();
+  if (mode === "am"){                               // envolvente: el mensaje que lleva la onda
+    ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.setLineDash([3, 4]); ctx.beginPath();
+    for (let c = 0; c <= w; c += 3){ const m = msg[Math.max(0, Math.min(N - 1, Math.round(k - span/2 + span*c/w)))]; const yy = mid - A*(1 + p.mu*m)/(1 + p.mu); c ? ctx.lineTo(X + c, yy) : ctx.moveTo(X + c, yy); }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+}
+function scene(y0, h){
+  const sky = ctx.createLinearGradient(0, y0, 0, y0 + h);
+  sky.addColorStop(0, "#0b1733"); sky.addColorStop(1, "#24406b");
+  ctx.fillStyle = sky; ctx.fillRect(0, y0, W, h);
+  const gy = y0 + h - 18;
+  ctx.fillStyle = "#1f3524"; ctx.fillRect(0, gy, W, 18); ctx.fillStyle = "#3f6b46"; ctx.fillRect(0, gy, W, 2);
+  // emisor: torre con antena
+  const ex = Math.max(52, W*0.16), th = Math.min(h*0.7, 150), ty = gy - th;
+  ctx.strokeStyle = "#c9d3e0"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(ex - th*0.16, gy); ctx.lineTo(ex, ty); ctx.lineTo(ex + th*0.16, gy); ctx.stroke();
+  for (let k = 1; k < 6; k++){ const yy = gy - th*k/6, ww = th*0.16*(1 - k/6); ctx.beginPath(); ctx.moveTo(ex - ww, yy); ctx.lineTo(ex + ww, yy); ctx.stroke(); }
+  ctx.fillStyle = "#ff6b5a"; ctx.beginPath(); ctx.arc(ex, ty, 4, 0, Math.PI*2); ctx.fill();
+  // receptor: radio con parlante
+  const rx = W - Math.max(64, W*0.18), rw = 64, rh = 42, ry = gy - rh;
+  ctx.fillStyle = "#c98a4b"; ctx.strokeStyle = "#6b4321"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(rx - rw/2, ry, rw, rh, 8) : ctx.rect(rx - rw/2, ry, rw, rh); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = "#3d2a17"; ctx.beginPath(); ctx.moveTo(rx + rw/2 - 12, ry); ctx.lineTo(rx + rw/2 + 6, ry - 34); ctx.stroke();
+  ctx.fillStyle = "#3d2a17"; ctx.beginPath(); ctx.arc(rx - 12, ry + rh/2, 12, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#f5e6c8"; ctx.fillRect(rx + 6, ry + 10, 18, 8);
+  const lab = "#e8eef6"; ctx.fillStyle = lab; ctx.font = "600 12px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.fillText("Emisor", ex, gy + 3); ctx.fillText("Receptor", rx, gy + 3);
+  // ondas que viajan del emisor al receptor (más tenues con la distancia; el ruido se ve como chispas)
+  const t = (performance.now() - t0)/1000, on = sending ? 1 : 0.35, dist = rx - ex;
+  ctx.lineWidth = 2;
+  for (let k = 0; k < 7; k++){
+    const r = ((t*70 + k*dist/7) % dist) + 6, a = on*(1 - r/dist)*0.8;
+    ctx.strokeStyle = `rgba(140,210,255,${a.toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(ex, ty, r, -0.55, 0.55); ctx.stroke();
+  }
+  const sparks = Math.round(noise*0.6), u = rng(((performance.now()/90) | 0) + 3);
+  ctx.fillStyle = "rgba(255,240,200,0.55)";
+  for (let k = 0; k < sparks; k++) ctx.fillRect(ex + 20 + u()*(dist - 40), ty + u()*(gy - ty), 2, 2);
+}
+function draw(){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = SyMulaColor("background") || "#0B1526"; ctx.fillRect(0, 0, W, H);
+  const sh = Math.max(60, Math.min(84, (H - 72)/5.2)), gap = 8, sceneH = Math.max(110, H - 72 - 3*(sh + gap) - 8);
+  scene(68, sceneH);
+  let y = 68 + sceneH + gap;
+  const c1 = SyMulaColor("sem-1") || "#6CB4F0", c2 = SyMulaColor("sem-2") || "#F29C6B", c3 = SyMulaColor("sem-3") || "#6FCF97";
+  strip(y, sh, recording ? `1. Mensaje: grabando ${fmt(recording.got/recording.need*2, 1)} s` : "1. Mensaje (2 segundos)", c1, recording ? null : msg, sending ? playhead : null); y += sh + gap;
+  strip(y, sh, `2. Onda de radio ${mode.toUpperCase()}, dibujada en cámara lenta`, c2, radioWave); y += sh + gap;
+  strip(y, sh, "3. Lo que oye el receptor", c3, recv, sending ? playhead : null);
+}
+function frame(now){
+  if (sending){ playhead = Math.min(1, (now - sending.t)/(SECONDS*1000)); if (playhead >= 1){ sending = null; playhead = 0.15; } }
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+<dialog class="kids" id="kids" aria-labelledby="kidsT"><div><h2 id="kidsT">¿Cómo viaja tu voz por la radio?</h2><p>La radio no manda tu voz por el aire tal como es. Usa una onda invisible que vibra muy, muy rápido, como una cuerda que alguien sacude todo el tiempo. Esa onda se llama portadora.</p><p>En la radio AM, la voz cambia qué tan grande es la onda: más fuerte, más chica, más fuerte. En la radio FM, la voz cambia qué tan rápido vibra: más apretada, más suelta.</p><p>El receptor atrapa la onda con su antena y la vuelve a convertir en sonido. En el camino se mete ruido, como un chisporroteo. La FM se defiende mejor del ruido porque al ruido le cuesta cambiar el ritmo de la onda.</p><p class="try">Prueba: graba tu voz diciendo "hola", sube el ruido y envíala por AM y después por FM. ¿Por cuál se escucha mejor?</p><button type="button" data-learn-close>Entendido</button></div></dialog>
+<!-- SyMula: selector de tema (botones con data-theme-set) -->
+<script>(function(){
+function sync(){var t=document.documentElement.getAttribute("data-theme");
+  document.querySelectorAll("[data-theme-set]").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-theme-set")===t);});
+  var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",getComputedStyle(document.documentElement).getPropertyValue("--background").trim());}
+window.SyMulaTheme=function(t){document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("symula-tema",t);}catch(e){}sync();
+  window.dispatchEvent(new Event("symula-tema"));};
+// colores del tema para dibujar en el lienzo: SyMulaColor("sem-1"), SyMulaColor("primary")...
+window.SyMulaColor=function(name){return getComputedStyle(document.documentElement).getPropertyValue("--"+name).trim();};
+document.querySelectorAll("[data-theme-set]").forEach(function(b){b.addEventListener("click",function(){SyMulaTheme(b.getAttribute("data-theme-set"));});});
+try{if(!localStorage.getItem("symula-tema")&&window.matchMedia)matchMedia("(prefers-color-scheme: light)").addEventListener("change",function(e){document.documentElement.setAttribute("data-theme",e.matches?"light":"dark");sync();window.dispatchEvent(new Event("symula-tema"));});}catch(e){}
+sync();})();</script>
+<!-- fin SyMula: selector de tema -->
+<!-- SyMula: botones comunes ("Saber más" abre #kids; data-full oculta el menú y pide pantalla completa) -->
+<script>(function(){var d=document.getElementById("kids"),b=document.querySelector("[data-learn]");
+if(d&&b){var shut=function(){if(d.close)d.close();else d.removeAttribute("open");};
+  b.addEventListener("click",function(){if(d.showModal)d.showModal();else d.setAttribute("open","");});
+  d.addEventListener("click",function(e){if(e.target===d||e.target.closest("[data-learn-close]"))shut();});}
+var f=document.querySelector("[data-full]");if(!f)return;
+var root=document.documentElement,req=root.requestFullscreen||root.webkitRequestFullscreen,
+  sv='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">',
+  ON=sv+'<path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/></svg>',OFF=sv+'<path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+function isFs(){return document.fullscreenElement||document.webkitFullscreenElement;}
+function set(on){document.body.classList.toggle("nodock",on);f.setAttribute("aria-pressed",on);f.innerHTML=on?OFF:ON;
+  f.setAttribute("aria-label",on?"Mostrar el menú":"Pantalla completa: ocultar el menú");
+  try{if(on&&req&&!isFs()){var p=req.call(root);if(p&&p.catch)p.catch(function(){});}
+    else if(!on&&isFs())(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}
+  setTimeout(function(){window.dispatchEvent(new Event("resize"));},60);}
+f.addEventListener("click",function(){set(!document.body.classList.contains("nodock"));});
+function left(){if(!isFs()&&document.body.classList.contains("nodock"))set(false);}
+document.addEventListener("fullscreenchange",left);document.addEventListener("webkitfullscreenchange",left);
+set(false);})();</script>
+<!-- fin SyMula: botones comunes -->
+</body>
+</html>
