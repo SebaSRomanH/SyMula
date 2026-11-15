@@ -30,6 +30,11 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   oculta el menú (`body.nodock`) y pide pantalla completa al navegador. Ambos van en el bloque "SyMula: botones comunes"
   (script tras el selector de tema, idéntico en todas). La tarjeta `.card` de cada simulador está oculta (`hidden`) a
   pedido de Sebas; el código que la llena sigue. Controles abajo en `.dock`; lo avanzado y el tema en el panel "Más".
+- El mismo bloque común agrega al comienzo de `.dock` una manija "Ocultar opciones" / "Mostrar opciones" (`body.dockmin`
+  deja solo la manija; se recuerda en localStorage `symula-menu-chico`) y las ayudas: cada página lista en
+  `<script type="application/json" id="tips">` pares [selector CSS, explicación simple]. Con el mouse encima (350 ms),
+  el dedo apretado (450 ms, sin activar el botón) o el foco del teclado aparece la burbuja `.tip`. Al agregar un control
+  con un concepto físico o matemático, sumar su ayuda a esa lista.
 - Las páginas nuevas se arman copiando el `<head>`, el estilo común y los bloques del final desde una existente.
 - Simulación ligada al tiempo real (pasos según dt, igual a 60 y 120 Hz) con un tope de ms por cuadro;
   los LBM ajustan solos la resolución de la malla según lo que el equipo alcanza.

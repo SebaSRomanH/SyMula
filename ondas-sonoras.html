@@ -93,6 +93,17 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-of
 .full svg{width:24px;height:24px}
 @media (hover:hover){.full:hover{border-color:var(--primary)}}
 body.nodock .dock{display:none!important}
+.dock-handle{display:flex;align-items:center;justify-content:center;gap:6px;width:auto!important;min-height:44px;margin:-12px auto -8px!important;padding:0 18px;
+  border:0;border-radius:12px;background:transparent;color:var(--text-muted);font:600 12px Inter,sans-serif;cursor:pointer;touch-action:manipulation}
+.dock-handle svg{width:18px;height:18px;flex:none;transition:transform .2s}
+@media (hover:hover){.dock-handle:hover{color:var(--text)}}
+body.dockmin .dock>:not(.dock-handle){display:none!important}
+body.dockmin .dock{padding-bottom:4px}
+body.dockmin .dock-handle svg{transform:rotate(180deg)}
+.tip{position:fixed;left:0;top:0;z-index:60;max-width:min(300px,calc(100vw - 24px));padding:8px 12px;border-radius:12px;pointer-events:none;
+  background:var(--surface-2);color:var(--text);border:1px solid var(--primary);font:500 13.5px/1.4 Inter,sans-serif;opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+body{-webkit-touch-callout:none}
 /* ===== fin del estilo común ===== */
 .tile.s{font-size:11.5px}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
@@ -853,6 +864,9 @@ requestAnimationFrame(frame);
 })();
 </script>
 <dialog class="kids" id="kids" aria-labelledby="kidsT"><div><h2 id="kidsT">¿Qué es el sonido?</h2><p>El sonido es aire que se aprieta y se suelta muy rápido, como una ola que no se ve. Esas olas viajan por la sala y rebotan en las paredes, como una pelota.</p><p>Cuando dos olas llegan juntas, el sonido se hace más fuerte. Cuando una sube mientras la otra baja, se borran y casi no se oye nada.</p><p>Las notas graves hacen olas largas y las agudas hacen olas cortitas.</p><p class="try">Prueba: toca una nota y mueve al oyente por la sala. ¿Dónde suena más fuerte? ¿Dónde casi no se oye?</p><button type="button" data-learn-close>Entendido</button></div></dialog>
+<!-- SyMula: ayudas (selector CSS → explicación simple; las muestra el bloque de botones comunes) -->
+<script type="application/json" id="tips">[["[data-view=\"p\"]","Presión: el sonido son zonas de aire más apretado y más suelto que viajan como olas a 343 m/s."],["[data-view=\"i\"]","Fuerza del sonido (intensidad): dónde se oye fuerte en promedio. Las zonas débiles son puntos donde las ondas se anulan entre sí."],["[data-pat=\"omni\"]","Omnidireccional: el parlante suena igual hacia todos lados."],["[data-pat=\"cardioid\"]","Cardioide: suena fuerte hacia adelante y casi nada hacia atrás, como muchos micrófonos. Su dibujo parece un corazón."],["[data-pat=\"dipole\"]","Dipolo: suena adelante y atrás, pero no hacia los costados, como un parlante sin caja."],["label:has(#orient)","Hacia dónde apunta el parlante."],["label:has(#phaseIn)","Fase: en qué momento de su vaivén parte este parlante respecto a los otros. A 180° empuja cuando el otro tira, y sus ondas se pueden anular."],["label:has(#damp)","Absorción: cuánto sonido se tragan las paredes. Con más absorción el eco dura menos (el tiempo de reverberación T60 es el que tarda en bajar 60 dB)."],["#chips","Modos normales: las notas en que la sala vibra sola, como una cuerda de guitarra. Dependen de la forma y del tamaño de la sala."],["#plot","Respuesta de la sala: cuánto vibra con cada frecuencia. Los picos son sus notas propias (resonancias)."],["[data-shape]","La forma de la sala cambia sus notas propias y dónde quedan las zonas fuertes y débiles."],["#srcSeg","Elige qué parlante cambias con los controles de abajo."],["#listen","Escuchar: un tono real cuyo volumen sigue lo que oye el oyente dentro de la sala."],["#reset","Silencio: apaga todas las ondas."]]</script>
+<!-- fin SyMula: ayudas -->
 <!-- SyMula: selector de tema (botones con data-theme-set) -->
 <script>(function(){
 function sync(){var t=document.documentElement.getAttribute("data-theme");
@@ -884,7 +898,44 @@ function set(on){document.body.classList.toggle("nodock",on);f.setAttribute("ari
 f.addEventListener("click",function(){set(!document.body.classList.contains("nodock"));});
 function left(){if(!isFs()&&document.body.classList.contains("nodock"))set(false);}
 document.addEventListener("fullscreenchange",left);document.addEventListener("webkitfullscreenchange",left);
-set(false);})();</script>
+set(false);
+// Ocultar la parte de abajo (opciones): una manija al comienzo del menú; se recuerda en este equipo.
+var dk=document.querySelector(".dock");
+if(dk){var h=document.createElement("button");h.type="button";h.className="dock-handle";
+  var mini=function(on){document.body.classList.toggle("dockmin",on);h.setAttribute("aria-expanded",!on);
+    h.innerHTML=sv.replace("2.2","2.4")+'<path d="M6 9l6 6 6-6"/></svg>'+(on?"Mostrar opciones":"Ocultar opciones");
+    try{localStorage.setItem("symula-menu-chico",on?"1":"0");}catch(e){}
+    setTimeout(function(){window.dispatchEvent(new Event("resize"));},60);};
+  h.addEventListener("click",function(){mini(!document.body.classList.contains("dockmin"));});
+  dk.insertBefore(h,dk.firstChild);var st=null;try{st=localStorage.getItem("symula-menu-chico");}catch(e){}mini(st==="1");}
+// Ayudas: con el mouse encima (o el dedo apretado medio segundo) se explica el concepto. Lista en #tips: [selector, texto].
+var TIPS=[];try{var tj=document.getElementById("tips");if(tj)TIPS=JSON.parse(tj.textContent);}catch(e){}
+if(TIPS.length){
+  var tip=document.createElement("div");tip.className="tip";tip.id="symula-tip";tip.setAttribute("role","tooltip");document.body.appendChild(tip);
+  var cur=null,tmr=0,hideT=0,eat=0,byMouse=false;
+  var find=function(el){for(;el&&el.nodeType===1&&el!==document.body;el=el.parentElement){
+    if(el.closest("dialog"))return null;
+    for(var i=0;i<TIPS.length;i++){try{if(el.matches(TIPS[i][0]))return [el,TIPS[i][1]];}catch(e){}}}return null;};
+  var show=function(el,txt){cur=el;tip.textContent=txt;tip.classList.add("on");el.setAttribute("aria-describedby","symula-tip");
+    var r=el.getBoundingClientRect(),tw=tip.offsetWidth,th=tip.offsetHeight,x=Math.max(12,Math.min(innerWidth-tw-12,r.left+r.width/2-tw/2)),y=r.top-th-8;
+    if(y<8)y=Math.min(innerHeight-th-8,r.bottom+8);tip.style.left=x+"px";tip.style.top=y+"px";};
+  var hide=function(){clearTimeout(tmr);clearTimeout(hideT);tip.classList.remove("on");if(cur)cur.removeAttribute("aria-describedby");cur=null;};
+  document.addEventListener("pointerover",function(e){if(e.pointerType!=="mouse")return;var t=find(e.target);
+    if(!t){if(byMouse)hide();return;}if(t[0]===cur)return;hide();byMouse=true;tmr=setTimeout(function(){show(t[0],t[1]);},350);});
+  document.addEventListener("pointerdown",function(e){hide();if(e.pointerType==="mouse")return;byMouse=false;var t=find(e.target);if(!t)return;
+    var x0=e.clientX,y0=e.clientY,mv=function(ev){if(Math.hypot(ev.clientX-x0,ev.clientY-y0)>10)clearTimeout(tmr);},
+      up=function(){clearTimeout(tmr);document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);document.removeEventListener("pointercancel",up);};
+    tmr=setTimeout(function(){show(t[0],t[1]);eat=Date.now();hideT=setTimeout(hide,4000);},450);
+    document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);document.addEventListener("pointercancel",up);});
+  document.addEventListener("click",function(e){if(Date.now()-eat<800){e.preventDefault();e.stopPropagation();eat=0;}},true);
+  document.addEventListener("contextmenu",function(e){if(Date.now()-eat<1500)e.preventDefault();});
+  document.addEventListener("focusin",function(e){var t=find(e.target);if(t&&e.target.matches(":focus-visible"))show(t[0],t[1]);});
+  document.addEventListener("focusout",hide);document.addEventListener("keydown",function(e){if(e.key==="Escape")hide();});
+  addEventListener("scroll",hide,true);
+  var k=document.querySelector("#kids .try");
+  if(k){var p=document.createElement("p");p.textContent="Consejo: deja el mouse sobre un botón o un control, o mantén el dedo apretado sobre él, y aparece qué significa.";k.parentNode.insertBefore(p,k.nextSibling);}
+}
+})();</script>
 <!-- fin SyMula: botones comunes -->
 </body>
 </html>
