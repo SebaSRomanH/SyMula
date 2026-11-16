@@ -67,7 +67,7 @@ a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 (function(){
   const NAMES = {"gravitacion":"Planetas y gravedad", "ondas-sonoras":"Sonido en una sala", "flujo-tubo":"Flujo en un tubo",
                  "flujo-tactil":"Flujo táctil", "lanzamiento":"Lanzamiento vertical", "mareas":"Bola de agua",
-                 "fractales":"Fractales", "lissajous":"Figuras de Lissajous", "radio":"Radio AM y FM"};
+                 "fractales":"Fractales", "lissajous":"Figuras de Lissajous", "radio":"Radio AM y FM", "imanes":"Imanes y electrones","lago":"Lago que se congela"};
   const f = new URLSearchParams(location.search).get("f"), msg = document.getElementById("msg");
   if (!NAMES[f]){ msg.innerHTML = 'No encontré esa ficha. <a href="../index.html">Volver al inicio</a>.'; return; }
   const url = f + ".pdf";

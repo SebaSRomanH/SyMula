@@ -40,7 +40,8 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   los LBM ajustan solos la resolución de la malla según lo que el equipo alcanza.
 
 ## Simuladores
-- `index.html`: página de inicio que enlaza todos los simuladores. El logo (`img/symula-logo.png`, con texto de respaldo
+- `index.html`: página de inicio que enlaza todos los simuladores, agrupados por tema (Gravitación y movimiento, Acústica y
+  ondas, Electromagnetismo, Fluidos y calor, Matemática; el README usa los mismos grupos). El logo (`img/symula-logo.png`, con texto de respaldo
   si falta); en temas oscuros va sobre una placa clara.
 - `gravitacion.html`: gravitación y leyes de Kepler. Leapfrog con paso adaptativo (√(rⁿ⁺¹/M)),
   ley de fuerza 1/rⁿ con n = 0,5 / 1 / 2 / 3, modo Sol fijo y modo N cuerpos (hasta 4) con fusión
@@ -106,6 +107,20 @@ Colección de simuladores interactivos de física de Sebas, publicada con GitHub
   micrófono), ruido gaussiano ("Ruido en el camino" → SNR = 40 − 0,45·r dB), receptor I/Q con FIR Blackman (envolvente
   en AM, discriminador de fase en FM). Muestra la calidad recibida en dB y en palabras. La franja 2 alinea el mensaje con la onda (AM: envolvente; FM: onda
   apretada o suelta) con etiquetas. Prueba en `pruebas/radio.js`.
+- `imanes.html` (Imanes y electrones): imanes 2D (infinitos en z) como corrientes de borde K_z = M_x n_y − M_y n_x en trozos de 0,06; A_z = −Σ I ln r,
+  B = Σ I(−Δy, Δx)/(r² + 0,004). Líneas = curvas de nivel de A_z (marching squares, ΔA por percentiles), brújulas y color
+  log|B|. 9 configuraciones (barra, atraen, repelen, herradura, bobina, cable, Tierra, campo uniforme Bz y "Al azar":
+  `randomField()` pone 3 a 5 barras giradas sin tocarse y 0 a 2 cables; también el botón "Campo al azar"). La bobina se dibuja de
+  costado (`drawCoil`): vueltas adelante brillantes y atrás tenues, pila, flechas de corriente animadas y N/S en los extremos. Solo se sueltan
+  electrones (a pedido de Sebas; la física aún acepta p⁺ y fotón para las pruebas), en 3D con Boris relativista (c = 3, m = 1); se conserva p_z + qA_z (siguen las líneas: Van Allen
+  y auroras). Arrastrar un imán lo mueve; arrastrar en el espacio suelta. Fuerza ×1…×1000. Prueba en `pruebas/imanes.js`.
+- `lago.html` (Lago que se congela): corte de un lago en malla 72 × 48 (6 m de hondo) con entalpía por celda (L = 80 °C,
+  hielo con c = 0,5), densidad de Tanaka (máxima a 3,98 °C), flujo de Boussinesq (cada celda contra el promedio de su fila,
+  tope ±2), advección semilagrangiana, presión por SOR (10 vueltas, ω = 1,7) y conducción con media armónica. El aire actúa
+  arriba con manchas al azar y, en agua abierta, repartido en las 6 filas de arriba (viento). El hielo sube una celda cada
+  4 pasos (en "Si fuera como otros líquidos", ρ lineal y sólido de 1010 kg/m³, se hunde). Escenas "Llega el invierno" y
+  "Cubo en agua tibia" (más lenta); tocar el agua suelta un cubo de 8 × 8 a −10 °C. Gráfico de densidad, sondas arriba y
+  fondo, puntitos de corriente y peces. Física entre `// @fisica` y `// @fin-fisica`; prueba en `pruebas/lago.js`.
 
 ## Fichas de fórmulas (PDF)
 - `docs/<simulador>.pdf`: máximo 3 hojas por simulador: una portada para niños curiosos (qué pasa, un poco de

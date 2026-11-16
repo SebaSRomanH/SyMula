@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Lago que se congela: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:14mm 15mm}
+body{font:10pt/1.45 Inter,sans-serif;color:#102A43;margin:0}
+header{border-bottom:3px solid #087481;padding-bottom:6px;margin-bottom:8px}
+h1{font-size:20pt;margin:0;color:#102A43;font-weight:800}
+.sub{color:#526779;font-size:9.5pt;margin:2px 0 0}
+h2{font-size:11.5pt;margin:10px 0 3px;color:#102A43;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#087481;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:3px 0 5px}
+ul{margin:3px 0 5px;padding-left:18px}
+.katex-display{margin:5px 0}
+.katex{font-size:1.05em}
+table{border-collapse:collapse;width:100%;font-size:9pt;margin:4px 0}
+td,th{border-bottom:1px solid #DCE5EB;padding:2px 6px;text-align:left}
+th{color:#526779;font-weight:700}
+.note{background:#F1F5F8;border-left:3px solid #087481;padding:4px 9px;font-size:9pt;margin:6px 0}
+.cols{columns:2;column-gap:18px}
+section{break-inside:avoid}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#087481;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#102A43}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#EEF6F7;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #D9A15B;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#526779}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#F1F5F8;border:1px solid #DCE5EB;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
+</style>
+</head>
+<body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Calor y agua</p>
+<h1>¿Por qué el lago se congela solo arriba?</h1>
+<svg class="art" viewBox="0 0 400 150"><path d="M10 40H390V60Q300 140 200 140T10 60z" fill="#2a5fb0"/><rect x="10" y="34" width="380" height="12" fill="#e9f4fc" stroke="#9db8cc"/>
+  <text x="200" y="28" font-size="12" fill="#526779" text-anchor="middle">hielo (flota)</text><text x="200" y="80" font-size="12" fill="#fff" text-anchor="middle">agua a 0–3 °C, liviana</text><text x="200" y="118" font-size="12" fill="#fff" text-anchor="middle">fondo a 4 °C, la más pesada</text>
+  <path d="M150 128c6-5 14-5 20 0-6 5-14 5-20 0zm20 0l6-4v8z" fill="#f39a45"/></svg>
+<p>Casi todo se encoge al enfriarse y se vuelve más pesado. El agua también, pero solo hasta los <b>4 °C</b>. Si se enfría más, se hincha un poquito y pesa menos. Y el hielo pesa todavía menos: por eso flota.</p>
+<p>En invierno el agua de arriba se enfría, se hunde y deja subir agua más tibia. Así todo el lago baja a 4 °C. Desde ahí, el agua más fría ya no se hunde: se queda arriba, se congela y forma una tapa que abriga al agua de abajo. Los peces pasan el invierno en el fondo, a 4 °C.</p>
+<div class="math"><b>Un poco de matemática.</b> Un litro de agua a 4 °C pesa 999,97 gramos; a 0 °C, 999,84 gramos; un litro de hielo, solo 917 gramos. Por eso un cubo de hielo flota con casi todo hundido: 917 de cada 1000 partes quedan bajo el agua.</div>
+<div class="reto"><b>Desafío.</b> Un cubo de hielo de 10 cm de alto flota en agua. ¿Cuántos centímetros asoman sobre el agua?</div>
+<p class="ans">Respuesta: más o menos 8 mm, porque se hunde el 91,7 % y asoma el 8,3 %.</p>
+<p class="try"><b>Pruébalo:</b> elige "Llega el invierno" y mira la temperatura del fondo. Después cambia a "Si fuera como otros líquidos".</p>
+</section>
+<!-- @fin-portada -->
+<header>
+<h1>Lago que se congela</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (lago.html)</p>
+</header>
+
+<section>
+<h2>La densidad del agua</h2>
+<p>Entre 0 y 40 °C se usa la fórmula de Tanaka y otros (2001), con $T$ en °C:</p>
+$$\rho(T)=999{,}975\left[1-\frac{(T-3{,}983)^2\,(T+301{,}8)}{522\,529\,(T+69{,}35)}\right]\ \text{kg/m}^3,$$
+<p>que tiene su máximo a $3{,}98$ °C. El hielo tiene $\rho_h=916{,}7$ kg/m³ y flota con la fracción $\rho_h/\rho(0)=0{,}917$ bajo el agua. Para comparar, el "otro líquido" usa $\rho=\rho(4)-0{,}09\,(T-4)$, siempre más denso al enfriarse, y su sólido (1010 kg/m³) se hunde.</p>
+</section>
+
+<section>
+<h2>Calor y hielo</h2>
+<p>El lago es una malla de $72\times48$ celdas (6 m de hondo). Cada celda guarda su entalpía $h$ en °C de agua líquida, con calor latente $L=80$ °C ($334$ J/g $\div$ $4{,}18$ J/(g °C)):</p>
+$$T=\begin{cases}h & h\ge 0\ 0 & -L\le h\lt 0\ \ (\text{fracción de hielo } -h/L)\ (h+L)/0{,}5 & h\lt -L\end{cases}$$
+<p>El calor se conduce entre celdas, $\Delta h=\Delta t\sum k_{ij}(T_j-T_i)$, con $k$ mayor en el hielo y la media armónica entre vecinas. En la superficie el aire aporta $H\,(T_\text{aire}-T)$, repartido por el viento en las 6 filas de arriba si el agua está abierta y con manchas al azar (viento y nubes).</p>
+</section>
+
+<section>
+<h2>El agua que se mueve</h2>
+<p>El agua líquida es incompresible y la mueve su peso (aproximación de Boussinesq): cada celda se compara con el promedio de su fila,</p>
+$$\frac{\partial \vec v}{\partial t}=-(\vec v\cdot\nabla)\vec v-\nabla p+\nu\nabla^2\vec v+G\,\frac{\rho(T)-\bar\rho_\text{fila}}{\rho(4)-\rho(0)}\,\hat y,\qquad \nabla\cdot\vec v=0,$$
+<p>con $\hat y$ hacia abajo. El transporte es semilagrangiano y la presión se resuelve con sobrerrelajación. El hielo no se mueve con el agua: cada 4 pasos sube una celda (o se hunde, en el otro líquido) si al lado hay líquido.</p>
+</section>
+
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b> con HTML, CSS y JavaScript.</li>
+<li><b>La física</b> está entre <code>// @fisica</code> y <code>// @fin-fisica</code>: <code>rhoWater()</code>, <code>makeLake()</code> (la cuenca), <code>stepLake()</code> (un paso de tiempo), <code>project()</code> (la presión) y <code>dropCube()</code>.</li>
+<li><b>El dibujo:</b> la temperatura se pinta en una imagen de $72\times48$ que se agranda suave; el hielo va encima con bordes nítidos y asoma un 8 % sobre el agua. Puntitos llevados por la corriente, peces y un gráfico de densidad con las temperaturas de arriba y del fondo.</li>
+<li><b>El tiempo</b> avanza 120 pasos por segundo (× la rapidez elegida) con un tope de 12 ms por cuadro.</li>
+</ul>
+<div class="code">function rhoWater(T){ return 999.97495*(1 - (T - 3.983035)**2*(T + 301.797)/(522528.9*(T + 69.34881))); }
+const temp = h => h >= 0 ? h : h > -L ? 0 : (h + L)/CI;
+const iceFrac = h => h >= 0 ? 0 : h > -L ? -h/L : 1;</div>
+</section>
+<!-- @fin-html -->
+<p class="note">Comprobado en <code>pruebas/lago.js</code>: máximo de densidad a 3,98 °C y valores de tabla, hielo que flota, entalpía, invierno con hielo arriba y fondo cerca de 4 °C, el otro líquido que se congela desde el fondo y el cubo que sube o se hunde.</p>
+</body>
+</html>

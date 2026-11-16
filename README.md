@@ -17,14 +17,16 @@ La física se entiende mejor cuando se puede tocar. En SyMula no hay que leer pr
 
 ## Los simuladores
 
-| Simulador | Qué puedes hacer |
-|---|---|
-| Planetas y gravedad | Crear planetas, lanzarlos y descubrir las tres leyes de Kepler, hasta con agujeros negros. |
-| Sonido en una sala | Mover un parlante y un oyente, y ver dónde el sonido se hace fuerte o se apaga. |
-| Flujo en un tubo | Poner formas dentro de un tubo y ver cómo el agua, el aire o la miel las rodean. |
-| Flujo táctil | Agitar una piscina con el dedo y crear ondas y remolinos. |
-| Lanzamiento vertical | Lanzar una pelota en la Tierra, la Luna, Marte o Júpiter y medir cuánto sube. |
-| Bola de agua | Mover una luna alrededor de una bola de agua y ver cómo levanta las mareas. |
-| Fractales | Acercarse sin fin a los conjuntos de Mandelbrot y de Julia. |
-| Figuras de Lissajous | Dibujar figuras con dos notas, una en cada oído. |
-| Radio AM y FM | Enviar un mensaje de 2 segundos por radio y comparar cómo llega con ruido. |
+| Tema | Simulador | Qué puedes hacer |
+|---|---|---|
+| Gravitación y movimiento | Planetas y gravedad | Crear planetas, lanzarlos y descubrir las tres leyes de Kepler, hasta con agujeros negros. |
+|  | Lanzamiento vertical | Lanzar una pelota en la Tierra, la Luna, Marte o Júpiter y medir cuánto sube. |
+|  | Bola de agua | Mover una luna alrededor de una bola de agua y ver cómo levanta las mareas. |
+| Acústica y ondas | Sonido en una sala | Mover un parlante y un oyente, y ver dónde el sonido se hace fuerte o se apaga. |
+|  | Figuras de Lissajous | Dibujar figuras con dos notas, una en cada oído. |
+| Electromagnetismo | Imanes y electrones | Ver el campo de imanes, bobinas, cables y de la Tierra, o uno al azar, y soltar electrones para ver cómo lo cruzan. |
+|  | Radio AM y FM | Enviar un mensaje de 2 segundos por radio y comparar cómo llega con ruido. |
+| Fluidos y calor | Flujo en un tubo | Poner formas dentro de un tubo y ver cómo el agua, el aire o la miel las rodean. |
+|  | Flujo táctil | Agitar una piscina con el dedo y crear ondas y remolinos. |
+|  | Lago que se congela | Ver por qué un lago se congela solo arriba y un cubo de hielo flota: el agua pesa más a 4 °C. |
+| Matemática | Fractales | Acercarse sin fin a los conjuntos de Mandelbrot y de Julia. |

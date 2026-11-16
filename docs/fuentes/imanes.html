@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Imanes y electrones: fórmulas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+@page{size:A4;margin:14mm 15mm}
+body{font:10pt/1.45 Inter,sans-serif;color:#102A43;margin:0}
+header{border-bottom:3px solid #087481;padding-bottom:6px;margin-bottom:8px}
+h1{font-size:20pt;margin:0;color:#102A43;font-weight:800}
+.sub{color:#526779;font-size:9.5pt;margin:2px 0 0}
+h2{font-size:11.5pt;margin:10px 0 3px;color:#102A43;font-weight:800;break-after:avoid}
+h2::before{content:"";display:inline-block;width:8px;height:8px;background:#087481;border-radius:2px;margin-right:7px;vertical-align:1px}
+p{margin:3px 0 5px}
+ul{margin:3px 0 5px;padding-left:18px}
+.katex-display{margin:5px 0}
+.katex{font-size:1.05em}
+table{border-collapse:collapse;width:100%;font-size:9pt;margin:4px 0}
+td,th{border-bottom:1px solid #DCE5EB;padding:2px 6px;text-align:left}
+th{color:#526779;font-weight:700}
+.note{background:#F1F5F8;border-left:3px solid #087481;padding:4px 9px;font-size:9pt;margin:6px 0}
+.cols{columns:2;column-gap:18px}
+section{break-inside:avoid}
+
+/* @portada */
+.cover{height:268mm;display:flex;flex-direction:column;break-after:page;font-size:12.5pt;line-height:1.5}
+.cover .kick{font-size:10pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#087481;margin:0}
+.cover h1{font-size:30pt;line-height:1.1;margin:4px 0 10px;color:#102A43}
+.cover .art{display:block;width:100%;height:58mm;margin:4px 0 10px}
+.cover p{margin:0 0 7px}
+.cover .math{background:#EEF6F7;border-radius:12px;padding:8px 12px;margin:6px 0 8px}
+.cover .reto{border:2px dashed #D9A15B;border-radius:12px;padding:8px 12px;margin:6px 0}
+.cover .try{margin-top:auto;font-size:10.5pt;color:#526779}
+.cover .ans{font-size:8.5pt;color:#8a93ad;transform:rotate(180deg);text-align:right;margin-top:6px}
+.code{font:8pt/1.35 Consolas,"Courier New",monospace;background:#F1F5F8;border:1px solid #DCE5EB;border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap}
+.how{break-inside:auto}
+/* @fin-portada */
+</style>
+</head>
+<body>
+<!-- @portada -->
+<section class="cover">
+<p class="kick">SyMula · Electromagnetismo</p>
+<h1>¿Qué hay alrededor de un imán?</h1>
+<svg class="art" viewBox="0 0 400 150"><g fill="none" stroke="#526779" stroke-width="1.6">
+  <path d="M250 75C300 20 100 20 150 75"/><path d="M250 75C330 -5 70 -5 150 75"/><path d="M250 75C300 130 100 130 150 75"/><path d="M250 75C330 155 70 155 150 75"/></g>
+  <rect x="150" y="62" width="50" height="26" fill="#2f62c4"/><rect x="200" y="62" width="50" height="26" fill="#cf3d3d"/>
+  <text x="175" y="80" font-size="14" font-weight="800" fill="#fff" text-anchor="middle">S</text><text x="225" y="80" font-size="14" font-weight="800" fill="#fff" text-anchor="middle">N</text>
+  <path d="M20 130c15 0 25-10 25-25s10-25 25-25 25 10 25 25" fill="none" stroke="#1F6FB2" stroke-width="3"/><text x="30" y="148" font-size="12" fill="#1F6FB2">electrón que gira</text>
+</svg>
+<p>Un imán tiene a su alrededor un <b>campo magnético</b>: algo invisible que empuja a otros imanes y a las cargas eléctricas que se mueven. Sus líneas salen del polo norte y entran por el sur. Donde están más juntas, el campo es más fuerte.</p>
+<p>Un electrón que cruza el campo no sigue derecho: el campo lo empuja de lado y lo hace girar. Si el campo tiene una forma enredada, como en la configuración al azar, el electrón sigue caminos enredados alrededor de las líneas.</p>
+<div class="math"><b>Un poco de matemática.</b> El radio del círculo que da el electrón es <b>masa × rapidez ÷ (carga × campo)</b>. Si va el doble de rápido, el círculo es el doble de grande.</div>
+<div class="reto"><b>Desafío.</b> Si el campo se hace el doble de fuerte, ¿el círculo del electrón se hace más grande o más chico? ¿Cuánto?</div>
+<p class="ans">Respuesta: más chico, la mitad, porque el campo está dividiendo.</p>
+<p class="try"><b>Pruébalo:</b> elige "Campo hacia la pantalla" y suelta electrones lentos y rápidos. Después toca "Al azar" varias veces.</p>
+</section>
+<!-- @fin-portada -->
+<header>
+<h1>Imanes y electrones</h1>
+<p class="sub">SyMula · Fórmulas con las que se calcula el simulador (imanes.html)</p>
+</header>
+
+<section>
+<h2>Imanes como corrientes</h2>
+<p>El mundo es plano pero los imanes son infinitamente largos hacia adentro de la pantalla (eje $z$), así que el campo no depende de $z$. Un imán con magnetización $\vec M$ uniforme equivale a una corriente en su borde:</p>
+$$\vec K=\vec M\times\hat n\quad\Rightarrow\quad K_z=M_x n_y-M_y n_x,$$
+<p>con $\hat n$ la normal hacia afuera. El borde se corta en trozos de 0,06 unidades y cada trozo es un cable recto con corriente $I=K_z\,\Delta s$. La bobina y el cable son directamente cables. "Al azar" pone de 3 a 5 barras con largo, ancho, giro y fuerza al azar, sin tocarse, y hasta 2 cables; sus campos se suman. Con $\mu_0/2\pi=1$:</p>
+$$A_z=-\sum_k I_k\ln r_k,\qquad \vec B=\nabla\times(A_z\hat z)=\sum_k \frac{I_k\,(-\Delta y_k,\ \Delta x_k)}{r_k^2}.$$
+<p>Junto a cada cable se usa $r^2+0{,}004$ para no dividir por cero. Adentro de una barra el campo va de S a N y afuera de N a S: las líneas se cierran.</p>
+</section>
+
+<section>
+<h2>Líneas de campo</h2>
+<p>En 2D, las líneas de $\vec B$ son las curvas de nivel de $A_z$, porque $\vec B\cdot\nabla A_z=0$. Se dibujan con <i>marching squares</i> sobre una malla de 4 px y valores $A_k=A_0+k\,\Delta A$ igualmente espaciados. Entre dos líneas pasa siempre el mismo flujo, así que donde se juntan el campo es más fuerte. Las brújulas apuntan según $\vec B$ y el color muestra $\log|\vec B|$.</p>
+</section>
+
+<section>
+<h2>Cargas en el campo</h2>
+<p>Cada electrón se mueve en 3D con la fuerza de Lorentz y relatividad especial ($\vec u=\gamma\vec v$):</p>
+$$\frac{d\vec u}{dt}=\frac{q}{m}\,\vec v\times\vec B,\qquad \gamma=\sqrt{1+u^2/c^2}.$$
+<p>Se integra con el método de Boris, que gira $\vec u$ sin cambiar su largo (el campo magnético no cambia la rapidez), en subpasos de giro $\le 0{,}15$ rad. Unidades: $c=3$ unidades por segundo (cámara lenta), electrón $q=-1$, $m=1$.</p>
+<p>En un campo parejo $B$ las cargas giran en círculos:</p>
+$$r=\frac{\gamma m v}{|q|B},\qquad T=\frac{2\pi\gamma m}{|q|B}.$$
+<p>Con $\vec B$ en el plano, la fuerza saca al electrón de la pantalla; el punto se ve más grande cuando sale hacia ti. Como el campo no depende de $z$, se conserva $p_z+qA_z$: la carga queda presa en una franja de líneas y se enrolla a lo largo de ellas. Así el viento solar queda atrapado en los cinturones de Van Allen o llega a los polos y produce auroras.</p>
+</section>
+
+<!-- @html -->
+<section class="how">
+<h2>Cómo está hecho el archivo HTML</h2>
+<ul>
+<li>Es <b>un solo archivo</b> con HTML, CSS y JavaScript.</li>
+<li><b>Los imanes:</b> <code>preset()</code> describe cada configuración (polígonos con su $\vec M$, cables y campo parejo), <code>randomField()</code> arma la de al azar y <code>currents()</code> la convierte en una lista de cables equivalentes.</li>
+<li><b>El campo:</b> <code>potential()</code> y <code>field()</code> suman la contribución de cada cable. El dibujo calcula $A_z$ en una malla, traza sus curvas de nivel con flechas y, si se pide, brújulas y colores.</li>
+<li><b>Los electrones:</b> <code>launch()</code> los crea con la rapidez elegida; <code>advance()</code> los mueve con <code>boris()</code>. Al tocar un imán se borran y dejan un brillo.</li>
+<li><b>La interacción:</b> arrastrar un imán lo mueve y el campo se recalcula; arrastrar en el espacio apunta y suelta un electrón. <code>drawCoil()</code> dibuja la bobina de costado, con su pila y la corriente.</li>
+</ul>
+<div class="code">const f = p.q*h/(2*g*p.m), tx = f*B[0], ty = f*B[1], tz = f*B[2];
+const s = 2/(1 + tx*tx + ty*ty + tz*tz);
+const px = ux + (uy*tz - uz*ty), py = uy + (uz*tx - ux*tz), pz = uz + (ux*ty - uy*tx);
+p.ux = ux + s*(py*tz - pz*ty); p.uy = uy + s*(pz*tx - px*tz); p.uz = uz + s*(px*ty - py*tx);</div>
+</section>
+<!-- @fin-html -->
+<p class="note">Comprobado en <code>pruebas/imanes.js</code>: sentido del campo de la barra, $\vec B=\nabla\times A_z\hat z$, campo $I/r$ del cable, campo nulo entre polos iguales, radio y periodo relativistas, rapidez constante, campo al azar (imanes sin tocarse, rapidez constante al cruzarlo) y conservación de $p_z+qA_z$.</p>
+</body>
+</html>

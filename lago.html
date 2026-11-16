@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1226">
+<!-- SyMula: tema (va antes del estilo para no parpadear) -->
+<script>(function(){var t=null;try{t=localStorage.getItem("symula-tema");if(!t&&localStorage.getItem("symula-noche")==="1")t="night";}catch(e){}
+if(t!=="light"&&t!=="dark"&&t!=="night")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";
+document.documentElement.setAttribute("data-theme",t);})();</script>
+<!-- fin SyMula: tema -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Lago que se congela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== SyMula: estilo común (sistema de diseño v1.0, igual en todas las páginas) ===== */
+:root,:root[data-theme="dark"]{
+  --background:#0B1526;--surface:#15253A;--surface-2:#1B2E47;--text:#F0F6FC;--text-muted:#B8C6D3;
+  --primary:#42C7CF;--primary-text:#0B1526;--accent:#E6B66A;--border:#30445B;--control-border:#5D7590;
+  --sem-1:#6CB4F0;--sem-2:#F29C6B;--sem-3:#6FCF97;--sem-4:#C49BEA;--sem-5:#E6C15A;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --background:#F8FAFC;--surface:#FFFFFF;--surface-2:#F1F5F8;--text:#102A43;--text-muted:#526779;
+  --primary:#087481;--primary-text:#FFFFFF;--accent:#D9A15B;--border:#DCE5EB;--control-border:#7B8FA1;
+  --sem-1:#1F6FB2;--sem-2:#B4532A;--sem-3:#2E7D4F;--sem-4:#7E4AB0;--sem-5:#8A6400;
+  color-scheme:light;
+}
+:root[data-theme="night"]{
+  --background:#09221D;--surface:#12382F;--surface-2:#174238;--text:#E7F8F2;--text-muted:#C1F4DD;
+  --primary:#21B68B;--primary-text:#09221D;--accent:#C1F4DD;--border:#286052;--control-border:#4E8A78;
+  --sem-1:#8FD3FF;--sem-2:#F5B38A;--sem-3:#9BE8C0;--sem-4:#D5B8F2;--sem-5:#F0D58A;
+  color-scheme:dark;
+}
+:root{
+  /* nombres antiguos que usa el código de cada página */
+  --bg:var(--background);--panel:var(--surface);--btn:var(--surface-2);--line:var(--border);--ink:var(--text);
+  --soft:var(--text-muted);--acc:var(--primary);--acc-ink:var(--primary-text);--cyan:var(--primary);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;background:var(--background)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;background:var(--background);color:var(--text);
+  font:500 15px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden;background:var(--background)}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+:root[data-theme="night"] .stage canvas{filter:grayscale(1) sepia(.8) hue-rotate(92deg) saturate(.85) brightness(.88)}   /* verde suave, sin fluorescencia */
+.home{position:absolute;top:12px;left:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text)}
+.card{position:absolute;top:12px;left:72px;right:12px;max-width:480px;min-height:48px;padding:10px 16px;border-radius:12px;z-index:2;pointer-events:none;
+  background:var(--surface);background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--border)}
+.card h1{font:700 17px/1.2 Inter,sans-serif;margin:0;color:var(--text);letter-spacing:-.01em}
+.card p{margin:3px 0 0;font-size:14px;color:var(--text-muted)}
+.card .data{font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+.card p:empty{display:none}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:max-content;max-width:92%;padding:10px 16px;border-radius:12px;z-index:3;
+  background:var(--surface);color:var(--text);border:1px solid var(--primary);font-weight:600;text-align:center;pointer-events:none;transition:opacity .3s}
+.toast.off{opacity:0}
+.dock{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px 14px;display:flex;flex-direction:column;gap:10px}
+.dock>*{width:100%;max-width:760px;margin:0 auto}
+.row{display:flex;gap:8px}
+.tile{flex:1 1 0;min-width:0;min-height:56px;padding:6px 4px;border-radius:12px;border:1px solid var(--control-border);background:var(--surface-2);color:var(--text);
+  font:600 13px/1.15 Inter,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;
+  touch-action:manipulation;transition:border-color .15s,background-color .15s}
+.tile svg{width:24px;height:24px;flex:none}
+.tile small{font-size:11px;font-weight:500;opacity:.85}
+@media (hover:hover){.tile:hover:not(:disabled),.home:hover{border-color:var(--primary)}}
+.tile[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+.tile:disabled{opacity:.45;cursor:not-allowed}
+.tile[aria-busy="true"]{position:relative;color:transparent}
+.tile[aria-busy="true"]::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;border:2px solid var(--text-muted);border-top-color:var(--primary);animation:sy-spin .8s linear infinite}
+@keyframes sy-spin{to{transform:rotate(360deg)}}
+.lbl{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:-4px;padding:0 2px;letter-spacing:.02em}
+.themes{display:flex;gap:4px;padding:4px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.themes button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--text);font:600 13px Inter,sans-serif;cursor:pointer}
+.themes button[aria-pressed="true"]{background:var(--primary);color:var(--primary-text)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+[hidden]{display:none!important}
+.learn{position:absolute;top:12px;left:72px;height:48px;padding:0 16px 0 12px;border-radius:12px;display:flex;align-items:center;gap:8px;z-index:3;cursor:pointer;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);font:600 14px Inter,sans-serif;touch-action:manipulation}
+.learn svg{width:22px;height:22px;flex:none;color:var(--primary)}
+@media (hover:hover){.learn:hover{border-color:var(--primary)}}
+.kids{width:min(560px,calc(100% - 32px));max-height:calc(100% - 48px);padding:0;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.kids::backdrop{background:rgba(5,10,20,.55)}
+.kids>div{padding:20px;display:flex;flex-direction:column;gap:12px}
+.kids h2{margin:0;font:700 20px/1.25 Inter,sans-serif;letter-spacing:-.01em}
+.kids p{margin:0;font-size:16px;line-height:1.5;color:var(--text)}
+.kids p.try{padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border)}
+.kids button{align-self:flex-end;min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--primary);background:var(--primary);color:var(--primary-text);font:600 15px Inter,sans-serif;cursor:pointer}
+.full{position:absolute;top:12px;right:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;cursor:pointer;padding:0;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);touch-action:manipulation}
+.full svg{width:24px;height:24px}
+@media (hover:hover){.full:hover{border-color:var(--primary)}}
+body.nodock .dock{display:none!important}
+.dock-handle{display:flex;align-items:center;justify-content:center;gap:6px;width:auto!important;min-height:44px;margin:-12px auto -8px!important;padding:0 18px;
+  border:0;border-radius:12px;background:transparent;color:var(--text-muted);font:600 12px Inter,sans-serif;cursor:pointer;touch-action:manipulation}
+.dock-handle svg{width:18px;height:18px;flex:none;transition:transform .2s}
+@media (hover:hover){.dock-handle:hover{color:var(--text)}}
+body.dockmin .dock>:not(.dock-handle){display:none!important}
+body.dockmin .dock{padding-bottom:4px}
+body.dockmin .dock-handle svg{transform:rotate(180deg)}
+.tip{position:fixed;left:0;top:0;z-index:60;max-width:min(300px,calc(100vw - 24px));padding:8px 12px;border-radius:12px;pointer-events:none;
+  background:var(--surface-2);color:var(--text);border:1px solid var(--primary);font:500 13.5px/1.4 Inter,sans-serif;opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+body{-webkit-touch-callout:none}
+/* ===== fin del estilo común ===== */
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:1 0 auto;min-height:48px;padding:4px 14px;border-radius:12px;border:1px solid var(--control-border);background:var(--surface-2);color:var(--text);
+  font:600 13px/1.15 Inter,sans-serif;cursor:pointer;touch-action:manipulation}
+.chip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+@media (hover:hover){.chip:hover{border-color:var(--primary)}}
+.pill{position:absolute;left:12px;right:12px;bottom:12px;margin:0 auto;width:max-content;max-width:calc(100% - 24px);padding:8px 12px;border-radius:12px;z-index:2;pointer-events:none;
+  background:rgba(11,19,34,.82);border:1px solid rgba(255,255,255,.18);font-size:13px;color:#eef3f8;text-align:center;font-variant-numeric:tabular-nums}
+.stage .toast{bottom:64px}
+.sheet{display:flex;flex-direction:column;gap:8px;max-height:34vh;overflow-y:auto;padding:2px 0 8px;border-bottom:1px solid var(--line)}
+.rng{display:flex;align-items:center;gap:10px;min-height:44px;font-size:13px;color:var(--soft)}
+.rng span{width:96px;flex:none}
+.rng input{flex:1;height:32px;accent-color:var(--acc)}
+.rng output{width:70px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="cv" aria-label="Corte de un lago: colores de temperatura del agua, hielo, corrientes y gráfico de densidad. Toca el agua para soltar un cubo de hielo"></canvas>
+  <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
+  <button class="learn" type="button" data-learn aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>Saber más</button>
+  <button class="full" type="button" data-full aria-pressed="false" aria-label="Pantalla completa: ocultar el menú"></button>
+  <div class="pill" id="pill"></div>
+  <div class="toast off" id="toast"></div>
+</div>
+<nav class="dock" aria-label="Controles">
+  <div class="sheet" id="sheet" hidden>
+    <div class="lbl">Tema</div>
+    <div class="themes" role="group" aria-label="Tema"><button type="button" data-theme-set="light">Claro</button><button type="button" data-theme-set="dark">Oscuro</button><button type="button" data-theme-set="night">Nocturno</button></div>
+    <label class="rng"><span>Rapidez del tiempo</span><input id="spd" type="range" min="0.25" max="4" step="0.25" value="1"><output id="spdOut"></output></label>
+    <div class="row">
+      <button class="tile" type="button" id="flow" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8c3-3 6 3 9 0s5-2 7 0M4 16c3-3 6 3 9 0s5-2 7 0"/></svg>Corrientes</button>
+      <button class="tile" type="button" id="fish" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 12c4-6 10-6 14 0-4 6-10 6-14 0zM17 12l4-4v8z"/><circle cx="8" cy="11" r="1" fill="currentColor"/></svg>Peces</button>
+    </div>
+  </div>
+  <div class="lbl">Escena</div>
+  <div class="chips" role="group" aria-label="Escena">
+    <button class="chip" type="button" data-scene="invierno" aria-pressed="true">Llega el invierno</button>
+    <button class="chip" type="button" data-scene="cubo" aria-pressed="false">Cubo en agua tibia</button>
+  </div>
+  <div class="chips" role="group" aria-label="Cómo es el líquido">
+    <button class="chip" type="button" data-mode="agua" aria-pressed="true">Agua de verdad</button>
+    <button class="chip" type="button" data-mode="otro" aria-pressed="false">Si fuera como otros líquidos</button>
+  </div>
+  <label class="rng"><span>Temperatura del aire</span><input id="air" type="range" min="-20" max="25" step="1" value="-10"><output id="airOut"></output></label>
+  <div class="row">
+    <button class="tile" type="button" id="cube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>Cubo de hielo</button>
+    <button class="tile" type="button" id="pause" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span id="pauseLbl">Pausa</span></button>
+    <button class="tile" type="button" id="reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v5h5"/></svg>Reiniciar</button>
+    <button class="tile" type="button" id="more" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
+  </div>
+</nav>
+<script>
+(function(){
+"use strict";
+// @fisica
+// Corte de un lago en una malla de nx × ny celdas (j crece hacia abajo). Cada celda guarda su entalpía h
+// (en °C de agua líquida): h ≥ 0 es agua a T = h; entre −L y 0 es mezcla de agua y hielo a 0 °C
+// (fracción de hielo −h/L); bajo −L es hielo a T = (h + L)/CI. L = 80 °C equivale a 334 J/g ÷ 4,18 J/(g °C).
+// Agua líquida: flujo incompresible con flotación (Boussinesq), advección semilagrangiana y proyección.
+// Calor: conducción entre celdas (el agua quieta conduce poco y el hielo mucho más) y con el aire en la superficie,
+// que enfría o calienta en manchas (viento y nubes): esas diferencias de lado a lado arrancan la convección.
+// El hielo es un sólido: no se mueve con el agua, pero sube (o se hunde) celda a celda según su densidad.
+const L = 80, CI = 0.5, KW = 0.003, KI = 0.08, HAIR = 0.04, G = 0.4, NU = 0.1, MIX = 6, VMAX = 1, RHO_ICE = 916.7;
+// Densidad del agua entre 0 y 40 °C (Tanaka y otros, 2001): máxima a 3,98 °C.
+function rhoWater(T){ return 999.97495*(1 - (T - 3.983035)**2*(T + 301.797)/(522528.9*(T + 69.34881))); }
+// "Otro líquido": la misma densidad a 4 °C pero siempre más denso al enfriarse, y su sólido se hunde.
+function rhoOther(T){ return rhoWater(3.983035) - 0.09*(T - 3.983035); }
+const RHO_SOLID_OTHER = 1010;
+const DRHO = rhoWater(3.983035) - rhoWater(0);         // ≈ 0,13 kg/m³: escala de la flotación
+const temp = h => h >= 0 ? h : h > -L ? 0 : (h + L)/CI;
+const iceFrac = h => h >= 0 ? 0 : h > -L ? -h/L : 1;
+const iceH = T => -L + CI*Math.min(0, T);              // entalpía de hielo a T ≤ 0
+function makeLake(nx, ny, T0){
+  const n = nx*ny, lk = {nx, ny, mode: "agua", steps: 0, seed: 12345,
+    h: new Float32Array(n).fill(T0), u: new Float32Array(n), v: new Float32Array(n), p: new Float32Array(n),
+    ground: new Uint8Array(n), T: new Float32Array(n), solid: new Uint8Array(n),
+    w1: new Float32Array(n), w2: new Float32Array(n), w3: new Float32Array(n), div: new Float32Array(n), R: new Float64Array(n),
+    nbI: new Int32Array(4*n), nbM: new Uint8Array(4*n)};
+  for (let i = 0; i < nx; i++){                          // fondo con forma de cuenca
+    const xr = (i + 0.5)/nx*2 - 1, d = Math.round(ny*(0.4 + 0.6*Math.sqrt(Math.max(0, 1 - xr**4))));
+    for (let j = d; j < ny; j++) lk.ground[j*nx + i] = 1;
+  }
+  return lk;
+}
+const rnd = lk => (lk.seed = (lk.seed*16807) % 2147483647)/2147483647;   // azar repetible
+const rho = (lk, T) => lk.mode === "agua" ? rhoWater(Math.max(0, T)) : rhoOther(Math.max(0, T));
+const solidRises = lk => lk.mode === "agua";             // el hielo de agua (917 kg/m³) flota
+function sample(lk, a, x, y, c){                           // bilineal; las celdas sólidas toman el valor de c
+  const {nx, ny, solid} = lk;
+  x = Math.max(0, Math.min(nx - 1.001, x)); y = Math.max(0, Math.min(ny - 1.001, y));
+  const i = x | 0, j = y | 0, fx = x - i, fy = y - j, k = j*nx + i;
+  const g = q => solid[q] ? a[c] : a[q];
+  return (g(k)*(1 - fx) + g(k + 1)*fx)*(1 - fy) + (g(k + nx)*(1 - fx) + g(k + nx + 1)*fx)*fy;
+}
+// Vecinos de cada celda de agua (este, oeste, abajo, arriba): índice y si es agua (1) o pared (0).
+// Junto a una pared el índice apunta a la misma celda: así la presión no cambia hacia la pared.
+function neighbors(lk){
+  const {nx, ny, solid, nbI, nbM} = lk;
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){
+    const c = j*nx + i, q = 4*c;
+    const set = (k, ok, d) => { const w = ok && !solid[d]; nbI[q + k] = w ? d : c; nbM[q + k] = w ? 1 : 0; };
+    set(0, i + 1 < nx, c + 1); set(1, i > 0, c - 1); set(2, j + 1 < ny, c + nx); set(3, j > 0, c - nx);
+  }
+}
+function project(lk){
+  const {nx, ny, u, v, p, div, solid, nbI: I, nbM: M} = lk, n = nx*ny;
+  for (let c = 0; c < n; c++){
+    if (solid[c]){ div[c] = 0; continue; } const q = 4*c;
+    div[c] = 0.5*(M[q]*u[I[q]] - M[q + 1]*u[I[q + 1]] + M[q + 2]*v[I[q + 2]] - M[q + 3]*v[I[q + 3]]);
+  }
+  for (let it = 0; it < 10; it++)                    // sobrerrelajación (SOR) partiendo de la presión del paso anterior
+    for (let c = 0; c < n; c++){
+      if (solid[c]) continue; const q = 4*c;
+      p[c] += 1.7*(0.25*(p[I[q]] + p[I[q + 1]] + p[I[q + 2]] + p[I[q + 3]] - div[c]) - p[c]);
+    }
+  for (let c = 0; c < n; c++){
+    if (solid[c]){ u[c] = v[c] = 0; continue; } const q = 4*c;
+    u[c] -= 0.5*(p[I[q]] - p[I[q + 1]]); v[c] -= 0.5*(p[I[q + 2]] - p[I[q + 3]]);
+  }
+}
+// Un paso de tiempo (dt = 1 en las unidades de la malla) con el aire a Tair °C.
+function stepLake(lk, dt, Tair){
+  const {nx, ny, h, u, v, ground, T, solid, w1, w2, w3, R, nbI: I, nbM: M} = lk, n = nx*ny;
+  for (let c = 0; c < n; c++){
+    T[c] = temp(h[c]); solid[c] = ground[c] || iceFrac(h[c]) >= 0.5 ? 1 : 0;
+    if (solid[c]) u[c] = v[c] = 0; else R[c] = rho(lk, T[c]);
+  }
+  neighbors(lk);
+  // flotación: cada celda se compara con el promedio de su fila (lo parejo en una fila lo sostiene la presión
+  // hidrostática; solo las diferencias de lado a lado mueven el agua) y viscosidad (junto a paredes, velocidad 0)
+  for (let j = 0; j < ny; j++){
+    let rs = 0, nl = 0;
+    for (let i = 0; i < nx; i++){ const c = j*nx + i; if (!solid[c]){ rs += R[c]; nl++; } }
+    const rm = nl ? rs/nl : 0;
+    for (let i = 0; i < nx; i++){
+      const c = j*nx + i, q = 4*c; if (solid[c]){ w1[c] = w2[c] = 0; continue; }
+      const lu = M[q]*u[I[q]] + M[q + 1]*u[I[q + 1]] + M[q + 2]*u[I[q + 2]] + M[q + 3]*u[I[q + 3]] - 4*u[c];
+      const lv = M[q]*v[I[q]] + M[q + 1]*v[I[q + 1]] + M[q + 2]*v[I[q + 2]] + M[q + 3]*v[I[q + 3]] - 4*v[c];
+      const b = Math.max(-2, Math.min(2, (R[c] - rm)/DRHO));     // tope: con mucha diferencia el agua no se dispara
+      w1[c] = u[c] + dt*NU*lu; w2[c] = v[c] + dt*(NU*lv + G*b);
+    }
+  }
+  u.set(w1); v.set(w2); project(lk);
+  // advección del calor y de la velocidad con la velocidad sin divergencia
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){
+    const c = j*nx + i; if (solid[c]){ w1[c] = h[c]; w2[c] = 0; w3[c] = 0; continue; }
+    // punto de partida (bilineal); las esquinas sólidas toman el valor de la propia celda
+    const sp = Math.hypot(u[c], v[c]); if (sp > VMAX){ u[c] *= VMAX/sp; v[c] *= VMAX/sp; }   // a lo más VMAX celdas por paso
+    const x = Math.max(0, Math.min(nx - 1.001, i - dt*u[c])), y = Math.max(0, Math.min(ny - 1.001, j - dt*v[c]));
+    const i0 = x | 0, j0 = y | 0, fx = x - i0, fy = y - j0, k = j0*nx + i0;
+    const k0 = solid[k] ? c : k, k1 = solid[k + 1] ? c : k + 1, k2 = solid[k + nx] ? c : k + nx, k3 = solid[k + nx + 1] ? c : k + nx + 1;
+    const a0 = (1 - fx)*(1 - fy), a1 = fx*(1 - fy), a2 = (1 - fx)*fy, a3 = fx*fy;
+    w1[c] = a0*h[k0] + a1*h[k1] + a2*h[k2] + a3*h[k3];
+    w2[c] = a0*u[k0] + a1*u[k1] + a2*u[k2] + a3*u[k3];
+    w3[c] = a0*v[k0] + a1*v[k1] + a2*v[k2] + a3*v[k3];
+  }
+  h.set(w1); u.set(w2); v.set(w3);
+  // conducción del calor (el hielo conduce más) y pérdida o ganancia con el aire en la superficie
+  const K = R;                                     // se reusa el arreglo: conductividad de cada celda
+  for (let c = 0; c < n; c++){ T[c] = temp(h[c]); K[c] = KW + (KI - KW)*iceFrac(h[c]); }
+  w1.fill(0);
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){
+    const c = j*nx + i; if (ground[c]) continue;
+    if (i + 1 < nx && !ground[c + 1]){ const a = K[c], b = K[c + 1], q = 2*a*b/(a + b)*(T[c + 1] - T[c]); w1[c] += q; w1[c + 1] -= q; }
+    if (j + 1 < ny && !ground[c + nx]){ const a = K[c], b = K[c + nx], q = 2*a*b/(a + b)*(T[c + nx] - T[c]); w1[c] += q; w1[c + nx] -= q; }
+    if (j === 0){                                  // el aire enfría (o calienta) en manchas: viento y nubes
+      const q = HAIR*(Tair - T[c])*(0.6 + 0.8*rnd(lk));
+      if (iceFrac(h[c]) > 0 || ground[c + nx]) w1[c] += q;
+      else {                                        // agua abierta: el viento mezcla la capa de arriba (MIX filas)
+        let m = 1; while (m < MIX && !ground[c + m*nx] && iceFrac(h[c + m*nx]) === 0) m++;
+        for (let k = 0; k < m; k++) w1[c + k*nx] += q/m;
+      }
+    }
+  }
+  for (let c = 0; c < n; c++) if (!ground[c]) h[c] += dt*w1[c];
+  // el hielo sube (agua) o se hunde (otro líquido) una celda cada 4 pasos si al lado hay líquido
+  if (++lk.steps % 4 === 0){
+    const up = solidRises(lk);
+    for (let jj = 0; jj < ny; jj++){
+      const j = up ? jj : ny - 1 - jj, J = up ? j - 1 : j + 1;
+      if (J < 0 || J >= ny) continue;
+      for (let i = 0; i < nx; i++){
+        const c = j*nx + i, d = J*nx + i;
+        if (ground[c] || ground[d] || iceFrac(h[c]) < 0.5 || iceFrac(h[d]) >= 0.5) continue;
+        const t = h[c]; h[c] = h[d]; h[d] = t; u[c] = v[c] = u[d] = v[d] = 0;
+      }
+    }
+  }
+}
+// Pone un cubo de hielo a T (°C) de lado s celdas con centro en la celda (i, j).
+function dropCube(lk, i, j, s, Tc){
+  const {nx, ny, h, ground} = lk;
+  for (let b = 0; b < s; b++) for (let a = 0; a < s; a++){
+    const I = i - (s >> 1) + a, J = j - (s >> 1) + b;
+    if (I < 0 || J < 0 || I >= nx || J >= ny || ground[J*nx + I]) continue;
+    h[J*nx + I] = iceH(Tc);
+  }
+}
+// @fin-fisica
+
+const $ = id => document.getElementById(id), cv = $("cv"), ctx = cv.getContext("2d");
+const fmt = (v, d) => v.toFixed(d).replace(".", ",").replace("-", "−");
+const NX = 72, NY = 48, CM = 12.5;                 // 48 celdas = 6 m de hondo: 12,5 cm por celda
+const SCENES = {
+  invierno: {T0: 10, air: -10, rate: 1, hint: "Llega el invierno: el aire a −10 °C enfría el lago desde arriba. Mira el fondo: ¿baja de 4 °C?"},
+  cubo: {T0: 15, air: 15, cube: true, rate: 0.35, hint: "Un cubo de hielo en agua a 15 °C: flota, y el agua fría que suelta se hunde al fondo."}
+};
+let lk, scene = "invierno", mode = "agua", Tair = -10, spd = 1, paused = false, showFlow = true, showFish = true;
+let W = 1, H = 1, dpr = 1, acc = 0, tracers = [], fish = [], flakes = [], said = {};
+const off = document.createElement("canvas"); off.width = NX; off.height = NY;
+const octx = off.getContext("2d"), img = octx.createImageData(NX, NY);
+
+let toastT = 0;
+function toast(m, ms = 3800){ const t = $("toast"); t.textContent = m; t.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.add("off"), ms); }
+const liquid = c => !lk.ground[c] && iceFrac(lk.h[c]) < 0.5;
+function seed(){
+  tracers = [];
+  for (let k = 0; k < 260; k++) tracers.push(spawn());
+  fish = [0.3, 0.5, 0.68].map((f, k) => ({x: f*NX, y: NY*0.8, dir: k % 2 ? -1 : 1, ph: k*2}));
+}
+function spawn(){
+  for (let t = 0; t < 50; t++){ const x = Math.random()*(NX - 1), y = Math.random()*(NY - 1); if (liquid((y | 0)*NX + (x | 0))) return {x, y}; }
+  return {x: NX/2, y: 2};
+}
+function reset(){
+  const S = SCENES[scene]; lk = makeLake(NX, NY, S.T0); lk.mode = mode; said = {};
+  $("air").value = S.air; $("air").dispatchEvent(new Event("input"));
+  if (S.cube) dropCube(lk, NX >> 1, 16, 8, -10);
+  seed(); acc = 0;
+}
+
+// ---------- Controles ----------
+document.querySelectorAll("[data-scene]").forEach(b => b.addEventListener("click", () => {
+  scene = b.dataset.scene; document.querySelectorAll("[data-scene]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  reset(); toast(SCENES[scene].hint, 4500);
+}));
+document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
+  mode = b.dataset.mode; document.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  reset();
+  toast(mode === "agua" ? "Agua de verdad: es más pesada a 4 °C y el hielo flota." :
+    "Un líquido común: mientras más frío, más pesado, y su hielo se hunde. Mira por dónde se congela.", 4500);
+}));
+function bind(id, f){ const el = $(id); const go = () => f(+el.value); el.addEventListener("input", go); go(); }
+bind("air", v => { Tair = v; $("airOut").textContent = fmt(v, 0) + " °C"; });
+bind("spd", v => { spd = v; $("spdOut").textContent = "× " + fmt(v, 2).replace(/,?0+$/, ""); });
+$("cube").addEventListener("click", () => { dropCube(lk, 14 + Math.floor(Math.random()*(NX - 28)), 16, 8, -10); toast(mode === "agua" ? "El hielo es más liviano que el agua: sube y flota." : "En este líquido el sólido es más pesado: el cubo se hunde."); });
+$("pause").addEventListener("click", () => { paused = !paused; $("pause").setAttribute("aria-pressed", paused); $("pauseLbl").textContent = paused ? "Seguir" : "Pausa"; });
+$("reset").addEventListener("click", reset);
+$("more").addEventListener("click", () => { const o = $("sheet").hidden; $("sheet").hidden = !o; $("more").setAttribute("aria-pressed", o); });
+$("flow").addEventListener("click", () => { showFlow = !showFlow; $("flow").setAttribute("aria-pressed", showFlow); });
+$("fish").addEventListener("click", () => { showFish = !showFish; $("fish").setAttribute("aria-pressed", showFish); });
+// tocar el agua suelta un cubo ahí
+cv.addEventListener("pointerdown", e => {
+  const r = cv.getBoundingClientRect(), g = geo(), X = e.clientX - r.left, Y = e.clientY - r.top;
+  if (Y < g.top - 30) return;
+  const i = Math.floor(X/g.cw), j = Math.max(4, Math.floor((Y - g.top)/g.ch));
+  if (i < 0 || i >= NX || j >= NY || lk.ground[j*NX + i]) return;
+  dropCube(lk, i, j, 8, -10);
+});
+
+// ---------- Medidas ----------
+function geo(){ const top = Math.round(Math.max(200, H*0.3)); return {top, cw: W/NX, ch: (H - top - 58)/NY}; }   // abajo queda tierra para la línea de datos
+function probes(){                                   // primera agua bajo el hielo y la más honda, en la columna del medio
+  const i = NX >> 1; let up = -1, dn = -1, ice = 0;
+  for (let j = 0; j < NY; j++){ const c = j*NX + i; if (lk.ground[c]) break; if (iceFrac(lk.h[c]) >= 0.5) ice++; else { if (up < 0) up = j; dn = j; } }
+  return {i, up, dn, ice, Tup: up >= 0 ? temp(lk.h[up*NX + i]) : NaN, Tdn: dn >= 0 ? temp(lk.h[dn*NX + i]) : NaN};
+}
+
+// ---------- Colores ----------
+const STOPS = [[0, [140, 205, 240]], [2, [96, 172, 226]], [4, [26, 62, 150]], [8, [30, 128, 138]], [12, [92, 170, 96]], [18, [222, 170, 70]], [25, [214, 98, 58]]];
+function tcol(T){
+  if (T <= STOPS[0][0]) return STOPS[0][1];
+  for (let k = 1; k < STOPS.length; k++) if (T <= STOPS[k][0]){
+    const [a, A] = STOPS[k - 1], [b, B] = STOPS[k], f = (T - a)/(b - a);
+    return [A[0] + (B[0] - A[0])*f, A[1] + (B[1] - A[1])*f, A[2] + (B[2] - A[2])*f];
+  }
+  return STOPS[STOPS.length - 1][1];
+}
+const ICE = [236, 246, 255];
+
+// ---------- Dibujo ----------
+function resize(){
+  dpr = Math.min(2.5, window.devicePixelRatio || 1); W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight);
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+}
+new ResizeObserver(resize).observe(cv);
+function drawSky(g, t){
+  const f = Math.max(0, Math.min(1, (Tair + 10)/30)), mix = (a, b) => a.map((v, k) => Math.round(v + (b[k] - v)*f));
+  const sg = ctx.createLinearGradient(0, 0, 0, g.top);
+  sg.addColorStop(0, `rgb(${mix([70, 92, 116], [52, 132, 206])})`); sg.addColorStop(1, `rgb(${mix([170, 186, 200], [168, 214, 244])})`);
+  ctx.fillStyle = sg; ctx.fillRect(0, 0, W, g.top);
+  if (Tair > 5){                                      // sol
+    const X = W*0.5, Y = 44, r = 16;
+    ctx.fillStyle = "rgba(255,226,120,0.35)"; ctx.beginPath(); ctx.arc(X, Y, r*1.8, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#ffd75e"; ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill();
+  }
+  if (Tair < 0){                                      // nieve
+    const n = Math.round(Math.min(90, -Tair*5));
+    while (flakes.length < n) flakes.push({x: Math.random(), y: Math.random(), s: 0.4 + Math.random()*0.6});
+    flakes.length = n; ctx.fillStyle = "rgba(255,255,255,0.85)";
+    for (const p of flakes){
+      p.y += 0.0025*p.s; p.x += 0.0006*Math.sin(t*0.001 + p.s*9); if (p.y > 1){ p.y = 0; p.x = Math.random(); }
+      ctx.beginPath(); ctx.arc(p.x*W, p.y*g.top, 1 + p.s*1.4, 0, Math.PI*2); ctx.fill();
+    }
+  }
+  // orillas
+  const snowy = Tair < 0;
+  for (const s of [-1, 1]){
+    const x0 = s < 0 ? 0 : W, xm = x0 - s*W*0.1;
+    ctx.fillStyle = "#6b5440"; ctx.beginPath(); ctx.moveTo(x0, g.top + 4); ctx.lineTo(x0, g.top - 26); ctx.quadraticCurveTo(x0 - s*W*0.05, g.top - 22, xm, g.top + 4); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = snowy ? "#f4f8fb" : "#5d9a4a"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x0, g.top - 26); ctx.quadraticCurveTo(x0 - s*W*0.05, g.top - 22, xm, g.top + 2); ctx.stroke();
+  }
+  // temperatura del aire y leyenda de colores
+  ctx.fillStyle = "rgba(11,19,34,0.82)"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(12, 70, 168, 74, 10) : ctx.rect(12, 70, 168, 74); ctx.fill();
+  ctx.fillStyle = "#eef3f8"; ctx.font = "700 13px Inter, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+  ctx.fillText("Aire: " + fmt(Tair, 0) + " °C", 22, 78);
+  ctx.font = "600 11px Inter, sans-serif"; ctx.fillText("Temperatura del agua", 22, 98);
+  const bx = 22, bw = 112, by = 114;
+  for (let k = 0; k < bw; k++){ const c = tcol(16*k/bw); ctx.fillStyle = `rgb(${c.map(Math.round)})`; ctx.fillRect(bx + k, by, 1.2, 9); }
+  ctx.fillStyle = `rgb(${ICE})`; ctx.fillRect(bx + bw + 14, by, 18, 9);
+  ctx.fillStyle = "#cfd8e3"; ctx.font = "600 10px Inter, sans-serif"; ctx.textAlign = "center";
+  for (const v of [0, 4, 8, 12, 16]) ctx.fillText(String(v), bx + bw*v/16, by + 12);
+  ctx.fillText("hielo", bx + bw + 23, by + 12);
+}
+function drawLake(g){
+  const {h, ground} = lk, d = img.data;
+  for (let c = 0; c < NX*NY; c++){
+    const o = 4*c;
+    if (ground[c]){ d[o + 3] = 0; continue; }
+    const f = iceFrac(h[c]), col = tcol(temp(h[c])), m = Math.min(1, f*1.6);
+    d[o] = col[0] + (ICE[0] - col[0])*m; d[o + 1] = col[1] + (ICE[1] - col[1])*m; d[o + 2] = col[2] + (ICE[2] - col[2])*m; d[o + 3] = 255;
+  }
+  octx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(off, 0, g.top, W, NY*g.ch);
+  // hielo con bordes nítidos y un poco de brillo
+  for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++){
+    const c = j*NX + i; if (ground[c] || iceFrac(h[c]) < 0.5) continue;
+    const T = temp(h[c]), b = Math.round(255 + Math.max(-30, T*3));
+    ctx.fillStyle = `rgb(${b - 22},${b - 8},${b})`; ctx.fillRect(i*g.cw - 0.3, g.top + j*g.ch - 0.3, g.cw + 0.6, g.ch + 0.6);
+  }
+  // la parte del hielo que asoma sobre el agua (flota con el 8 % afuera: 917 / 1000)
+  if (mode === "agua"){
+    ctx.fillStyle = "#e9f4fc"; ctx.strokeStyle = "rgba(120,160,190,0.8)"; ctx.lineWidth = 1;
+    for (let i = 0; i < NX; i++){
+      let n = 0; while (n < NY && !ground[n*NX + i] && iceFrac(h[n*NX + i]) >= 0.5) n++;
+      if (!n) continue;
+      const hh = Math.max(2, n*g.ch*(1 - RHO_ICE/rhoWater(0)));
+      ctx.fillRect(i*g.cw - 0.3, g.top - hh, g.cw + 0.6, hh);
+    }
+  }
+  // fondo y orillas del lago
+  ctx.fillStyle = "#5a4634"; ctx.beginPath(); ctx.moveTo(0, H);
+  for (let i = 0; i <= NX; i++){
+    const k = Math.min(NX - 1, i); let jd = 0; while (jd < NY && !ground[jd*NX + k]) jd++;
+    ctx.lineTo(i === 0 ? 0 : i === NX ? W : (i + 0.5)*g.cw, g.top + jd*g.ch);
+  }
+  ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = "#7a634c"; ctx.lineWidth = 3; ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, g.top); ctx.lineTo(W, g.top); ctx.stroke();
+}
+function drawTracers(g){
+  ctx.fillStyle = "rgba(255,255,255,0.55)";
+  for (const p of tracers){ ctx.beginPath(); ctx.arc(p.x*g.cw + g.cw/2, g.top + p.y*g.ch + g.ch/2, 1.4, 0, Math.PI*2); ctx.fill(); }
+}
+function drawFish(g, t){
+  for (const f of fish){
+    const X = f.x*g.cw + g.cw/2, Y = g.top + f.y*g.ch + g.ch/2, s = Math.max(7, g.cw*1.6), c = (Math.floor(f.y)*NX + Math.floor(f.x));
+    const frozen = !liquid(Math.max(0, Math.min(NX*NY - 1, c)));
+    ctx.save(); ctx.translate(X, Y); ctx.scale(f.dir, 1); ctx.globalAlpha = frozen ? 0.45 : 1;
+    const w = frozen ? 0 : Math.sin(t*0.008 + f.ph)*0.25;
+    ctx.fillStyle = frozen ? "#9aa7b4" : "#f39a45";
+    ctx.beginPath(); ctx.moveTo(-s*0.9, 0); ctx.lineTo(-s*1.5, -s*0.45 + w*s); ctx.lineTo(-s*1.5, s*0.45 + w*s); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 0, s, s*0.5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#16202c"; ctx.beginPath(); ctx.arc(s*0.5, -s*0.1, s*0.12, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+}
+function drawProbes(g, P){
+  ctx.font = "700 12px Inter, sans-serif"; ctx.textBaseline = "middle";
+  const X = (P.i + 0.5)*g.cw;
+  for (const [j, T, lab] of [[P.up, P.Tup, "arriba"], [P.dn, P.Tdn, "fondo"]]){
+    if (j < 0) continue;
+    const Y = g.top + (j + 0.5)*g.ch, txt = lab + " " + fmt(T, 1) + " °C", tw = ctx.measureText(txt).width + 14;
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#0b1322"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "rgba(11,19,34,0.85)"; ctx.fillRect(X + 9, Y - 11, tw, 22);
+    ctx.fillStyle = "#eef3f8"; ctx.textAlign = "left"; ctx.fillText(txt, X + 16, Y);
+  }
+}
+function drawDensity(P){
+  const w = Math.min(200, W*0.44), h = 112, x0 = W - w - 12, y0 = 70, pl = 34, pr = 10, pt = 34, pb = 22;
+  ctx.fillStyle = "rgba(11,19,34,0.85)"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, y0, w, h, 10) : ctx.rect(x0, y0, w, h); ctx.fill();
+  const R = T => rho(lk, T), Tmax = 16, lo = Math.min(R(0), R(Tmax)), hi = Math.max(R(0), R(4), R(Tmax));
+  const X = T => x0 + pl + (w - pl - pr)*T/Tmax, Y = r => y0 + pt + (h - pt - pb)*(1 - (r - lo)/(hi - lo || 1));
+  ctx.fillStyle = "#eef3f8"; ctx.font = "700 11px Inter, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+  ctx.fillText(mode === "agua" ? "Qué tan pesada es el agua" : "Qué tan pesado es el líquido", x0 + 10, y0 + 6);
+  ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 1; ctx.beginPath();
+  ctx.moveTo(X(0), Y(hi)); ctx.lineTo(X(0), Y(lo)); ctx.lineTo(X(Tmax), Y(lo)); ctx.stroke();
+  ctx.fillStyle = "#cfd8e3"; ctx.font = "600 10px Inter, sans-serif"; ctx.textAlign = "center";
+  for (const v of [0, 4, 8, 12, 16]) ctx.fillText(String(v), X(v), y0 + h - pb + 3);
+  ctx.save(); ctx.translate(x0 + 12, y0 + pt + (h - pt - pb)/2); ctx.rotate(-Math.PI/2); ctx.textBaseline = "middle"; ctx.fillText("más pesada ↑", 0, 0); ctx.restore();
+  ctx.strokeStyle = "#7cc4f5"; ctx.lineWidth = 2; ctx.beginPath();
+  for (let k = 0; k <= 80; k++){ const T = Tmax*k/80; k ? ctx.lineTo(X(T), Y(R(T))) : ctx.moveTo(X(T), Y(R(T))); }
+  ctx.stroke();
+  if (mode === "agua"){ ctx.fillStyle = "#ffd84d"; ctx.beginPath(); ctx.arc(X(4), Y(R(4)), 3.5, 0, Math.PI*2); ctx.fill(); ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText("4 °C", X(4) + 7, Y(R(4)) - 6); ctx.textAlign = "center"; }
+  ctx.font = "700 10px Inter, sans-serif";
+  for (const [T, lab, dy] of [[P.Tup, "arriba", -1], [P.Tdn, "fondo", 1]]){
+    if (!isFinite(T)) continue; const t = Math.min(Tmax, Math.max(0, T)), px = X(t), py = Y(R(t));
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI*2); ctx.fill();
+    ctx.textBaseline = dy < 0 ? "bottom" : "top"; ctx.fillText(lab, Math.min(x0 + w - 18, px + 14), py + dy*4);
+  }
+}
+function pill(P){
+  const ice = P.ice*CM, cm = ice >= 100 ? fmt(ice/100, 2) + " m" : Math.round(ice) + " cm";
+  $("pill").textContent = (isFinite(P.Tup) ? `Arriba ${fmt(P.Tup, 1)} °C · fondo ${fmt(P.Tdn, 1)} °C` : "Todo el lago está congelado") +
+    (scene === "cubo" ? "" : P.ice ? ` · hielo ${cm}` : " · sin hielo en el medio");
+}
+function events(P){
+  if (scene !== "invierno") return;
+  if (mode === "agua" && !said.four && P.Tdn < 4.6 && !P.ice){ said.four = 1; toast("El agua que se enfría arriba pesa más y se hunde, hasta que casi todo el lago llega a 4 °C."); }
+  if (mode === "agua" && !said.ice && P.ice){ said.ice = 1; toast("El agua de menos de 4 °C pesa menos: se queda arriba y se congela. El hielo flota y tapa el lago.", 5000); }
+  if (mode === "otro" && !said.bot && P.dn >= 0 && iceFrac(lk.h[(P.dn + 1)*NX + P.i] ?? 0) >= 0.5){ said.bot = 1; toast("El líquido más frío baja y su hielo se hunde: este lago se congela desde el fondo.", 5000); }
+}
+function moveThings(n){
+  for (const p of tracers){
+    const c = Math.min(NX*NY - 1, (Math.round(p.y))*NX + Math.round(p.x));
+    if (!liquid(c) || Math.random() < 0.002){ Object.assign(p, spawn()); continue; }
+    p.x += n*sample(lk, lk.u, p.x, p.y, c); p.y += n*sample(lk, lk.v, p.x, p.y, c);
+    p.x = Math.max(0, Math.min(NX - 1, p.x)); p.y = Math.max(0, Math.min(NY - 1, p.y));
+  }
+  for (const f of fish){
+    const i = Math.max(0, Math.min(NX - 1, Math.round(f.x)));
+    let top = -1, bot = -1; for (let j = 0; j < NY; j++){ const c = j*NX + i; if (lk.ground[c]) break; if (iceFrac(lk.h[c]) < 0.5){ if (top < 0) top = j; bot = j; } }
+    if (bot < 0) continue;                          // atrapado en el hielo
+    const target = Math.max(top, bot - 2.5);
+    f.y += (target - f.y)*0.02; f.x += f.dir*0.03;
+    const ni = Math.round(f.x + f.dir*2);
+    if (ni < 2 || ni > NX - 3 || !liquid(Math.round(f.y)*NX + ni)) f.dir = -f.dir;
+  }
+}
+let last = 0;
+function frame(now){
+  const dt = last ? Math.min(0.05, (now - last)/1000) : 0; last = now;
+  if (!paused && lk){
+    acc += dt*120*spd*SCENES[scene].rate; const t0 = performance.now(); let n = 0;
+    while (acc >= 1 && performance.now() - t0 < 12){ stepLake(lk, 1, Tair); acc--; n++; }
+    if (acc > 4) acc = 0;                          // si el equipo no alcanza, se pierde tiempo en vez de trabarse
+    moveThings(n);
+  }
+  if (W > 60 && H > 260 && lk){
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const g = geo(), P = probes();
+    drawSky(g, now); drawLake(g);
+    if (showFlow) drawTracers(g);
+    if (showFish) drawFish(g, now);
+    drawProbes(g, P); drawDensity(P); pill(P); events(P);
+  }
+  requestAnimationFrame(frame);
+}
+reset();
+if (window.SyMulaColor) requestAnimationFrame(frame); else addEventListener("DOMContentLoaded", () => requestAnimationFrame(frame));
+})();
+</script>
+<dialog class="kids" id="kids" aria-labelledby="kidsT"><div><h2 id="kidsT">¿Por qué el lago se congela solo arriba?</h2><p>El agua fría y el agua tibia no pesan lo mismo. Casi siempre, el agua más fría pesa más y se va al fondo, como una piedra.</p><p>Pero el agua tiene un truco: a 4 grados es cuando más pesa. Si se enfría más, hasta 3, 2, 1 grado, se vuelve un poquito más liviana y se queda arriba.</p><p>Por eso, en invierno, el fondo del lago se queda a 4 grados y lo de arriba se congela. Y el hielo flota, porque es todavía más liviano. La tapa de hielo abriga el agua de abajo y los peces pueden pasar el invierno.</p><p>Con un cubo de hielo en un vaso pasa lo mismo: el cubo flota, y el agua muy fría que se derrite de él baja al fondo del vaso.</p><p class="try">Prueba: elige Llega el invierno y mira la temperatura del fondo. Después elige Si fuera como otros líquidos. ¿Qué les pasa a los peces?</p><button type="button" data-learn-close>Entendido</button></div></dialog>
+<!-- SyMula: ayudas (selector CSS → explicación simple; las muestra el bloque de botones comunes) -->
+<script type="application/json" id="tips">[["[data-scene=\"invierno\"]","Un lago a 10 °C con aire bajo cero: primero todo el lago se enfría hasta 4 °C y recién después se congela arriba."],["[data-scene=\"cubo\"]","Un cubo de hielo en agua a 15 °C: flota porque el hielo es más liviano, y el agua muy fría que suelta al derretirse se hunde."],["[data-mode=\"agua\"]","Agua de verdad: pesa más a 4 °C. Más fría que eso, pesa un poco menos. Y el hielo pesa todavía menos: flota."],["[data-mode=\"otro\"]","Casi todos los líquidos pesan más mientras más fríos están, y su sólido se hunde. Así se vería un lago si el agua fuera así."],["label:has(#air)","Temperatura del aire sobre el lago. Bajo 0 °C el lago pierde calor por arriba; sobre 4 °C lo calienta."],["#cube","Suelta un cubo de hielo en el lago. También puedes tocar el agua donde quieras."],["#reset","Vuelve a empezar la escena con el lago sin hielo."],["label:has(#spd)","Qué tan rápido pasa el tiempo. Un lago real tarda semanas en congelarse."],["#flow","Puntitos que se mueven con el agua: muestran las corrientes que hace el agua fría al hundirse."],["#fish","Peces que buscan el agua del fondo. Si el agua se congela entera, quedan atrapados."]]</script>
+<!-- fin SyMula: ayudas -->
+<!-- SyMula: selector de tema (botones con data-theme-set) -->
+<script>(function(){
+function sync(){var t=document.documentElement.getAttribute("data-theme");
+  document.querySelectorAll("[data-theme-set]").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-theme-set")===t);});
+  var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",getComputedStyle(document.documentElement).getPropertyValue("--background").trim());}
+window.SyMulaTheme=function(t){document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("symula-tema",t);}catch(e){}sync();
+  window.dispatchEvent(new Event("symula-tema"));};
+// colores del tema para dibujar en el lienzo: SyMulaColor("sem-1"), SyMulaColor("primary")...
+window.SyMulaColor=function(name){return getComputedStyle(document.documentElement).getPropertyValue("--"+name).trim();};
+document.querySelectorAll("[data-theme-set]").forEach(function(b){b.addEventListener("click",function(){SyMulaTheme(b.getAttribute("data-theme-set"));});});
+try{if(!localStorage.getItem("symula-tema")&&window.matchMedia)matchMedia("(prefers-color-scheme: light)").addEventListener("change",function(e){document.documentElement.setAttribute("data-theme",e.matches?"light":"dark");sync();window.dispatchEvent(new Event("symula-tema"));});}catch(e){}
+sync();})();</script>
+<!-- fin SyMula: selector de tema -->
+<!-- SyMula: botones comunes ("Saber más" abre #kids; data-full oculta el menú y pide pantalla completa) -->
+<script>(function(){var d=document.getElementById("kids"),b=document.querySelector("[data-learn]");
+if(d&&b){var shut=function(){if(d.close)d.close();else d.removeAttribute("open");};
+  b.addEventListener("click",function(){if(d.showModal)d.showModal();else d.setAttribute("open","");});
+  d.addEventListener("click",function(e){if(e.target===d||e.target.closest("[data-learn-close]"))shut();});}
+var f=document.querySelector("[data-full]");if(!f)return;
+var root=document.documentElement,req=root.requestFullscreen||root.webkitRequestFullscreen,
+  sv='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">',
+  ON=sv+'<path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/></svg>',OFF=sv+'<path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+function isFs(){return document.fullscreenElement||document.webkitFullscreenElement;}
+function set(on){document.body.classList.toggle("nodock",on);f.setAttribute("aria-pressed",on);f.innerHTML=on?OFF:ON;
+  f.setAttribute("aria-label",on?"Mostrar el menú":"Pantalla completa: ocultar el menú");
+  try{if(on&&req&&!isFs()){var p=req.call(root);if(p&&p.catch)p.catch(function(){});}
+    else if(!on&&isFs())(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}
+  setTimeout(function(){window.dispatchEvent(new Event("resize"));},60);}
+f.addEventListener("click",function(){set(!document.body.classList.contains("nodock"));});
+function left(){if(!isFs()&&document.body.classList.contains("nodock"))set(false);}
+document.addEventListener("fullscreenchange",left);document.addEventListener("webkitfullscreenchange",left);
+set(false);
+// Ocultar la parte de abajo (opciones): una manija al comienzo del menú; se recuerda en este equipo.
+var dk=document.querySelector(".dock");
+if(dk){var h=document.createElement("button");h.type="button";h.className="dock-handle";
+  var mini=function(on){document.body.classList.toggle("dockmin",on);h.setAttribute("aria-expanded",!on);
+    h.innerHTML=sv.replace("2.2","2.4")+'<path d="M6 9l6 6 6-6"/></svg>'+(on?"Mostrar opciones":"Ocultar opciones");
+    try{localStorage.setItem("symula-menu-chico",on?"1":"0");}catch(e){}
+    setTimeout(function(){window.dispatchEvent(new Event("resize"));},60);};
+  h.addEventListener("click",function(){mini(!document.body.classList.contains("dockmin"));});
+  dk.insertBefore(h,dk.firstChild);var st=null;try{st=localStorage.getItem("symula-menu-chico");}catch(e){}mini(st==="1");}
+// Ayudas: con el mouse encima (o el dedo apretado medio segundo) se explica el concepto. Lista en #tips: [selector, texto].
+var TIPS=[];try{var tj=document.getElementById("tips");if(tj)TIPS=JSON.parse(tj.textContent);}catch(e){}
+if(TIPS.length){
+  var tip=document.createElement("div");tip.className="tip";tip.id="symula-tip";tip.setAttribute("role","tooltip");document.body.appendChild(tip);
+  var cur=null,tmr=0,hideT=0,eat=0,byMouse=false;
+  var find=function(el){for(;el&&el.nodeType===1&&el!==document.body;el=el.parentElement){
+    if(el.closest("dialog"))return null;
+    for(var i=0;i<TIPS.length;i++){try{if(el.matches(TIPS[i][0]))return [el,TIPS[i][1]];}catch(e){}}}return null;};
+  var show=function(el,txt){cur=el;tip.textContent=txt;tip.classList.add("on");el.setAttribute("aria-describedby","symula-tip");
+    var r=el.getBoundingClientRect(),tw=tip.offsetWidth,th=tip.offsetHeight,x=Math.max(12,Math.min(innerWidth-tw-12,r.left+r.width/2-tw/2)),y=r.top-th-8;
+    if(y<8)y=Math.min(innerHeight-th-8,r.bottom+8);tip.style.left=x+"px";tip.style.top=y+"px";};
+  var hide=function(){clearTimeout(tmr);clearTimeout(hideT);tip.classList.remove("on");if(cur)cur.removeAttribute("aria-describedby");cur=null;};
+  document.addEventListener("pointerover",function(e){if(e.pointerType!=="mouse")return;var t=find(e.target);
+    if(!t){if(byMouse)hide();return;}if(t[0]===cur)return;hide();byMouse=true;tmr=setTimeout(function(){show(t[0],t[1]);},350);});
+  document.addEventListener("pointerdown",function(e){hide();if(e.pointerType==="mouse")return;byMouse=false;var t=find(e.target);if(!t)return;
+    var x0=e.clientX,y0=e.clientY,mv=function(ev){if(Math.hypot(ev.clientX-x0,ev.clientY-y0)>10)clearTimeout(tmr);},
+      up=function(){clearTimeout(tmr);document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);document.removeEventListener("pointercancel",up);};
+    tmr=setTimeout(function(){show(t[0],t[1]);eat=Date.now();hideT=setTimeout(hide,4000);},450);
+    document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);document.addEventListener("pointercancel",up);});
+  document.addEventListener("click",function(e){if(Date.now()-eat<800){e.preventDefault();e.stopPropagation();eat=0;}},true);
+  document.addEventListener("contextmenu",function(e){if(Date.now()-eat<1500)e.preventDefault();});
+  document.addEventListener("focusin",function(e){var t=find(e.target);if(t&&e.target.matches(":focus-visible"))show(t[0],t[1]);});
+  document.addEventListener("focusout",hide);document.addEventListener("keydown",function(e){if(e.key==="Escape")hide();});
+  addEventListener("scroll",hide,true);
+  var k=document.querySelector("#kids .try");
+  if(k){var p=document.createElement("p");p.textContent="Consejo: deja el mouse sobre un botón o un control, o mantén el dedo apretado sobre él, y aparece qué significa.";k.parentNode.insertBefore(p,k.nextSibling);}
+}
+})();</script>
+<!-- fin SyMula: botones comunes -->
+</body>
+</html>

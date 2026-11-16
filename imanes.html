@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1226">
+<!-- SyMula: tema (va antes del estilo para no parpadear) -->
+<script>(function(){var t=null;try{t=localStorage.getItem("symula-tema");if(!t&&localStorage.getItem("symula-noche")==="1")t="night";}catch(e){}
+if(t!=="light"&&t!=="dark"&&t!=="night")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";
+document.documentElement.setAttribute("data-theme",t);})();</script>
+<!-- fin SyMula: tema -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Imanes y electrones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== SyMula: estilo común (sistema de diseño v1.0, igual en todas las páginas) ===== */
+:root,:root[data-theme="dark"]{
+  --background:#0B1526;--surface:#15253A;--surface-2:#1B2E47;--text:#F0F6FC;--text-muted:#B8C6D3;
+  --primary:#42C7CF;--primary-text:#0B1526;--accent:#E6B66A;--border:#30445B;--control-border:#5D7590;
+  --sem-1:#6CB4F0;--sem-2:#F29C6B;--sem-3:#6FCF97;--sem-4:#C49BEA;--sem-5:#E6C15A;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --background:#F8FAFC;--surface:#FFFFFF;--surface-2:#F1F5F8;--text:#102A43;--text-muted:#526779;
+  --primary:#087481;--primary-text:#FFFFFF;--accent:#D9A15B;--border:#DCE5EB;--control-border:#7B8FA1;
+  --sem-1:#1F6FB2;--sem-2:#B4532A;--sem-3:#2E7D4F;--sem-4:#7E4AB0;--sem-5:#8A6400;
+  color-scheme:light;
+}
+:root[data-theme="night"]{
+  --background:#09221D;--surface:#12382F;--surface-2:#174238;--text:#E7F8F2;--text-muted:#C1F4DD;
+  --primary:#21B68B;--primary-text:#09221D;--accent:#C1F4DD;--border:#286052;--control-border:#4E8A78;
+  --sem-1:#8FD3FF;--sem-2:#F5B38A;--sem-3:#9BE8C0;--sem-4:#D5B8F2;--sem-5:#F0D58A;
+  color-scheme:dark;
+}
+:root{
+  /* nombres antiguos que usa el código de cada página */
+  --bg:var(--background);--panel:var(--surface);--btn:var(--surface-2);--line:var(--border);--ink:var(--text);
+  --soft:var(--text-muted);--acc:var(--primary);--acc-ink:var(--primary-text);--cyan:var(--primary);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;background:var(--background)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;background:var(--background);color:var(--text);
+  font:500 15px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden;background:var(--background)}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+:root[data-theme="night"] .stage canvas{filter:grayscale(1) sepia(.8) hue-rotate(92deg) saturate(.85) brightness(.88)}   /* verde suave, sin fluorescencia */
+.home{position:absolute;top:12px;left:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text)}
+.card{position:absolute;top:12px;left:72px;right:12px;max-width:480px;min-height:48px;padding:10px 16px;border-radius:12px;z-index:2;pointer-events:none;
+  background:var(--surface);background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--border)}
+.card h1{font:700 17px/1.2 Inter,sans-serif;margin:0;color:var(--text);letter-spacing:-.01em}
+.card p{margin:3px 0 0;font-size:14px;color:var(--text-muted)}
+.card .data{font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+.card p:empty{display:none}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:max-content;max-width:92%;padding:10px 16px;border-radius:12px;z-index:3;
+  background:var(--surface);color:var(--text);border:1px solid var(--primary);font-weight:600;text-align:center;pointer-events:none;transition:opacity .3s}
+.toast.off{opacity:0}
+.dock{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px 14px;display:flex;flex-direction:column;gap:10px}
+.dock>*{width:100%;max-width:760px;margin:0 auto}
+.row{display:flex;gap:8px}
+.tile{flex:1 1 0;min-width:0;min-height:56px;padding:6px 4px;border-radius:12px;border:1px solid var(--control-border);background:var(--surface-2);color:var(--text);
+  font:600 13px/1.15 Inter,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;
+  touch-action:manipulation;transition:border-color .15s,background-color .15s}
+.tile svg{width:24px;height:24px;flex:none}
+.tile small{font-size:11px;font-weight:500;opacity:.85}
+@media (hover:hover){.tile:hover:not(:disabled),.home:hover{border-color:var(--primary)}}
+.tile[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+.tile:disabled{opacity:.45;cursor:not-allowed}
+.tile[aria-busy="true"]{position:relative;color:transparent}
+.tile[aria-busy="true"]::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;border:2px solid var(--text-muted);border-top-color:var(--primary);animation:sy-spin .8s linear infinite}
+@keyframes sy-spin{to{transform:rotate(360deg)}}
+.lbl{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:-4px;padding:0 2px;letter-spacing:.02em}
+.themes{display:flex;gap:4px;padding:4px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.themes button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--text);font:600 13px Inter,sans-serif;cursor:pointer}
+.themes button[aria-pressed="true"]{background:var(--primary);color:var(--primary-text)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+[hidden]{display:none!important}
+.learn{position:absolute;top:12px;left:72px;height:48px;padding:0 16px 0 12px;border-radius:12px;display:flex;align-items:center;gap:8px;z-index:3;cursor:pointer;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);font:600 14px Inter,sans-serif;touch-action:manipulation}
+.learn svg{width:22px;height:22px;flex:none;color:var(--primary)}
+@media (hover:hover){.learn:hover{border-color:var(--primary)}}
+.kids{width:min(560px,calc(100% - 32px));max-height:calc(100% - 48px);padding:0;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.kids::backdrop{background:rgba(5,10,20,.55)}
+.kids>div{padding:20px;display:flex;flex-direction:column;gap:12px}
+.kids h2{margin:0;font:700 20px/1.25 Inter,sans-serif;letter-spacing:-.01em}
+.kids p{margin:0;font-size:16px;line-height:1.5;color:var(--text)}
+.kids p.try{padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border)}
+.kids button{align-self:flex-end;min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--primary);background:var(--primary);color:var(--primary-text);font:600 15px Inter,sans-serif;cursor:pointer}
+.full{position:absolute;top:12px;right:12px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;z-index:3;cursor:pointer;padding:0;
+  background:var(--surface);border:1px solid var(--control-border);color:var(--text);touch-action:manipulation}
+.full svg{width:24px;height:24px}
+@media (hover:hover){.full:hover{border-color:var(--primary)}}
+body.nodock .dock{display:none!important}
+.dock-handle{display:flex;align-items:center;justify-content:center;gap:6px;width:auto!important;min-height:44px;margin:-12px auto -8px!important;padding:0 18px;
+  border:0;border-radius:12px;background:transparent;color:var(--text-muted);font:600 12px Inter,sans-serif;cursor:pointer;touch-action:manipulation}
+.dock-handle svg{width:18px;height:18px;flex:none;transition:transform .2s}
+@media (hover:hover){.dock-handle:hover{color:var(--text)}}
+body.dockmin .dock>:not(.dock-handle){display:none!important}
+body.dockmin .dock{padding-bottom:4px}
+body.dockmin .dock-handle svg{transform:rotate(180deg)}
+.tip{position:fixed;left:0;top:0;z-index:60;max-width:min(300px,calc(100vw - 24px));padding:8px 12px;border-radius:12px;pointer-events:none;
+  background:var(--surface-2);color:var(--text);border:1px solid var(--primary);font:500 13.5px/1.4 Inter,sans-serif;opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+body{-webkit-touch-callout:none}
+/* ===== fin del estilo común ===== */
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:48px;padding:4px 14px;border-radius:12px;border:1px solid var(--control-border);background:var(--surface-2);color:var(--text);
+  font:600 13px/1.15 Inter,sans-serif;cursor:pointer;touch-action:manipulation}
+.chip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+@media (hover:hover){.chip:hover{border-color:var(--primary)}}
+.tile b{font-size:16px;font-weight:800}
+.sheet{display:flex;flex-direction:column;gap:8px;max-height:34vh;overflow-y:auto;padding:2px 0 8px;border-bottom:1px solid var(--line)}
+.rng{display:flex;align-items:center;gap:10px;min-height:44px;font-size:13px;color:var(--soft)}
+.rng span{width:96px;flex:none}
+.rng input{flex:1;height:32px;accent-color:var(--acc)}
+.rng output{width:70px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.legend{position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:8px;font-size:12px;color:#d6dee8;pointer-events:none;z-index:2}
+.legend i{width:84px;height:8px;border-radius:4px;background:linear-gradient(90deg,#16304a,#1f8a8a,#e8c547)}
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="cv" aria-label="Imanes y su campo magnético: toca y arrastra en el espacio para soltar una partícula; arrastra un imán para moverlo"></canvas>
+  <a class="home" href="index.html" aria-label="Volver al inicio"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5"/></svg></a>
+  <button class="learn" type="button" data-learn aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>Saber más</button>
+  <button class="full" type="button" data-full aria-pressed="false" aria-label="Pantalla completa: ocultar el menú"></button>
+  <div class="legend" id="legend" hidden><span>campo débil</span><i></i><span>fuerte</span></div>
+  <div class="toast off" id="toast"></div>
+</div>
+<nav class="dock" aria-label="Controles">
+  <div class="sheet" id="sheet" hidden>
+    <div class="lbl">Tema</div>
+    <div class="themes" role="group" aria-label="Tema"><button type="button" data-theme-set="light">Claro</button><button type="button" data-theme-set="dark">Oscuro</button><button type="button" data-theme-set="night">Nocturno</button></div>
+    <div class="lbl">Cómo ver el campo</div>
+    <div class="row">
+      <button class="tile" type="button" data-show="lines" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M4 7c5-4 11-4 16 0M4 17c5 4 11 4 16 0"/></svg>Líneas</button>
+      <button class="tile" type="button" data-show="compass" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 12l5-5-2.2 7.2z" fill="#e05252"/><path d="M12 12l-5 5 2.2-7.2z" fill="currentColor"/></svg>Brújulas</button>
+      <button class="tile" type="button" data-show="color" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="3" fill="url(#lgI)"/><defs><linearGradient id="lgI"><stop offset="0" stop-color="#16304a"/><stop offset=".5" stop-color="#1f8a8a"/><stop offset="1" stop-color="#e8c547"/></linearGradient></defs></svg>Fuerza</button>
+    </div>
+    <label class="rng"><span>Fuerza del imán</span><input id="str" type="range" min="0" max="3" step="0.05" value="0"><output id="strOut"></output></label>
+    <label class="rng"><span>Rapidez de la partícula</span><input id="spd" type="range" min="0.05" max="0.95" step="0.05" value="0.3"><output id="spdOut"></output></label>
+    <label class="rng"><span>Cantidad de líneas</span><input id="dens" type="range" min="0.5" max="2" step="0.1" value="1"><output id="densOut"></output></label>
+  </div>
+  <div class="lbl">Imanes</div>
+  <div class="chips" id="presets" role="group" aria-label="Configuración de imanes"></div>
+  <div class="lbl">Suelta electrones: toca y arrastra en el espacio</div>
+  <div class="row">
+    <button class="tile" type="button" id="shuffle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h4c4 0 6 10 10 10h4M3 17h4c1.6 0 2.8-1.6 3.9-3.6M13.1 9.6C14.2 8.6 15.4 7 17 7h4M18 4l3 3-3 3M18 14l3 3-3 3"/></svg>Campo al azar</button>
+    <button class="tile" type="button" id="rain" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h9M5 12h12M3 18h9"/><path d="M15 3l3 3-3 3M19 9l3 3-3 3M15 15l3 3-3 3"/></svg>Lluvia</button>
+  </div>
+  <div class="row">
+    <button class="tile" type="button" id="pause" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span id="pauseLbl">Pausa</span></button>
+    <button class="tile" type="button" id="clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Borrar</button>
+    <button class="tile" type="button" id="flip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>Invertir</button>
+    <button class="tile" type="button" id="more" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Más</button>
+  </div>
+</nav>
+<script>
+(function(){
+"use strict";
+// @fisica
+// Mundo 2D: los imanes son infinitamente largos hacia adentro de la pantalla (eje z), así que el campo B no depende de z.
+// Un imán con magnetización M uniforme equivale a una corriente en su borde, K = M × n (n: normal hacia afuera);
+// en 2D esa corriente va a lo largo de z: K_z = M_x n_y − M_y n_x. Cada trocito del borde es un cable recto.
+// Un cable con corriente I (hacia la pantalla positivo = hacia ti) da, en unidades con μ0/2π = 1:
+//   A_z = −I ln r,   B = ∇ × (A_z ẑ) = I (−Δy, Δx)/r².
+// Las líneas de campo son las curvas de nivel de A_z (igual flujo entre dos líneas: donde se juntan, el campo es fuerte).
+// Las partículas se mueven en 3D con la fuerza de Lorentz F = q v × B (empuje de Boris relativista, u = γv).
+// Con B en el plano, la fuerza saca a la partícula de la pantalla y se enrolla alrededor de las líneas.
+const C = 3;                 // rapidez de la luz en unidades del dibujo por segundo (cámara lenta)
+const EPS2 = 0.004;          // suavizado junto a cada cable
+const DS = 0.06;             // largo de cada trocito de borde
+const PART = {e: {q: -1, m: 1}, p: {q: 1, m: 1836}, g: {q: 0, m: 0}};
+const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];   // en sentido antihorario
+const circle = (r, n = 72) => Array.from({length: n}, (_, k) => [r*Math.cos(2*Math.PI*k/n), r*Math.sin(2*Math.PI*k/n)]);
+// Cada configuración: piezas magnetizadas (polígono, M, pintura), cables (x, y, I) y si hay campo uniforme Bz.
+function preset(name){
+  const bar = (cx, cy, w, h, mx, my) => ({poly: rect(cx - w/2, cy - h/2, cx + w/2, cy + h/2), M: [mx, my], paint: "bar"});
+  switch (name){
+    case "barra":    return {objs: [{x: 0, y: 0, parts: [bar(0, 0, 3.2, 0.9, 1, 0)], wires: []}]};
+    case "atraen":   return {objs: [{x: -2.15, y: 0, parts: [bar(0, 0, 2.5, 0.8, 1, 0)], wires: []}, {x: 2.15, y: 0, parts: [bar(0, 0, 2.5, 0.8, 1, 0)], wires: []}]};
+    case "repelen":  return {objs: [{x: -2.15, y: 0, parts: [bar(0, 0, 2.5, 0.8, 1, 0)], wires: []}, {x: 2.15, y: 0, parts: [bar(0, 0, 2.5, 0.8, -1, 0)], wires: []}]};
+    case "herradura":return {objs: [{x: 0, y: -0.4, parts: [
+      {poly: rect(-1.7, -1.4, -0.8, 1.6), M: [0, 1], paint: "N", pole: [-1.25, 1.25]},
+      {poly: rect(-1.7, -2.3, 1.7, -1.4), M: [-1, 0], paint: "gray"},
+      {poly: rect(0.8, -1.4, 1.7, 1.6), M: [0, -1], paint: "S", pole: [1.25, 1.25]}], wires: []}]};
+    case "bobina": {
+      const w = []; for (let k = -4; k <= 4; k++){ w.push([k*0.4, 0.9, 0.4]); w.push([k*0.4, -0.9, -0.4]); }
+      return {objs: [{x: 0, y: 0, parts: [], wires: w, coil: true}]};
+    }
+    case "cable":    return {objs: [{x: 0, y: 0, parts: [], wires: [[0, 0, 2.5]]}]};
+    case "tierra":   return {objs: [{x: 0.6, y: 0, parts: [{poly: circle(1.3), M: [0, -1], paint: "earth"}], wires: []}], earth: true};
+    case "uniforme": return {objs: [], bz: -1.6};
+    case "azar": return randomField(Math.random);
+  }
+}
+// Campo al azar: de 3 a 5 imanes de barra girados y de 0 a 2 cables, sin tocarse, dentro de |x| < 3,3 y |y| < 3.
+function randomField(rnd){
+  const objs = [], taken = [], n = 3 + Math.floor(rnd()*3), nw = Math.floor(rnd()*3);
+  const free = (x, y, r) => taken.every(([a, b, q]) => Math.hypot(x - a, y - b) > r + q + 0.35);
+  for (let k = 0, tries = 0; k < n + nw && tries < 500; tries++){
+    const wire = k >= n, w = 1.2 + rnd()*1.2, h = 0.45 + rnd()*0.3, r = wire ? 0.3 : Math.hypot(w, h)/2;
+    const x = (rnd()*2 - 1)*3.3, y = (rnd()*2 - 1)*3;
+    if (!free(x, y, r)) continue;
+    taken.push([x, y, r]); k++;
+    if (wire){ objs.push({x, y, parts: [], wires: [[0, 0, (rnd() < 0.5 ? -1 : 1)*(1.2 + rnd()*1.3)]]}); continue; }
+    const t = rnd()*2*Math.PI, c = Math.cos(t), s = Math.sin(t), m = 0.6 + rnd()*0.6;
+    const poly = rect(-w/2, -h/2, w/2, h/2).map(([a, b]) => [a*c - b*s, a*s + b*c]);   // girar no cambia el sentido antihorario
+    objs.push({x, y, parts: [{poly, M: [m*c, m*s], paint: "bar"}], wires: []});
+  }
+  return {objs};
+}
+// Corrientes equivalentes: lista plana [x, y, I, …] con la fuerza S y el signo (Invertir) aplicados.
+function currents(cfg, S, sign = 1){
+  const out = [];
+  for (const o of cfg.objs){
+    for (const p of o.parts){
+      const P = p.poly, n = P.length;
+      for (let i = 0; i < n; i++){
+        const [ax, ay] = P[i], [bx, by] = P[(i + 1) % n], dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
+        const nx = dy/L, ny = -dx/L, K = p.M[0]*ny - p.M[1]*nx;
+        if (Math.abs(K) < 1e-9) continue;
+        const m = Math.max(1, Math.ceil(L/DS));
+        for (let k = 0; k < m; k++){ const t = (k + 0.5)/m; out.push(o.x + ax + dx*t, o.y + ay + dy*t, sign*S*K*L/m); }
+      }
+    }
+    for (const [x, y, I] of o.wires) out.push(o.x + x, o.y + y, sign*S*I);
+  }
+  return Float64Array.from(out);
+}
+function potential(cur, x, y){ let a = 0; for (let k = 0; k < cur.length; k += 3){ const dx = x - cur[k], dy = y - cur[k + 1]; a -= 0.5*cur[k + 2]*Math.log(dx*dx + dy*dy + EPS2); } return a; }
+function field(cur, x, y, out){
+  let bx = 0, by = 0;
+  for (let k = 0; k < cur.length; k += 3){ const dx = x - cur[k], dy = y - cur[k + 1], s = cur[k + 2]/(dx*dx + dy*dy + EPS2); bx -= s*dy; by += s*dx; }
+  out[0] = bx; out[1] = by; return out;
+}
+// Un paso de Boris relativista solo con campo magnético (la rapidez no cambia: B no hace trabajo).
+function boris(p, B, h){
+  const g = Math.sqrt(1 + (p.ux*p.ux + p.uy*p.uy + p.uz*p.uz)/(C*C)), f = p.q*h/(2*g*p.m);
+  const tx = f*B[0], ty = f*B[1], tz = f*B[2], s = 2/(1 + tx*tx + ty*ty + tz*tz);
+  const ux = p.ux, uy = p.uy, uz = p.uz;
+  const px = ux + (uy*tz - uz*ty), py = uy + (uz*tx - ux*tz), pz = uz + (ux*ty - uy*tx);
+  p.ux = ux + s*(py*tz - pz*ty); p.uy = uy + s*(pz*tx - px*tz); p.uz = uz + s*(px*ty - py*tx);
+  p.x += p.ux/g*h; p.y += p.uy/g*h; p.z += p.uz/g*h;
+}
+// Avanza dt con subpasos: el giro por subpaso ≤ 0,15 rad y el avance ≤ 0,04 unidades.
+function advance(p, Bf, dt){
+  const B = [0, 0, 0];
+  if (!p.q){ p.x += p.ux*dt; p.y += p.uy*dt; p.z += p.uz*dt; return; }
+  Bf(p.x, p.y, B);
+  const u2 = p.ux*p.ux + p.uy*p.uy + p.uz*p.uz, g = Math.sqrt(1 + u2/(C*C)), v = Math.sqrt(u2)/g;
+  const w = Math.abs(p.q)*Math.hypot(B[0], B[1], B[2])/(g*p.m);
+  const n = Math.min(4000, Math.max(1, Math.ceil(w*dt/0.15), Math.ceil(v*dt/0.04))), h = dt/n;
+  for (let i = 0; i < n; i++){ if (i) Bf(p.x, p.y, B); boris(p, B, h); }
+}
+function launch(kind, x, y, dx, dy, beta){
+  const P = PART[kind], L = Math.hypot(dx, dy) || 1;
+  if (!P.q) return {kind, q: 0, m: 0, x, y, z: 0, ux: C*dx/L, uy: C*dy/L, uz: 0};
+  const u = beta*C/Math.sqrt(1 - beta*beta);       // u = γ v
+  return {kind, q: P.q, m: P.m, x, y, z: 0, ux: u*dx/L, uy: u*dy/L, uz: 0};
+}
+const gyroRadius = (m, q, beta, B) => m*(beta*C/Math.sqrt(1 - beta*beta))/(Math.abs(q)*B);   // r = γ m v/(|q| B)
+function inPoly(P, x, y){ let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++){ const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi)*(y - yi)/(yj - yi) + xi) c = !c; } return c; }
+// @fin-fisica
+
+const $ = id => document.getElementById(id), cv = $("cv"), ctx = cv.getContext("2d");
+const fmt = (v, d) => v.toFixed(d).replace(".", ",");
+let W = 1, H = 1, dpr = 1, sc = 40;
+let name = "barra", cfg = preset(name), sign = 1, strength = 1, beta = 0.3, dens = 1, kind = "e", rain = false, paused = false;
+let show = {lines: true, compass: false, color: false};
+const S0 = 0.6;                                     // fuerza base: con ×1 un electrón al 30 % de c gira con radio ~1 cerca del imán
+let cur = new Float64Array(0), parts = [], glows = [], fieldImg = null, dirty = true, coarse = false;
+const Bf = (x, y, out) => { field(cur, x, y, out); out[2] = cfg.bz ? sign*S0*strength*cfg.bz : 0; return out; };
+const toS = (x, y) => [W/2 + x*sc, H/2 - y*sc], toW = (X, Y) => [(X - W/2)/sc, (H/2 - Y)/sc];
+
+let toastT = 0;
+function toast(m, ms = 3200){ const t = $("toast"); t.textContent = m; t.classList.remove("off"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.add("off"), ms); }
+
+// ---------- Configuraciones ----------
+const PRESETS = [["barra", "Imán de barra"], ["atraen", "Se atraen"], ["repelen", "Se repelen"], ["herradura", "Herradura"],
+                 ["bobina", "Bobina (electroimán)"], ["cable", "Cable con corriente"], ["tierra", "La Tierra"], ["uniforme", "Campo hacia la pantalla"], ["azar", "Al azar"]];
+PRESETS.forEach(([k, label]) => {
+  const b = document.createElement("button"); b.className = "chip"; b.type = "button"; b.dataset.preset = k; b.textContent = label;
+  b.setAttribute("aria-pressed", k === name); b.addEventListener("click", () => setPreset(k)); $("presets").appendChild(b);
+});
+const HINTS = {
+  barra: "Las líneas salen del polo norte (N) y entran por el sur (S). Suelta un electrón cerca de un polo.",
+  atraen: "N frente a S: las líneas pasan de un imán al otro. Por eso se atraen.",
+  repelen: "N frente a N: las líneas se empujan y en el medio el campo casi se anula. Por eso se repelen.",
+  herradura: "Doblar el imán junta sus polos: entre ellos el campo es fuerte y casi parejo.",
+  bobina: "Una pila empuja corriente por un cable enrollado (flechas amarillas). Adentro el campo es parejo y fuerte: un imán de barra que se apaga sin corriente.",
+  cable: "Una corriente que sale de la pantalla hace un campo en círculos (regla de la mano derecha).",
+  tierra: "Llega viento solar desde la izquierda. Las cargas se enrollan en las líneas: muchas quedan atrapadas rebotando (cinturones de Van Allen) y las que llegan cerca de los polos hacen auroras.",
+  uniforme: "El campo entra en la pantalla (⊗). El electrón gira en círculos: más rápido, círculo más grande.",
+  azar: "Imanes y cables puestos al azar: un campo enredado. Suelta electrones y mira sus caminos. Toca otra vez para otro campo."
+};
+function setPreset(k){
+  name = k; cfg = preset(k); parts = []; glows = []; dirty = true;
+  document.querySelectorAll("[data-preset]").forEach(b => b.setAttribute("aria-pressed", b.dataset.preset === k));
+  if (k === "tierra" && !rain) toggleRain(true);
+  toast(HINTS[k], 4200);
+}
+function rebuild(){ cur = currents(cfg, S0*strength, sign); }
+
+// ---------- Botones ----------
+$("shuffle").addEventListener("click", () => setPreset("azar"));
+function toggleRain(on){ rain = on; $("rain").setAttribute("aria-pressed", on); }
+$("rain").addEventListener("click", () => toggleRain(!rain));
+$("pause").addEventListener("click", () => { paused = !paused; $("pause").setAttribute("aria-pressed", paused); $("pauseLbl").textContent = paused ? "Seguir" : "Pausa"; });
+$("clear").addEventListener("click", () => { parts = []; glows = []; });
+$("flip").addEventListener("click", () => { sign = -sign; dirty = true; toast(sign > 0 ? "Imanes como al comienzo" : "Imanes invertidos: N y S cambian de lugar y la corriente va al revés"); });
+$("more").addEventListener("click", () => { const o = $("sheet").hidden; $("sheet").hidden = !o; $("more").setAttribute("aria-pressed", o); });
+document.querySelectorAll("[data-show]").forEach(b => b.addEventListener("click", () => {
+  show[b.dataset.show] = !show[b.dataset.show]; b.setAttribute("aria-pressed", show[b.dataset.show]); $("legend").hidden = !show.color;
+}));
+function bind(id, f){ const el = $(id), go = () => f(+el.value); el.addEventListener("input", go); go(); }
+bind("str", v => { strength = Math.pow(10, v); $("strOut").textContent = "× " + (strength < 10 ? fmt(strength, 1) : Math.round(strength)); dirty = true; });
+bind("spd", v => { beta = v; $("spdOut").textContent = Math.round(v*100) + " % de c"; });
+bind("dens", v => { dens = v; $("densOut").textContent = "× " + fmt(v, 1); dirty = true; });
+
+// ---------- Campo en una malla: potencial (líneas), fuerza (color) ----------
+let grid = null;
+function computeGrid(){
+  rebuild();
+  const step = coarse ? 9 : 4, nx = Math.ceil(W/step) + 1, ny = Math.ceil(H/step) + 1, A = new Float64Array(nx*ny);
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){ const [x, y] = toW(i*step, j*step); A[j*nx + i] = potential(cur, x, y); }
+  const sorted = Float64Array.from(A).sort(), lo = sorted[Math.floor(sorted.length*0.03)], hi = sorted[Math.floor(sorted.length*0.97)];
+  grid = {step, nx, ny, A, dA: Math.max(1e-9, (hi - lo)/(22*dens)), A0: lo};
+  // fuerza del campo: |B| = |∇A| por diferencias, en escala logarítmica
+  const img = new ImageData(nx, ny), d = img.data, h = step/sc, B = [0, 0];
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){
+    let b;
+    if (cfg.bz) b = Math.abs(S0*strength*cfg.bz);
+    else { const [x, y] = toW(i*step, j*step); field(cur, x, y, B); b = Math.hypot(B[0], B[1]); }
+    const t = Math.max(0, Math.min(1, (Math.log10(b/(S0*strength) + 1e-9) + 1.6)/2.2)), k = 4*(j*nx + i);
+    const c = t < 0.5 ? mix([22, 48, 74], [31, 138, 138], t*2) : mix([31, 138, 138], [232, 197, 71], (t - 0.5)*2);
+    d[k] = c[0]; d[k + 1] = c[1]; d[k + 2] = c[2]; d[k + 3] = 150;
+  }
+  const oc = document.createElement("canvas"); oc.width = nx; oc.height = ny; oc.getContext("2d").putImageData(img, 0, 0);
+  fieldImg = oc; void h;
+}
+const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v)*t));
+
+// Curvas de nivel de A (marching squares) con flechas que indican el sentido de B.
+function drawLines(){
+  const {step, nx, ny, A, dA, A0} = grid;
+  ctx.strokeStyle = "rgba(225,235,245,0.62)"; ctx.lineWidth = 1.1; ctx.beginPath();
+  const arrows = [];
+  const lerp = (x0, y0, x1, y1, a, b, v) => { const t = (v - a)/(b - a); return [x0 + (x1 - x0)*t, y0 + (y1 - y0)*t]; };
+  for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++){
+    const a = A[j*nx + i], b = A[j*nx + i + 1], c = A[(j + 1)*nx + i + 1], d = A[(j + 1)*nx + i];
+    const mn = Math.min(a, b, c, d), mx = Math.max(a, b, c, d);
+    let k0 = Math.ceil((mn - A0)/dA), k1 = Math.floor((mx - A0)/dA);
+    if (k1 - k0 > 6) continue;                       // junto a un cable: demasiadas líneas, se omiten
+    const X = i*step, Y = j*step;
+    for (let k = k0; k <= k1; k++){
+      const v = A0 + k*dA, pts = [];
+      if ((a < v) !== (b < v)) pts.push(lerp(X, Y, X + step, Y, a, b, v));
+      if ((b < v) !== (c < v)) pts.push(lerp(X + step, Y, X + step, Y + step, b, c, v));
+      if ((c < v) !== (d < v)) pts.push(lerp(X + step, Y + step, X, Y + step, c, d, v));
+      if ((d < v) !== (a < v)) pts.push(lerp(X, Y + step, X, Y, d, a, v));
+      for (let q = 0; q + 1 < pts.length; q += 2){ ctx.moveTo(pts[q][0], pts[q][1]); ctx.lineTo(pts[q + 1][0], pts[q + 1][1]); }
+      if (pts.length >= 2 && ((i*7 + j*13 + k*5) % 29 === 0)) arrows.push([(pts[0][0] + pts[1][0])/2, (pts[0][1] + pts[1][1])/2, (b - a + c - d)/2, (d - a + c - b)/2]);
+    }
+  }
+  ctx.stroke();
+  // B = (∂A/∂y, −∂A/∂x) en el mundo; en pantalla Y crece hacia abajo: B_pantalla = (−∂A/∂Y, ∂A/∂X)
+  ctx.fillStyle = "rgba(225,235,245,0.85)";
+  for (const [x, y, gx, gy] of arrows){
+    const bx = -gy, by = gx, L = Math.hypot(bx, by); if (!L) continue;
+    const ux = bx/L, uy = by/L;
+    ctx.beginPath(); ctx.moveTo(x + 5*ux, y + 5*uy); ctx.lineTo(x - 4*ux - 3.5*uy, y - 4*uy + 3.5*ux); ctx.lineTo(x - 4*ux + 3.5*uy, y - 4*uy - 3.5*ux); ctx.fill();
+  }
+}
+function insideAny(x, y){ for (const o of cfg.objs) for (const p of o.parts) if (inPoly(p.poly, x - o.x, y - o.y)) return o; return null; }
+function drawCompasses(){
+  const B = [0, 0, 0], gap = 34;
+  for (let Y = gap/2 + 60; Y < H; Y += gap) for (let X = gap/2; X < W; X += gap){
+    const [x, y] = toW(X, Y); if (insideAny(x, y)) continue;
+    Bf(x, y, B); const b = Math.hypot(B[0], B[1]); if (b < 1e-9) continue;
+    if (cfg.objs.some(o => o.wires.some(([wx, wy]) => Math.hypot(x - o.x - wx, y - o.y - wy) < 0.25))) continue;
+    const ux = B[0]/b, uy = -B[1]/b, L = 11, a = Math.max(0.35, Math.min(1, 0.55 + 0.25*Math.log10(b/(S0*strength))));
+    ctx.globalAlpha = a;
+    ctx.fillStyle = "#e05252"; ctx.beginPath(); ctx.moveTo(X + L*ux, Y + L*uy); ctx.lineTo(X - 3*uy, Y + 3*ux); ctx.lineTo(X + 3*uy, Y - 3*ux); ctx.fill();
+    ctx.fillStyle = "#dfe6ee"; ctx.beginPath(); ctx.moveTo(X - L*ux, Y - L*uy); ctx.lineTo(X - 3*uy, Y + 3*ux); ctx.lineTo(X + 3*uy, Y - 3*ux); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+function drawUniform(){
+  const gap = 42, into = sign*cfg.bz < 0;
+  ctx.strokeStyle = "rgba(225,235,245,0.45)"; ctx.lineWidth = 1.4;
+  for (let Y = gap/2 + 50; Y < H; Y += gap) for (let X = gap/2; X < W; X += gap){
+    ctx.beginPath(); ctx.arc(X, Y, 7, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath();
+    if (into){ ctx.moveTo(X - 4, Y - 4); ctx.lineTo(X + 4, Y + 4); ctx.moveTo(X + 4, Y - 4); ctx.lineTo(X - 4, Y + 4); ctx.stroke(); }
+    else { ctx.fillStyle = "rgba(225,235,245,0.6)"; ctx.arc(X, Y, 2, 0, Math.PI*2); ctx.fill(); }
+  }
+  const lab = into ? "⊗ el campo entra en la pantalla" : "⊙ el campo sale de la pantalla";
+  ctx.font = "600 12px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const tw = ctx.measureText(lab).width + 16; ctx.fillStyle = "rgba(11,19,34,0.9)"; ctx.fillRect(W/2 - tw/2, 64, tw, 22);
+  ctx.fillStyle = "#d6dee8"; ctx.fillText(lab, W/2, 75);
+}
+// Bobina vista de costado: cada vuelta es un anillo; adelante (brillante) la corriente baja y atrás (tenue) sube.
+// Los puntos ⊙/⊗ son donde el anillo cruza el plano de la pantalla. Flechas amarillas = la corriente que avanza.
+function drawCoil(o){
+  const R = 0.9, xs = o.wires.filter(w => w[2] > 0).map(w => w[0]).sort((a, b) => a - b), bulge = 0.4, yb = -2.05;
+  const P = (x, y) => toS(o.x + x, o.y + y);
+  const quad = (a, c, b, n = 14) => { const out = []; for (let i = 0; i <= n; i++){ const t = i/n, u = 1 - t; out.push([u*u*a[0] + 2*u*t*c[0] + t*t*b[0], u*u*a[1] + 2*u*t*c[1] + t*t*b[1]]); } return out; };
+  // camino de la corriente (sentido normal): pila + → izquierda → vueltas → derecha → pila −
+  const x0 = xs[0], x1 = xs[xs.length - 1], path = [[-0.18, yb], [x0 - 0.45, yb], [x0 - 0.45, R], [x0, R]], front = [], back = [];
+  xs.forEach((x, k) => {
+    const f = quad([x, R], [x + bulge, 0], [x, -R]); front.push(f); path.push(...f.slice(1));
+    if (k < xs.length - 1){ const b = quad([x, -R], [x + 0.15 - bulge, 0], [xs[k + 1], R]); back.push(b); path.push(...b.slice(1)); }
+  });
+  path.push([x1 + 0.45, -R], [x1 + 0.45, yb], [0.18, yb]);
+  const line = (pts) => { ctx.beginPath(); pts.forEach(([x, y], i) => { const [X, Y] = P(x, y); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.stroke(); };
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.strokeStyle = "rgba(184,120,58,0.45)"; ctx.lineWidth = Math.max(2, 0.05*sc); back.forEach(line);
+  ctx.strokeStyle = "#c98a4a"; ctx.lineWidth = Math.max(2, 0.05*sc);
+  line(path.slice(0, 4)); line(path.slice(path.length - 3));
+  ctx.lineWidth = Math.max(3, 0.08*sc); front.forEach(line);
+  // pila
+  const [bx, by] = P(0, yb), h = Math.max(22, 0.4*sc), pos = sign > 0 ? -1 : 1;     // el + queda del lado por donde sale la corriente
+  ctx.fillStyle = "#0b1322"; ctx.fillRect(bx - 18, by - h/2 - 22, 36, h + 26);
+  ctx.strokeStyle = "#e9eef5"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(bx + 6*pos, by - h/2); ctx.lineTo(bx + 6*pos, by + h/2); ctx.stroke();
+  ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(bx - 6*pos, by - h/4); ctx.lineTo(bx - 6*pos, by + h/4); ctx.stroke();
+  ctx.fillStyle = "#e9eef5"; ctx.font = "700 13px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  ctx.font = "800 16px Inter, sans-serif"; ctx.fillText("+", bx + 6*pos, by - h/2 - 3); ctx.fillText("−", bx - 6*pos, by - h/2 - 3);
+  ctx.font = "600 12px Inter, sans-serif"; ctx.textBaseline = "middle";
+  const lab = "pila: empuja la corriente por el cable", tw = ctx.measureText(lab).width + 16;
+  ctx.fillStyle = "rgba(11,19,34,0.9)"; ctx.fillRect(bx - tw/2, by + h/2 + 6, tw, 22);
+  ctx.fillStyle = "#d6dee8"; ctx.fillText(lab, bx, by + h/2 + 17);
+  // flechas de corriente que avanzan por el cable
+  const pts = sign > 0 ? path : path.slice().reverse(), L = [0];
+  for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const gap = 0.55, shift = (performance.now()/1000*0.5) % gap, a = Math.max(5, 0.1*sc);
+  ctx.fillStyle = "#ffd84d"; let j = 1;
+  for (let s = shift; s < L[L.length - 1]; s += gap){
+    while (L[j] < s) j++;
+    const t = (s - L[j - 1])/(L[j] - L[j - 1] || 1), x = pts[j - 1][0] + t*(pts[j][0] - pts[j - 1][0]), y = pts[j - 1][1] + t*(pts[j][1] - pts[j - 1][1]);
+    const [X, Y] = P(x, y), [X1, Y1] = P(pts[j][0], pts[j][1]), [X0, Y0] = P(pts[j - 1][0], pts[j - 1][1]), ang = Math.atan2(Y1 - Y0, X1 - X0);
+    const isBack = back.some(b => b.includes(pts[j]));
+    ctx.globalAlpha = isBack ? 0.35 : 1;
+    ctx.save(); ctx.translate(X, Y); ctx.rotate(ang); ctx.beginPath(); ctx.moveTo(a*0.7, 0); ctx.lineTo(-a*0.5, -a*0.5); ctx.lineTo(-a*0.5, a*0.5); ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  // polos del electroimán en los extremos del eje
+  ctx.font = "800 15px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (const [x, isN] of [[x1 + 0.95, sign > 0], [x0 - 0.95, sign < 0]]){
+    const [X, Y] = P(x, 0);
+    ctx.fillStyle = isN ? "#cf3d3d" : "#2f62c4"; ctx.beginPath(); ctx.arc(X, Y, 13, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.fillText(isN ? "N" : "S", X, Y + 1);
+  }
+}
+function drawMagnets(){
+  for (const o of cfg.objs){
+    for (const p of o.parts){
+      const pts = p.poly.map(([x, y]) => toS(o.x + x, o.y + y));
+      ctx.beginPath(); pts.forEach(([X, Y], i) => i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y)); ctx.closePath();
+      const M = [p.M[0]*sign, p.M[1]*sign];
+      if (p.paint === "bar"){
+        let mn = Infinity, mx = -Infinity; for (const [x, y] of p.poly){ const s = x*M[0] + y*M[1]; mn = Math.min(mn, s); mx = Math.max(mx, s); }
+        const [ax, ay] = toS(o.x + M[0]*mn, o.y + M[1]*mn), [bx, by] = toS(o.x + M[0]*mx, o.y + M[1]*mx);
+        const g = ctx.createLinearGradient(ax, ay, bx, by);
+        g.addColorStop(0, "#2f62c4"); g.addColorStop(0.5, "#2f62c4"); g.addColorStop(0.5, "#cf3d3d"); g.addColorStop(1, "#cf3d3d");
+        ctx.fillStyle = g;
+      } else if (p.paint === "earth"){
+        const [cx, cy] = toS(o.x, o.y), g = ctx.createRadialGradient(cx - 10, cy - 10, 4, cx, cy, 1.3*sc);
+        g.addColorStop(0, "#5fa8e8"); g.addColorStop(1, "#1d4f8f"); ctx.fillStyle = g;
+      } else ctx.fillStyle = p.paint === "gray" ? "#7d8794" : ((p.paint === "N") === (sign > 0) ? "#cf3d3d" : "#2f62c4");
+      ctx.globalAlpha = 0.88; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 1.2; ctx.stroke();
+      // letras de los polos: en los extremos a lo largo de M
+      if (p.paint !== "gray" && p.paint !== "earth"){
+        let mn = Infinity, mx = -Infinity, cx = 0, cy = 0;
+        for (const [x, y] of p.poly){ const s = x*M[0] + y*M[1]; mn = Math.min(mn, s); mx = Math.max(mx, s); cx += x/p.poly.length; cy += y/p.poly.length; }
+        const c0 = cx*M[0] + cy*M[1], off = (mx - mn)*0.32;
+        ctx.fillStyle = "#fff"; ctx.font = "800 16px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        if (p.pole){ const [X, Y] = toS(o.x + p.pole[0], o.y + p.pole[1]); ctx.fillText((p.paint === "N") === (sign > 0) ? "N" : "S", X, Y); }   // brazo de herradura: la letra en la punta
+        else for (const [sg, L] of [[1, "N"], [-1, "S"]]){ const [X, Y] = toS(o.x + cx + M[0]*(sg*off), o.y + cy + M[1]*(sg*off)); ctx.fillText(L, X, Y); }
+        void c0;
+      }
+    }
+    if (o.parts.some(p => p.paint === "earth")){
+      const [cx, cy] = toS(o.x, o.y), r = 1.3*sc;
+      ctx.fillStyle = "#4f9a5a";
+      ctx.beginPath(); ctx.ellipse(cx - r*0.25, cy - r*0.2, r*0.35, r*0.25, 0.6, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx + r*0.3, cy + r*0.3, r*0.25, r*0.35, -0.4, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = "700 12px Inter, sans-serif"; ctx.textAlign = "center";
+      ctx.textBaseline = "bottom"; ctx.fillText("Polo Norte", cx, cy - r - 4);
+      ctx.textBaseline = "top"; ctx.fillText("Polo Sur", cx, cy + r + 4);
+    }
+    if (o.coil) drawCoil(o);
+    for (const [x, y, I] of o.wires){
+      const [X, Y] = toS(o.x + x, o.y + y), r = o.coil ? Math.max(4, 0.07*sc) : Math.max(6, 0.13*sc), out = I*sign > 0;
+      ctx.fillStyle = "#b8783a"; ctx.strokeStyle = "#f3d3a8"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = "#fff"; ctx.fillStyle = "#fff"; ctx.beginPath();
+      if (out){ ctx.arc(X, Y, r*0.28, 0, Math.PI*2); ctx.fill(); }
+      else { const q = r*0.5; ctx.moveTo(X - q, Y - q); ctx.lineTo(X + q, Y + q); ctx.moveTo(X + q, Y - q); ctx.lineTo(X - q, Y + q); ctx.stroke(); }
+    }
+    if (name === "cable"){
+      const [X, Y] = toS(o.x, o.y);
+      ctx.fillStyle = "#d6dee8"; ctx.font = "600 12px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+      ctx.fillText(sign > 0 ? "corriente hacia ti (⊙)" : "corriente hacia adentro (⊗)", X, Y + 0.13*sc + 8);
+    }
+  }
+}
+const COL = {e: "#6cc3ff", p: "#ff8a5c", g: "#ffe066"}, LAB = {e: "e⁻", p: "p⁺", g: "γ"};
+function drawParticles(){
+  parts.forEach((p, idx) => {
+    if (p.trail.length > 1){
+      ctx.strokeStyle = COL[p.kind]; ctx.globalAlpha = 0.75; ctx.lineWidth = 1.6; ctx.beginPath();
+      p.trail.forEach(([x, y], i) => { const [X, Y] = toS(x, y); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+      ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    const [X, Y] = toS(p.x, p.y), r = 4*(1 + Math.max(-0.5, Math.min(1.2, p.z*0.35)));   // más grande si sale hacia ti
+    ctx.fillStyle = COL[p.kind]; ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 1; ctx.stroke();
+    if (idx >= parts.length - 3){ ctx.fillStyle = "#fff"; ctx.font = "700 11px Inter, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "bottom"; ctx.fillText(LAB[p.kind], X + r + 2, Y - 2); }   // solo las 3 más nuevas
+  });
+  for (const g of glows){
+    const [X, Y] = toS(g.x, g.y), a = Math.max(0, 1 - g.t/4), R = 18;
+    const gr = ctx.createRadialGradient(X, Y, 0, X, Y, R);
+    gr.addColorStop(0, `rgba(120,255,170,${0.8*a})`); gr.addColorStop(0.5, `rgba(170,110,255,${0.35*a})`); gr.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(X, Y, R, 0, Math.PI*2); ctx.fill();
+  }
+}
+let aim = null;
+function draw(){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#0b1322"; ctx.fillRect(0, 0, W, H);
+  if (dirty){ computeGrid(); dirty = false; }
+  if (show.color && fieldImg){ ctx.imageSmoothingEnabled = true; ctx.drawImage(fieldImg, 0, 0, grid.nx*grid.step, grid.ny*grid.step); }
+  if (cfg.bz) drawUniform();
+  else { if (show.lines) drawLines(); if (show.compass) drawCompasses(); }
+  drawMagnets();
+  drawParticles();
+  if (aim){
+    const [X0, Y0] = aim.a, [X1, Y1] = aim.b;
+    ctx.strokeStyle = COL[kind]; ctx.lineWidth = 2; ctx.setLineDash([5, 5]); ctx.beginPath(); ctx.moveTo(X0, Y0); ctx.lineTo(X1, Y1); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = COL[kind]; ctx.beginPath(); ctx.arc(X0, Y0, 5, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+// ---------- Interacción: arrastrar un imán lo mueve; arrastrar en el espacio suelta una partícula ----------
+const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+let drag = null;
+function objAt(x, y){
+  for (const o of cfg.objs){
+    if (o.parts.some(p => inPoly(p.poly, x - o.x, y - o.y))) return o;
+    if (o.wires.some(([wx, wy]) => Math.hypot(x - o.x - wx, y - o.y - wy) < 0.35)) return o;
+  }
+  return null;
+}
+cv.addEventListener("pointerdown", e => {
+  try { cv.setPointerCapture(e.pointerId); } catch (err){}
+  const [X, Y] = pos(e), [x, y] = toW(X, Y), o = objAt(x, y);
+  drag = o ? {o, x, y, ox: o.x, oy: o.y} : null;
+  aim = o ? null : {a: [X, Y], b: [X, Y]};
+});
+cv.addEventListener("pointermove", e => {
+  const [X, Y] = pos(e);
+  if (drag){ const [x, y] = toW(X, Y); drag.o.x = drag.ox + x - drag.x; drag.o.y = drag.oy + y - drag.y; coarse = true; dirty = true; }
+  else if (aim) aim.b = [X, Y];
+});
+function up(){
+  if (drag){ drag = null; coarse = false; dirty = true; return; }
+  if (!aim) return;
+  const [X0, Y0] = aim.a, [X1, Y1] = aim.b, [x, y] = toW(X0, Y0);
+  let dx = X1 - X0, dy = -(Y1 - Y0); if (Math.hypot(dx, dy) < 12){ dx = 1; dy = 0; }
+  addParticle(launch(kind, x, y, dx, dy, beta));
+  aim = null;
+}
+cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", () => { drag = null; aim = null; coarse = false; dirty = true; });
+function addParticle(p){ p.trail = [[p.x, p.y]]; p.age = 0; parts.push(p); if (parts.length > 60) parts.shift(); }
+
+// ---------- Bucle ----------
+function resize(){
+  dpr = Math.min(2.5, window.devicePixelRatio || 1); W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight);
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); sc = Math.min(W, H*0.95)/10; dirty = true;
+}
+new ResizeObserver(resize).observe(cv);
+let last = 0, rainT = 0;
+function frame(now){
+  const dt = last ? Math.min(0.05, (now - last)/1000) : 0; last = now;
+  if (!paused && W > 60){
+    if (rain){ rainT += dt; while (rainT > 0.22){ rainT -= 0.22; const [x0] = toW(4, 0), hh = H/sc*0.42; addParticle(launch(kind, x0, (Math.random()*2 - 1)*hh, 1, 0, beta)); } }
+    const xm = W/sc/2 + 3, ym = H/sc/2 + 3;
+    for (const p of parts){
+      advance(p, Bf, dt); p.age += dt;
+      p.trail.push([p.x, p.y]); if (p.trail.length > 500) p.trail.shift();
+      const o = insideAny(p.x, p.y);
+      if (o){ p.dead = true; glows.push({x: p.x, y: p.y, t: 0}); }
+      if (Math.abs(p.x) > xm || Math.abs(p.y) > ym || Math.abs(p.z) > 40 || p.age > 40) p.dead = true;
+    }
+    parts = parts.filter(p => !p.dead);
+    for (const g of glows) g.t += dt; glows = glows.filter(g => g.t < 4);
+  }
+  if (W > 60) draw();
+  requestAnimationFrame(frame);
+}
+toast("Toca y arrastra en el espacio para soltar una partícula. Arrastra un imán para moverlo.", 4500);
+if (window.SyMulaColor) requestAnimationFrame(frame); else addEventListener("DOMContentLoaded", () => requestAnimationFrame(frame));
+})();
+</script>
+<dialog class="kids" id="kids" aria-labelledby="kidsT"><div><h2 id="kidsT">¿Qué hace un imán?</h2><p>Un imán tiene a su alrededor algo invisible que se llama campo magnético. Las líneas muestran su forma: salen del polo norte (N) y entran por el polo sur (S). Donde las líneas están juntas, el imán tira más fuerte.</p><p>Un polo norte y un polo sur se atraen. Dos polos iguales se empujan.</p><p>Los electrones son partículas chiquitas con carga eléctrica. Al cruzar el campo se desvían: en vez de seguir derecho, giran y se enrollan alrededor de las líneas.</p><p>Así se forman las auroras: partículas que vienen del Sol siguen las líneas del imán de la Tierra hasta los polos y hacen brillar el cielo.</p><p class="try">Prueba: elige La Tierra con Lluvia de electrones. ¿Dónde aparecen las auroras? Después prueba Campo al azar: ¿puedes hacer que un electrón cruce todo el enredo?</p><button type="button" data-learn-close>Entendido</button></div></dialog>
+<!-- SyMula: ayudas (selector CSS → explicación simple; las muestra el bloque de botones comunes) -->
+<script type="application/json" id="tips">[["[data-preset=\"barra\"]","Imán de barra: un polo norte (N, rojo) y un polo sur (S, azul). Afuera las líneas van de N a S; adentro siguen de S a N y se cierran."],["[data-preset=\"atraen\"]","Polos distintos enfrentados (N con S): las líneas pasan de un imán al otro y los imanes se atraen."],["[data-preset=\"repelen\"]","Polos iguales enfrentados (N con N): las líneas se desvían y en el medio el campo casi se anula. Los imanes se empujan."],["[data-preset=\"herradura\"]","Imán de herradura: doblado para que sus polos queden cerca. Entre ellos el campo es fuerte y casi parejo."],["[data-preset=\"bobina\"]","Bobina: cable enrollado con corriente, visto de costado. Las vueltas de adelante se ven brillantes y las de atrás tenues; ⊙ y ⊗ marcan dónde el cable cruza la pantalla. Crea el mismo campo que un imán de barra: es un electroimán, y se apaga al cortar la corriente."],["[data-preset=\"cable\"]","Una corriente eléctrica crea un campo magnético en círculos alrededor del cable (Ørsted, 1820). Regla de la mano derecha: el pulgar en la corriente, los dedos dan el giro."],["[data-preset=\"tierra\"]","La Tierra tiene un campo magnético como el de un imán. Su polo sur magnético está cerca del Polo Norte geográfico: por eso el norte de la brújula apunta allá."],["[data-preset=\"uniforme\"]","Campo parejo que entra en la pantalla. Una carga que se mueve en él gira en círculos: radio r = γ m v / (|q| B)."],["[data-preset=\"azar\"]","Al azar: imanes y cables en lugares y direcciones al azar. Sus campos se suman y forman uno enredado. Toca otra vez para otro."],["#rain","Lluvia: suelta electrones sin parar desde la izquierda, como el viento solar que llega a la Tierra."],["#flip","Invertir: da vuelta todos los imanes y corrientes. El campo cambia de sentido y los electrones giran al revés."],["[data-show=\"lines\"]","Líneas de campo: muestran hacia dónde apuntaría una brújula. Donde se juntan, el campo es más fuerte."],["[data-show=\"compass\"]","Brújulas: la punta roja (su polo norte) apunta en el sentido del campo."],["[data-show=\"color\"]","Fuerza del campo con colores, de oscuro (débil) a amarillo (fuerte)."],["label:has(#str)","Fuerza del imán: multiplica el campo. Con más campo los electrones giran en círculos más chicos."],["label:has(#spd)","Rapidez del electrón como porcentaje de la velocidad de la luz (c). Nada con masa llega a c. Más rápido, círculos más grandes."],["label:has(#dens)","Cuántas líneas se dibujan. No cambia el campo, solo el dibujo."],["#shuffle","Campo al azar: arma un campo nuevo con imanes y cables puestos al azar."]]</script>
+<!-- fin SyMula: ayudas -->
+<!-- SyMula: selector de tema (botones con data-theme-set) -->
+<script>(function(){
+function sync(){var t=document.documentElement.getAttribute("data-theme");
+  document.querySelectorAll("[data-theme-set]").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-theme-set")===t);});
+  var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",getComputedStyle(document.documentElement).getPropertyValue("--background").trim());}
+window.SyMulaTheme=function(t){document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("symula-tema",t);}catch(e){}sync();
+  window.dispatchEvent(new Event("symula-tema"));};
+// colores del tema para dibujar en el lienzo: SyMulaColor("sem-1"), SyMulaColor("primary")...
+window.SyMulaColor=function(name){return getComputedStyle(document.documentElement).getPropertyValue("--"+name).trim();};
+document.querySelectorAll("[data-theme-set]").forEach(function(b){b.addEventListener("click",function(){SyMulaTheme(b.getAttribute("data-theme-set"));});});
+try{if(!localStorage.getItem("symula-tema")&&window.matchMedia)matchMedia("(prefers-color-scheme: light)").addEventListener("change",function(e){document.documentElement.setAttribute("data-theme",e.matches?"light":"dark");sync();window.dispatchEvent(new Event("symula-tema"));});}catch(e){}
+sync();})();</script>
+<!-- fin SyMula: selector de tema -->
+<!-- SyMula: botones comunes ("Saber más" abre #kids; data-full oculta el menú y pide pantalla completa) -->
+<script>(function(){var d=document.getElementById("kids"),b=document.querySelector("[data-learn]");
+if(d&&b){var shut=function(){if(d.close)d.close();else d.removeAttribute("open");};
+  b.addEventListener("click",function(){if(d.showModal)d.showModal();else d.setAttribute("open","");});
+  d.addEventListener("click",function(e){if(e.target===d||e.target.closest("[data-learn-close]"))shut();});}
+var f=document.querySelector("[data-full]");if(!f)return;
+var root=document.documentElement,req=root.requestFullscreen||root.webkitRequestFullscreen,
+  sv='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">',
+  ON=sv+'<path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/></svg>',OFF=sv+'<path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+function isFs(){return document.fullscreenElement||document.webkitFullscreenElement;}
+function set(on){document.body.classList.toggle("nodock",on);f.setAttribute("aria-pressed",on);f.innerHTML=on?OFF:ON;
+  f.setAttribute("aria-label",on?"Mostrar el menú":"Pantalla completa: ocultar el menú");
+  try{if(on&&req&&!isFs()){var p=req.call(root);if(p&&p.catch)p.catch(function(){});}
+    else if(!on&&isFs())(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}
+  setTimeout(function(){window.dispatchEvent(new Event("resize"));},60);}
+f.addEventListener("click",function(){set(!document.body.classList.contains("nodock"));});
+function left(){if(!isFs()&&document.body.classList.contains("nodock"))set(false);}
+document.addEventListener("fullscreenchange",left);document.addEventListener("webkitfullscreenchange",left);
+set(false);
+// Ocultar la parte de abajo (opciones): una manija al comienzo del menú; se recuerda en este equipo.
+var dk=document.querySelector(".dock");
+if(dk){var h=document.createElement("button");h.type="button";h.className="dock-handle";
+  var mini=function(on){document.body.classList.toggle("dockmin",on);h.setAttribute("aria-expanded",!on);
+    h.innerHTML=sv.replace("2.2","2.4")+'<path d="M6 9l6 6 6-6"/></svg>'+(on?"Mostrar opciones":"Ocultar opciones");
+    try{localStorage.setItem("symula-menu-chico",on?"1":"0");}catch(e){}
+    setTimeout(function(){window.dispatchEvent(new Event("resize"));},60);};
+  h.addEventListener("click",function(){mini(!document.body.classList.contains("dockmin"));});
+  dk.insertBefore(h,dk.firstChild);var st=null;try{st=localStorage.getItem("symula-menu-chico");}catch(e){}mini(st==="1");}
+// Ayudas: con el mouse encima (o el dedo apretado medio segundo) se explica el concepto. Lista en #tips: [selector, texto].
+var TIPS=[];try{var tj=document.getElementById("tips");if(tj)TIPS=JSON.parse(tj.textContent);}catch(e){}
+if(TIPS.length){
+  var tip=document.createElement("div");tip.className="tip";tip.id="symula-tip";tip.setAttribute("role","tooltip");document.body.appendChild(tip);
+  var cur=null,tmr=0,hideT=0,eat=0,byMouse=false;
+  var find=function(el){for(;el&&el.nodeType===1&&el!==document.body;el=el.parentElement){
+    if(el.closest("dialog"))return null;
+    for(var i=0;i<TIPS.length;i++){try{if(el.matches(TIPS[i][0]))return [el,TIPS[i][1]];}catch(e){}}}return null;};
+  var show=function(el,txt){cur=el;tip.textContent=txt;tip.classList.add("on");el.setAttribute("aria-describedby","symula-tip");
+    var r=el.getBoundingClientRect(),tw=tip.offsetWidth,th=tip.offsetHeight,x=Math.max(12,Math.min(innerWidth-tw-12,r.left+r.width/2-tw/2)),y=r.top-th-8;
+    if(y<8)y=Math.min(innerHeight-th-8,r.bottom+8);tip.style.left=x+"px";tip.style.top=y+"px";};
+  var hide=function(){clearTimeout(tmr);clearTimeout(hideT);tip.classList.remove("on");if(cur)cur.removeAttribute("aria-describedby");cur=null;};
+  document.addEventListener("pointerover",function(e){if(e.pointerType!=="mouse")return;var t=find(e.target);
+    if(!t){if(byMouse)hide();return;}if(t[0]===cur)return;hide();byMouse=true;tmr=setTimeout(function(){show(t[0],t[1]);},350);});
+  document.addEventListener("pointerdown",function(e){hide();if(e.pointerType==="mouse")return;byMouse=false;var t=find(e.target);if(!t)return;
+    var x0=e.clientX,y0=e.clientY,mv=function(ev){if(Math.hypot(ev.clientX-x0,ev.clientY-y0)>10)clearTimeout(tmr);},
+      up=function(){clearTimeout(tmr);document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);document.removeEventListener("pointercancel",up);};
+    tmr=setTimeout(function(){show(t[0],t[1]);eat=Date.now();hideT=setTimeout(hide,4000);},450);
+    document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);document.addEventListener("pointercancel",up);});
+  document.addEventListener("click",function(e){if(Date.now()-eat<800){e.preventDefault();e.stopPropagation();eat=0;}},true);
+  document.addEventListener("contextmenu",function(e){if(Date.now()-eat<1500)e.preventDefault();});
+  document.addEventListener("focusin",function(e){var t=find(e.target);if(t&&e.target.matches(":focus-visible"))show(t[0],t[1]);});
+  document.addEventListener("focusout",hide);document.addEventListener("keydown",function(e){if(e.key==="Escape")hide();});
+  addEventListener("scroll",hide,true);
+  var k=document.querySelector("#kids .try");
+  if(k){var p=document.createElement("p");p.textContent="Consejo: deja el mouse sobre un botón o un control, o mantén el dedo apretado sobre él, y aparece qué significa.";k.parentNode.insertBefore(p,k.nextSibling);}
+}
+})();</script>
+<!-- fin SyMula: botones comunes -->
+</body>
+</html>
